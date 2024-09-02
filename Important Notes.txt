@@ -1,0 +1,23 @@
+MongoDB:
+
+Username: dbUser
+Password: dbUserPassword
+
+
+Compass Connection String:
+mongodb+srv://dbUser:dbUserPassword@cluster0.fypkkcn.mongodb.net/
+
+Node.js Connection String:
+mongodb+srv://dbUser:dbUserPassword@cluster0.fypkkcn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+Mongosh Connection String:
+mongosh "mongodb+srv://cluster0.fypkkcn.mongodb.net/" --apiVersion 1 --username dbUser
+
+
+Need to do:
+Fix: Get Items from cart into order Items (ShopContext and PlacecOrder)
+Create a Profile User Account Users, Sellers and Admin
+Create an Admin for Handling Users and Sellers, 
+List of all orders in Admin
+Design The Whole Interface
+Trial/Dry Run of the Whole System
