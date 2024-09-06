@@ -10,17 +10,23 @@ const ProductDisplay = (props) => {
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState('');
   const [adjustedPrice, setAdjustedPrice] = useState(product.new_price);
-  
+  const [currentStock, setCurrentStock] = useState(product.stock); // Default to total stock
 
   useEffect(() => {
-    // Reset adjustedPrice when product changes
+    // Reset adjustedPrice and stock when product changes
     setAdjustedPrice(product.new_price);
     setSelectedSize(''); // Optionally reset size
+    setCurrentStock(product.stock); // Reset to default total stock
   }, [product]);
 
   const handleSizeChange = (size) => {
     setSelectedSize(size);
-    setAdjustedPrice(product.new_price + 100 * (size === 'S' ? 0 : size === 'M' ? 1 : size === 'L' ? 2 : 3));
+    // Adjust price based on size
+    setAdjustedPrice(product.new_price + 100 * (size === 'Small' ? 0 : size === 'Medium' ? 1 : size === 'Large' ? 2 : 3));
+    
+    // Check stock for selected size
+    const stockForSelectedSize = product.size[size]?.stock || 0;
+    setCurrentStock(stockForSelectedSize);
   };
 
   const handleAddToCart = async () => {
@@ -71,13 +77,19 @@ const ProductDisplay = (props) => {
           <div className="productdisplay-right-price-new">₱{adjustedPrice}</div>
         </div>
         <div className="productdisplay-stock">
-          <div className="">No. of Stock: {product.stock}</div>
+          <div>No. of Stock: {currentStock}</div> {/* Display current stock based on size */}
         </div>
         <div className="productdisplay-right-size">
           <h1>Select Size</h1>
           <div className="productdisplay-right-sizes">
-            {['S', 'M', 'L', 'XL'].map(size => (
-              <div key={size} onClick={() => handleSizeChange(size)} className={`size-option ${selectedSize === size ? 'selected' : ''}`}>{size}</div>
+            {['Small', 'Medium', 'Large', 'XL'].map(size => (
+              <div 
+                key={size} 
+                onClick={() => handleSizeChange(size)} 
+                className={`size-option ${selectedSize === size ? 'selected' : ''}`}
+              >
+                {size}
+              </div>
             ))}
           </div>
         </div>
