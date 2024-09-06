@@ -37,6 +37,7 @@ export const ListProduct = () => {
         <p>Old Price</p>
         <p>New Price</p>
         <p>Category</p>
+        <p>Size</p>
         <p>Stock</p>
         <p>Remove</p>
       </div>
@@ -50,6 +51,7 @@ export const ListProduct = () => {
               <p>₱{product.old_price}</p>
               <p>₱{product.new_price}</p>
               <p>{product.category}</p>
+              <p>{product.size}</p>
               <p>{product.stock}</p>
               <img onClick={() => { remove_product(product.id) }} className='listproduct-remove-icon' src={remove_icon} alt="" />
             </div>

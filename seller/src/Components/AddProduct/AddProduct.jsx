@@ -11,6 +11,7 @@ export const AddProduct = () => {
     category: "crafts",
     new_price: "",
     old_price: "",
+    size: "Small",
     stock: "",
     description: "",
   });
@@ -191,35 +192,48 @@ export const AddProduct = () => {
           )}
         </div>
       </div>
-      
       <div className="addproduct-price">
-        <div className="addproduct-itemfield">
-            <p>No. of Stocks</p>
-            <input
-              value={productDetails.stock}
-              onChange={changeHandler}
-              type="number"
-              min="0"
-              name="stock"
-            />
-            {errors.new_price && (
-              <span className="error-text">{errors.stock}</span>
-            )}
-          </div>
-        <div className="addproduct-itemfield">
-          <p>Product Category</p>
-          <select
-            value={productDetails.category}
-            onChange={changeHandler}
-            name="category"
-            className="add-product-selector"
-          >
-            <option value="crafts">Crafts</option>
-            <option value="clothes">Clothes</option>
-            <option value="food">Food</option>
-          </select>
-        </div>
+      <div className="addproduct-itemfield">
+        <p>Size</p>
+        <select
+          value={productDetails.size}
+          onChange={changeHandler}
+          name="size"
+          className="add-product-selector"
+        >
+          <option value="Small">Small</option>
+          <option value="Medium">Medium</option>
+          <option value="Large">Large</option>
+          <option value="XL">XL</option>
+        </select>
       </div>
+      <div className="addproduct-itemfield">
+        <p>No. of Stocks</p>
+        <input
+          value={productDetails.stock}
+          onChange={changeHandler}
+          name="stock"
+          min="0"
+          type="number"
+        >
+        </input>
+        </div>
+        <div className="addproduct-itemfield">
+        <p>Product Category</p>
+        <select
+          value={productDetails.category}
+          onChange={changeHandler}
+          name="category"
+          className="add-product-selector"
+        >
+          <option value="crafts">Crafts</option>
+          <option value="clothes">Clothes</option>
+          <option value="food">Food</option>
+        </select>
+      </div>
+      
+      </div>
+
       <div className="addproduct-itemfield">
         <label htmlFor="file-input">
           <img
