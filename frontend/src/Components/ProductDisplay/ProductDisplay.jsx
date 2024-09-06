@@ -10,6 +10,7 @@ const ProductDisplay = (props) => {
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState('');
   const [adjustedPrice, setAdjustedPrice] = useState(product.new_price);
+  
 
   useEffect(() => {
     // Reset adjustedPrice when product changes
