@@ -14,7 +14,7 @@
 
 .listproduct-format-main{
   display: grid;
-  grid-template-columns: 1fr 3fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr 1fr 1fr; 
   gap: 10px;
   width: 100%;
   padding: 20px 0px;
@@ -29,7 +29,7 @@
 }
 
 .listproduct-product-icon{
-  height: 200px;
+  height: 150px;
 }
 
 .listproduct-remove-icon{
@@ -40,6 +40,14 @@
 .listproduct-allproducts{
   overflow-y: auto;
 }
+
+.stock-input {
+  border-radius: 8px; 
+  resize: both; 
+  overflow: auto; 
+  width: 50%;
+}
+
 
 @media(max-width: 1040px) {
   .list-product{

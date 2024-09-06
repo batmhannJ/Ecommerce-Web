@@ -100,6 +100,7 @@ app.post('/addproduct', async (req, res) => {
     category: req.body.category,
     new_price: req.body.new_price,
     old_price: req.body.old_price,
+    stock: req.body.stock,
   });
   console.log(product);
   await product.save();

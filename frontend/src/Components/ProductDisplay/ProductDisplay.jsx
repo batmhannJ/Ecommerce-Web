@@ -69,7 +69,9 @@ const ProductDisplay = (props) => {
           <div className="productdisplay-right-price-old">₱{product.old_price}</div>
           <div className="productdisplay-right-price-new">₱{adjustedPrice}</div>
         </div>
-        
+        <div className="productdisplay-stock">
+          <div className="">No. of Stock: {product.stock}</div>
+        </div>
         <div className="productdisplay-right-size">
           <h1>Select Size</h1>
           <div className="productdisplay-right-sizes">
