@@ -199,6 +199,7 @@ export const AddProduct = () => {
           value={productDetails.size}
           onChange={changeHandler}
           name="size"
+          id="size"
           className="add-product-selector"
         >
           <option value="Small">Small</option>
