@@ -11,7 +11,7 @@ export const AddProduct = () => {
     category: "crafts",
     new_price: "",
     old_price: "",
-    size: "Small",
+    size: "S",
     stock: "",
     description: "",
   });
@@ -202,9 +202,9 @@ export const AddProduct = () => {
           id="size"
           className="add-product-selector"
         >
-          <option value="Small">Small</option>
-          <option value="Medium">Medium</option>
-          <option value="Large">Large</option>
+          <option value="S">Small</option>
+          <option value="M">Medium</option>
+          <option value="L">Large</option>
           <option value="XL">XL</option>
         </select>
       </div>

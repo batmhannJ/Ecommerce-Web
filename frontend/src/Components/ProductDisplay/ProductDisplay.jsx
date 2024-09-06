@@ -22,7 +22,7 @@ const ProductDisplay = (props) => {
   const handleSizeChange = (size) => {
     setSelectedSize(size);
     // Adjust price based on size
-    setAdjustedPrice(product.new_price + 100 * (size === 'Small' ? 0 : size === 'Medium' ? 1 : size === 'Large' ? 2 : 3));
+    setAdjustedPrice(product.new_price + 100 * (size === 'S' ? 0 : size === 'M' ? 1 : size === 'L' ? 2 : 3));
     
     // Check stock for selected size
     const stockForSelectedSize = product.size[size]?.stock || 0;
@@ -82,7 +82,7 @@ const ProductDisplay = (props) => {
         <div className="productdisplay-right-size">
           <h1>Select Size</h1>
           <div className="productdisplay-right-sizes">
-            {['Small', 'Medium', 'Large', 'XL'].map(size => (
+            {['S', 'M', 'L', 'XL'].map(size => (
               <div 
                 key={size} 
                 onClick={() => handleSizeChange(size)} 

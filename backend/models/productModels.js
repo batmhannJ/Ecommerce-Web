@@ -26,9 +26,9 @@ const ProductSchema = new mongoose.Schema({
     required: true,
   },
   size: {
-    Small: { stock: { type: Number, default: 0 } },
-    Medium: { stock: { type: Number, default: 0 } },
-    Large: { stock: { type: Number, default: 0 } },
+    S: { stock: { type: Number, default: 0 } },
+    M: { stock: { type: Number, default: 0 } },
+    L: { stock: { type: Number, default: 0 } },
     XL: { stock: { type: Number, default: 0 } },
   },
   stock: {

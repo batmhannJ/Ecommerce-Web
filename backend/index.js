@@ -101,9 +101,9 @@ app.post('/addproduct', async (req, res) => {
     new_price: req.body.new_price,
     old_price: req.body.old_price,
     size: {
-      Small: { stock: size.Small.stock },
-      Medium: { stock: size.Medium.stock },
-      Large: { stock: size.Large.stock },
+      S: { stock: size.Small.stock },
+      M: { stock: size.Medium.stock },
+      L: { stock: size.Large.stock },
       XL: { stock: size.XL.stock }
     },
     stock: req.body.stock,
