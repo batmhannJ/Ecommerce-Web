@@ -120,7 +120,12 @@ const ProductDisplay = (props) => {
             ))}
           </div>
         </div>
-        <button onClick={handleAddToCart}>ADD TO CART</button>
+        <button 
+          onClick={handleAddToCart} 
+          disabled={currentStock === 0 || !selectedSize} // Disable if stock is 0 or no size selected
+        >
+          {currentStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+        </button>
         <p className="productdisplay-right-category"><span>Category: </span>{product.category.toUpperCase()}</p>
         <p className="productdisplay-right-category"><span>Tags: </span>Modern, Latest</p>
       </div>
