@@ -26,10 +26,8 @@ const ProductSchema = new mongoose.Schema({
     required: true,
   },
   size: {
-    S: { stock: { type: Number, default: 0 } },
-    M: { stock: { type: Number, default: 0 } },
-    L: { stock: { type: Number, default: 0 } },
-    XL: { stock: { type: Number, default: 0 } },
+    type: String,
+    required: true,
   },
   stock: {
     type: Number, // This will store the total stock

@@ -3,6 +3,7 @@ import './ProductDisplay.css';
 import { ShopContext } from '../../Context/ShopContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Ensure axios is installed
 
 const ProductDisplay = (props) => {
   const { product } = props;
@@ -19,15 +20,34 @@ const ProductDisplay = (props) => {
     setCurrentStock(product.stock); // Reset to default total stock
   }, [product]);
 
-  const handleSizeChange = (size) => {
+  const handleSizeChange = async (size) => {
     setSelectedSize(size);
+
     // Adjust price based on size
-    setAdjustedPrice(product.new_price + 100 * (size === 'S' ? 0 : size === 'M' ? 1 : size === 'L' ? 2 : 3));
-    
-    // Check stock for selected size
-    const stockForSelectedSize = product.size[size]?.stock || 0;
-    setCurrentStock(stockForSelectedSize);
+    let priceAdjustment = 0;
+    if (size === 'S') {
+      priceAdjustment = 0;
+    } else if (size === 'M') {
+      priceAdjustment = 100;
+    } else if (size === 'L') {
+      priceAdjustment = 200;
+    } else if (size === 'XL') {
+      priceAdjustment = 300;
+    }
+    setAdjustedPrice(product.new_price + priceAdjustment);
+
+    let stockAdjustment = 0;
+    if (size === 'S') {
+      stockAdjustment = product.stock;
+    } else if (size === 'M') {
+      stockAdjustment = product.stock;
+    } else if (size === 'L') {
+      stockAdjustment = product.stock;
+    } else if (size === 'XL') {
+      stockAdjustment = product.stock;
+    }
   };
+
 
   const handleAddToCart = async () => {
     const authToken = localStorage.getItem('auth-token');
@@ -77,7 +97,7 @@ const ProductDisplay = (props) => {
           <div className="productdisplay-right-price-new">₱{adjustedPrice}</div>
         </div>
         <div className="productdisplay-stock">
-          <div>No. of Stock: {currentStock}</div> {/* Display current stock based on size */}
+        <p>No. of Stock: {currentStock}</p>
         </div>
         <div className="productdisplay-right-size">
           <h1>Select Size</h1>

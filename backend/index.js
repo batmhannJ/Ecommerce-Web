@@ -100,15 +100,9 @@ app.post('/addproduct', async (req, res) => {
     category: req.body.category,
     new_price: req.body.new_price,
     old_price: req.body.old_price,
-    size: {
-      S: { stock: size.Small.stock },
-      M: { stock: size.Medium.stock },
-      L: { stock: size.Large.stock },
-      XL: { stock: size.XL.stock }
-    },
+    size: req.body.size,
     stock: req.body.stock,
   });
-  console.log(product);
   await product.save();
   console.log("Saved");
   res.json({
