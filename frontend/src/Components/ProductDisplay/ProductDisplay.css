@@ -113,6 +113,12 @@
   font-weight: 600;
 }
 
+
+.productdisplay-stock{
+    color: #656565;
+    margin-top: -30px;
+}
+
 /* Responsive styles */
 @media (max-width: 1280px) {
   .productdisplay {

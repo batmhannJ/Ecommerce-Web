@@ -11,11 +11,13 @@ const ProductDisplay = (props) => {
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState('');
   const [adjustedPrice, setAdjustedPrice] = useState(product.new_price);
+  const [adjustedOldPrice, setAdjustedPriceOld] = useState(product.old_price);
   const [currentStock, setCurrentStock] = useState(product.stock); // Default to total stock
 
   useEffect(() => {
     // Reset adjustedPrice and stock when product changes
     setAdjustedPrice(product.new_price);
+    setAdjustedPriceOld(product.new_price);
     setSelectedSize(''); // Optionally reset size
     setCurrentStock(product.stock); // Reset to default total stock
   }, [product]);
@@ -35,6 +37,20 @@ const ProductDisplay = (props) => {
       priceAdjustment = 300;
     }
     setAdjustedPrice(product.new_price + priceAdjustment);
+
+    let priceAdjustmentOld = 0;
+    if (size === 'S') {
+      priceAdjustmentOld = 0;
+    } else if (size === 'M') {
+      priceAdjustmentOld = 100;
+    } else if (size === 'L') {
+      priceAdjustmentOld = 200;
+    } else if (size === 'XL') {
+      priceAdjustmentOld = 300;
+    }
+    setAdjustedPriceOld(product.old_price + priceAdjustmentOld);
+
+    
 
     // Adjust stock based on size selection
     let stockAdjustment = '';
@@ -99,9 +115,9 @@ const ProductDisplay = (props) => {
       </div>
       <div className="productdisplay-right">
         <h1>{product.name}</h1>
-        <h2>{product.description}</h2>
+        <h4>{product.description}</h4>
         <div className="productdisplay-right-prices">
-          <div className="productdisplay-right-price-old">₱{product.old_price}</div>
+          <div className="productdisplay-right-price-old">₱{adjustedOldPrice}</div>
           <div className="productdisplay-right-price-new">₱{adjustedPrice}</div>
         </div>
         <div className="productdisplay-stock">
