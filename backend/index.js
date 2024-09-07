@@ -94,6 +94,7 @@ app.post('/addproduct', async (req, res) => {
     id = 1;
   }
   const product = new Product({
+    
     id: id,
     name: req.body.name,
     image: req.body.image,
@@ -111,6 +112,22 @@ app.post('/addproduct', async (req, res) => {
   res.json({
     success: true,
     name: req.body.name,
+  });
+  const { name, image, category, new_price, old_price, s_stock, m_stock, l_stock, xl_stock, stock, description } = req.body;
+  
+  // Log received product data
+  console.log("Received Product Data:", {
+    name,
+    image,
+    category,
+    new_price,
+    old_price,
+    s_stock,
+    m_stock,
+    l_stock,
+    xl_stock,
+    stock,
+    description
   });
 });
 

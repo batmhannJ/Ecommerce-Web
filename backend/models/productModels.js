@@ -55,11 +55,11 @@ const ProductSchema = new mongoose.Schema({
   },
 });
 
-productSchema.virtual('totalStock').get(function() {
+ProductSchema.virtual('totalStock').get(function() {
   return this.s_stock + this.m_stock + this.l_stock + this.xl_stock;
 });
 
-productSchema.pre('addproduct-btn', function(next) {
+ProductSchema.pre('save', function(next) {
   this.stock = this.totalStock;
   next();
 });
