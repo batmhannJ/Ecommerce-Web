@@ -11,14 +11,14 @@ export const AddProduct = () => {
     category: "crafts",
     new_price: "",
     old_price: "",
-    s_stock: "",
-    m_stock: "",
-    l_stock: "",
-    xl_stock: "",
+    s_stock: 0,
+    m_stock: 0,
+    l_stock: 0,
+    xl_stock: 0,
     stock: 0,
     description: "",
   });
-  const [addedProduct, setAddedProduct] = useState(null); // State to store added product details
+  //const [addedProduct, setAddedProduct] = useState(null); // State to store added product details
 
   const computeTotalStock = () => {
     const { s_stock, m_stock, l_stock, xl_stock } = productDetails;
@@ -222,10 +222,10 @@ export const AddProduct = () => {
       <div className="addproduct-price">
         <div className="addproduct-itemfield">
           <p>Size and stock</p>
-          <label>Small: <input type="number" name="s_stock" value={productDetails.s_stock} min="0" onChange={changeHandler}></input></label>
-          <label>Medium: <input type="number" name="m_stock" value={productDetails.m_stock} min="0" onChange={changeHandler}></input></label>
-          <label>Large: <input type="number" name="l_stock" value={productDetails.l_stock} min="0" onChange={changeHandler}></input></label>
-          <label>XL: <input type="number" name="xl_stock" value={productDetails.xl_stock} min="0" onChange={changeHandler}></input></label>
+          <label>Small: <input type="number" name="s_stock"  min="0" onChange={changeHandler}></input></label>
+          <label>Medium: <input type="number" name="m_stock"  min="0" onChange={changeHandler}></input></label>
+          <label>Large: <input type="number" name="l_stock" min="0" onChange={changeHandler}></input></label>
+          <label>XL: <input type="number" name="xl_stock" min="0" onChange={changeHandler}></input></label>
         </div>
           <div className="addproduct-itemfield">
           <p>Product Category</p>
