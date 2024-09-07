@@ -89,6 +89,23 @@
   transform: scale(0.95);
 }
 
+.cartitems-quantity-controls {
+  display: flex;
+  align-items: center;
+}
+
+.cartitems-quantity-button {
+  border: none;
+  background-color: #f0f0f0;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.cartitems-quantity-button:hover {
+  background-color: #ddd;
+}
+
+
 /* Media Queries */
 @media (max-width: 1280px) {
   .cartitems {

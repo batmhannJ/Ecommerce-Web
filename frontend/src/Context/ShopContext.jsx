@@ -103,6 +103,16 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  const updateQuantity = (id, quantity) => {
+    setCartItems((prevCartItems) => ({
+      ...prevCartItems,
+      [id]: {
+        ...prevCartItems[id],
+        quantity,
+      },
+    }));
+  };
+
   const removeFromCart = (itemId) => {
     setCartItems((prev) => {
       const newQuantity = (prev[itemId]?.quantity || 0) - 1;
@@ -158,6 +168,7 @@ const ShopContextProvider = (props) => {
     cartItems,
     addToCart,
     removeFromCart,
+    updateQuantity,
     prepareOrderItems
   };
 

@@ -6,7 +6,7 @@ import remove_icon from '../Assets/remove_icon.png';
 import { toast } from 'react-toastify';
 
 const CartItems = () => {
-  const { getTotalCartAmount, all_product, cartItems, removeFromCart } = useContext(ShopContext);
+  const { getTotalCartAmount, all_product, cartItems, removeFromCart, updateQuantity } = useContext(ShopContext);
   const navigate = useNavigate();
 
   const handleProceedToCheckout = () => {
@@ -18,6 +18,13 @@ const CartItems = () => {
         position: "top-left"
       });
       navigate('/login');
+    }
+  };
+
+  const handleQuantityChange = (id, delta) => {
+    const currentQuantity = cartItems[id]?.quantity || 0;
+    if (currentQuantity + delta >= 0) {
+      updateQuantity(id, currentQuantity + delta);
     }
   };
 
@@ -43,7 +50,25 @@ const CartItems = () => {
                   <p>{product.name}</p>
                   <p>₱{cartItems[product.id].price}</p>
                   <p>{cartItems[product.id].size}</p>
-                  <button className='cartitems-quantity'>{cartItems[product.id].quantity}</button>
+                  <div className='cartitems-quantity-controls'>
+                    <button 
+                      className='cartitems-quantity-button' 
+                      onClick={() => handleQuantityChange(product.id, -1)}
+                    >
+                      -
+                    </button>
+                    <button 
+                      className='cartitems-quantity-button'
+                    >
+                      {cartItems[product.id].quantity}
+                    </button>
+                    <button 
+                      className='cartitems-quantity-button' 
+                      onClick={() => handleQuantityChange(product.id, 1)}
+                    >
+                      +
+                    </button>
+                  </div>
                   <p>₱{cartItems[product.id].price * cartItems[product.id].quantity}</p>
                   <img 
                     className='cartitems-remove-icon' 
