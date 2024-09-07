@@ -36,6 +36,18 @@
   background-color: #f9f9f9;
 }
 
+.addproduct-itemfield label {
+  display: grid;
+  grid-template-columns: 1fr 4fr; /* 1 fraction for labels, 2 fractions for inputs */
+  align-items: center;
+}
+
+.addproduct-itemfield .size-stock input {
+  margin-left: 10px; /* Space between the label and the input */
+  width: 150px;
+  margin-top: 5px;
+}
+
 .addproduct-description {
   display: flex;
   flex-direction: column;
@@ -124,6 +136,20 @@
   display: flex;
   align-items: center;
   gap: 5px; /* Add space between label and checkbox */
+}
+
+.size-stock-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* 1 fraction for labels, 2 fractions for inputs */
+  gap: 10px; /* Spacing between the labels and inputs */
+  align-items: center; /* Center-align the content vertically */
+}
+
+.size-stock-container label {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 
