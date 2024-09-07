@@ -221,11 +221,13 @@ export const AddProduct = () => {
       </div>
       <div className="addproduct-price">
         <div className="addproduct-itemfield">
+          <div className="size-stock">
           <p>Size and stock</p>
           <label>Small: <input type="number" name="s_stock"  min="0" onChange={changeHandler}></input></label>
           <label>Medium: <input type="number" name="m_stock"  min="0" onChange={changeHandler}></input></label>
           <label>Large: <input type="number" name="l_stock" min="0" onChange={changeHandler}></input></label>
           <label>XL: <input type="number" name="xl_stock" min="0" onChange={changeHandler}></input></label>
+        </div>
         </div>
           <div className="addproduct-itemfield">
           <p>Product Category</p>
