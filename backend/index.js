@@ -106,6 +106,7 @@ app.post('/addproduct', async (req, res) => {
     l_stock: req.body.l_stock,
     xl_stock: req.body.xl_stock,
     stock: req.body.stock,
+    description: req.body.description,
   });
   await product.save();
   console.log(product);

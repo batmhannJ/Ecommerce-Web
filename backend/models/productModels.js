@@ -13,6 +13,10 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  description:{
+    type: Text,
+    required: false,
+  },
   category: {
     type: String,
     required: true,
