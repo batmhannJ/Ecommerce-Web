@@ -25,13 +25,25 @@ const ProductSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  size: {
-    type: String,
-    required: true,
+  s_stock: {
+    type: Number,
+    default: 0,  // Provide a default value
+  },
+  m_stock: {
+    type: Number,
+    default: 0,
+  },
+  l_stock: {
+    type: Number,
+    default: 0,
+  },
+  xl_stock: {
+    type: Number,
+    default: 0,
   },
   stock: {
-    type: Number, // This will store the total stock
-    required: true,
+    type: Number,
+    default: 0,
   },
   date: {
     type: Date,
@@ -42,6 +54,16 @@ const ProductSchema = new mongoose.Schema({
     default: true
   },
 });
+
+productSchema.virtual('totalStock').get(function() {
+  return this.s_stock + this.m_stock + this.l_stock + this.xl_stock;
+});
+
+productSchema.pre('addproduct-btn', function(next) {
+  this.stock = this.totalStock;
+  next();
+});
+
 
 const Product = mongoose.model('Product', ProductSchema);
 

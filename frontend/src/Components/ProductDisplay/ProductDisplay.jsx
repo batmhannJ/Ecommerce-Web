@@ -36,17 +36,24 @@ const ProductDisplay = (props) => {
     }
     setAdjustedPrice(product.new_price + priceAdjustment);
 
-    let stockAdjustment = 0;
+    // Adjust stock based on size selection
+    let stockAdjustment = '';
     if (size === 'S') {
-      stockAdjustment = product.stock;
+      stockAdjustment = product.s_stock;
     } else if (size === 'M') {
-      stockAdjustment = product.stock;
+      stockAdjustment = product.m_stock;
     } else if (size === 'L') {
-      stockAdjustment = product.stock;
+      stockAdjustment = product.l_stock;
     } else if (size === 'XL') {
-      stockAdjustment = product.stock;
-    }
+      stockAdjustment = product.xl_stock;
+    }  
+    
+    console.log(`Selected Size: ${size}, Stock Available: ${stockAdjustment}`); // Log selected size and stock
+
+    // Ensure stock is updated
+    setCurrentStock(stockAdjustment);
   };
+  
 
 
   const handleAddToCart = async () => {

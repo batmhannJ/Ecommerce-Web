@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "./AddProduct.css";
 import upload_area from "../../assets/upload_area.png";
@@ -11,10 +11,26 @@ export const AddProduct = () => {
     category: "crafts",
     new_price: "",
     old_price: "",
-    size: "S",
-    stock: "",
+    s_stock: "",
+    m_stock: "",
+    l_stock: "",
+    xl_stock: "",
+    stock: 0,
     description: "",
   });
+  const [addedProduct, setAddedProduct] = useState(null); // State to store added product details
+
+  const computeTotalStock = () => {
+    const { s_stock, m_stock, l_stock, xl_stock } = productDetails;
+    return s_stock + m_stock + l_stock + xl_stock;
+  };
+
+  useEffect(() => {
+    setProductDetails(prevDetails => ({
+      ...prevDetails,
+      stock: computeTotalStock(),
+    }));
+  }, [productDetails.s_stock, productDetails.m_stock, productDetails.l_stock, productDetails.xl_stock]);
 
   const [errors, setErrors] = useState({
     old_price: "",
@@ -28,8 +44,16 @@ export const AddProduct = () => {
   const changeHandler = (e) => {
     const { name, value } = e.target;
 
-    // Validate numeric input
-    if (name === "old_price" || name === "new_price") {
+    // Handle numeric stock fields
+    if (["s_stock", "m_stock", "l_stock", "xl_stock"].includes(name)) {
+      if (!/^\d*$/.test(value)) {
+        return; // Only allow numeric input
+      }
+      setProductDetails(prevDetails => ({
+        ...prevDetails,
+        [name]: parseInt(value) || 0, // Update stock value or set to 0 if empty
+      }));
+    } else if (name === "old_price" || name === "new_price") {
       if (!/^\d*\.?\d*$/.test(value)) {
         setErrors({
           ...errors,
@@ -41,14 +65,16 @@ export const AddProduct = () => {
           [name]: "",
         });
       }
+      setProductDetails(prevDetails => ({
+        ...prevDetails,
+        [name]: value,
+      }));
+    } else {
+      setProductDetails(prevDetails => ({
+        ...prevDetails,
+        [name]: value,
+      }));
     }
-
-    // Update the product details
-    setProductDetails({
-      ...productDetails,
-      [name]: value,
-    });
-
     // Validate that the offer price is not higher than the original price
     if (
       name === "new_price" &&
@@ -133,6 +159,7 @@ export const AddProduct = () => {
             toast.success("Product Added", {
               position: "top-left",
             });
+            setAddedProduct(product); // Set the added product details
           } else {
             toast.error("Failed", {
               position: "top-left",
@@ -193,45 +220,26 @@ export const AddProduct = () => {
         </div>
       </div>
       <div className="addproduct-price">
-      <div className="addproduct-itemfield">
-        <p>Size</p>
-        <select
-          value={productDetails.size}
-          onChange={changeHandler}
-          name="size"
-          id="size"
-          className="add-product-selector"
-        >
-          <option value="S">Small</option>
-          <option value="M">Medium</option>
-          <option value="L">Large</option>
-          <option value="XL">XL</option>
-        </select>
-      </div>
-      <div className="addproduct-itemfield">
-        <p>No. of Stocks</p>
-        <input
-          value={productDetails.stock}
-          onChange={changeHandler}
-          name="stock"
-          min="0"
-          type="number"
-        >
-        </input>
-        </div>
         <div className="addproduct-itemfield">
-        <p>Product Category</p>
-        <select
-          value={productDetails.category}
-          onChange={changeHandler}
-          name="category"
-          className="add-product-selector"
-        >
-          <option value="crafts">Crafts</option>
-          <option value="clothes">Clothes</option>
-          <option value="food">Food</option>
-        </select>
-      </div>
+          <p>Size and stock</p>
+          <label>Small: <input type="number" name="s_stock" value={productDetails.s_stock} min="0" onChange={changeHandler}></input></label>
+          <label>Medium: <input type="number" name="m_stock" value={productDetails.m_stock} min="0" onChange={changeHandler}></input></label>
+          <label>Large: <input type="number" name="l_stock" value={productDetails.l_stock} min="0" onChange={changeHandler}></input></label>
+          <label>XL: <input type="number" name="xl_stock" value={productDetails.xl_stock} min="0" onChange={changeHandler}></input></label>
+        </div>
+          <div className="addproduct-itemfield">
+          <p>Product Category</p>
+          <select
+            value={productDetails.category}
+            onChange={changeHandler}
+            name="category"
+            className="add-product-selector"
+          >
+            <option value="crafts">Crafts</option>
+            <option value="clothes">Clothes</option>
+            <option value="food">Food</option>
+          </select>
+        </div>
       
       </div>
 
@@ -255,6 +263,24 @@ export const AddProduct = () => {
       <button onClick={Add_Product} className="addproduct-btn">
         ADD
       </button>
+
+      {/* Display added product details 
+      {addedProduct && (
+        <div className="product-details">
+          <h3>Product Details</h3>
+          <p><strong>Title:</strong> {addedProduct.name}</p>
+          <p><strong>Description:</strong> {addedProduct.description}</p>
+          <p><strong>Price:</strong> {addedProduct.old_price}</p>
+          <p><strong>Offer Price:</strong> {addedProduct.new_price}</p>
+          <p><strong>Category:</strong> {addedProduct.category}</p>
+          <p><strong>Stock:</strong> {addedProduct.s_stock}</p>
+          <p><strong>Stock:</strong> {addedProduct.m_stock}</p>
+          <p><strong>Stock:</strong> {addedProduct.l_stock}</p>
+          <p><strong>Stock:</strong> {addedProduct.xl_stock}</p>
+          <p><strong>Stock:</strong> {addedProduct.stock}</p>
+          <img src={addedProduct.image} alt="product" />
+        </div>
+      )}*/}
     </div>
   );
 };

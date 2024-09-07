@@ -110,6 +110,23 @@
   transform: scale(0.98);
 }
 
+/*.size-options {
+  display: flex;
+  gap: 20px; /* Adjust gap between options 
+}*/
+
+.size-option {
+  display: flex;
+  align-items: center;
+}
+
+.size-option label {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Add space between label and checkbox */
+}
+
+
 @media(max-width: 800px) {
   .add-product {
     padding: 20px;
