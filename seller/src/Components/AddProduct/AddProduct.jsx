@@ -193,7 +193,7 @@ export const AddProduct = () => {
       </div>
       <div className="addproduct-price">
         <div className="addproduct-itemfield">
-          <p>Price</p>
+          <p>Original Price</p>
           <input
             value={productDetails.old_price}
             onChange={changeHandler}
@@ -206,7 +206,7 @@ export const AddProduct = () => {
           )}
         </div>
         <div className="addproduct-itemfield">
-          <p>Offer Price</p>
+          <p>Offer Price for Small Size</p>
           <input
             value={productDetails.new_price}
             onChange={changeHandler}
