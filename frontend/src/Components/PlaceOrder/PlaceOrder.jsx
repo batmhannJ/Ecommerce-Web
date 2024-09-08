@@ -3,6 +3,7 @@ import { ShopContext } from "../../Context/ShopContext";
 import "./PlaceOrder.css";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { createCheckout } from "../Payment/services/checkout.ts"
 
 export const PlaceOrder = () => {
   const { getTotalCartAmount, cartItems, prepareOrderItems } = useContext(ShopContext);
@@ -18,7 +19,7 @@ export const PlaceOrder = () => {
     state: "",
     zipcode: "",
     country: "",
-    phone: ""
+    phone: "",
   });
 
   const onChangeHandler = (event) => {
@@ -39,7 +40,7 @@ export const PlaceOrder = () => {
 
     try {
       const orderItems = await prepareOrderItems(cartItems);
-      console.log('Order Items to be sent:', orderItems); // Debugging
+      console.log('Order Items to be sent:', orderItems);
 
       const orderData = {
         address: data,
@@ -52,7 +53,7 @@ export const PlaceOrder = () => {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${token}`, // Fixed template literal and quotes
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(orderData),
       });
@@ -60,8 +61,20 @@ export const PlaceOrder = () => {
       const responseData = await response.json();
 
       if (responseData.success) {
-        const { session_url } = responseData;
-        window.location.replace(session_url);
+        const checkoutResponse = await createCheckout(orderData, {
+          firstName: data.firstName,
+          lastName: data.lastName,
+        });
+
+        if (checkoutResponse.success) {
+          const { session_url } = checkoutResponse;
+          window.location.replace(session_url);
+        } else {
+          toast.error("Error creating Maya checkout session.", {
+            position: "top-left",
+          });
+          console.error("Error:", checkoutResponse.error);
+        }
       } else {
         toast.error("Error placing order", {
           position: "top-left",
@@ -71,7 +84,7 @@ export const PlaceOrder = () => {
       toast.error("An error occurred. Please try again.", {
         position: "top-left",
       });
-      console.error("Error placing order:", error); // Improved logging
+      console.error("Error placing order:", error);
     }
   };
 
@@ -79,7 +92,7 @@ export const PlaceOrder = () => {
     if (getTotalCartAmount() === 0) {
       navigate('/cart');
     }
-  }, [navigate]); // Removed getTotalCartAmount from dependencies
+  }, [navigate]);
 
   return (
     <form onSubmit={placeOrder} className="place-order">
@@ -125,7 +138,7 @@ export const PlaceOrder = () => {
             name="city"
             onChange={onChangeHandler}
             value={data.city}
-            type="city"
+            type="text"
             placeholder="City"
           />
           <input
@@ -133,7 +146,7 @@ export const PlaceOrder = () => {
             name="state"
             onChange={onChangeHandler}
             value={data.state}
-            type="state"
+            type="text"
             placeholder="State"
           />
         </div>
