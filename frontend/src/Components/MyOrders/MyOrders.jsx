@@ -20,10 +20,12 @@ const MyOrders = () => {
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
       }
-
       const result = await response.json();
-      setData(result.data);
-      console.log(result.data);
+          // Filter only successful transactions
+          const successfulOrders = result.data.filter(order => order.payment || order.status === 'Paid');
+      
+          setData(successfulOrders); // Set only successful orders to state
+          console.log(successfulOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
     }

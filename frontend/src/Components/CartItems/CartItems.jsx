@@ -1,24 +1,47 @@
-import React, { useContext } from 'react';
-import './CartItems.css';
-import { ShopContext } from '../../Context/ShopContext';
-import { useNavigate } from 'react-router-dom';
-import remove_icon from '../Assets/remove_icon.png';
-import { toast } from 'react-toastify';
+import React, { useContext } from "react";
+import "./CartItems.css";
+import { ShopContext } from "../../Context/ShopContext";
+import { useNavigate } from "react-router-dom";
+import remove_icon from "../Assets/remove_icon.png";
+import { toast } from "react-toastify";
 
-const CartItems = () => {
-  const { getTotalCartAmount, all_product, cartItems, removeFromCart, updateQuantity } = useContext(ShopContext);
+export const CartItems = () => {
+  const {
+    getTotalCartAmount,
+    all_product,
+    cartItems,
+    removeFromCart,
+    updateQuantity,
+  } = useContext(ShopContext);
   const navigate = useNavigate();
 
   const handleProceedToCheckout = () => {
-    const token = localStorage.getItem('auth-token');
+    const token = localStorage.getItem("auth-token");
     if (token) {
-      navigate('/order');
+      navigate("/order");
     } else {
-      toast.error('You are not logged in. Please log in to proceed to checkout.', {
-        position: "top-left"
-      });
-      navigate('/login');
+      toast.error(
+        "You are not logged in. Please log in to proceed to checkout.",
+        {
+          position: "top-left",
+        }
+      );
+      navigate("/login");
     }
+  };
+
+  const getCartItemsDetailsAsJson = () => {
+    const cartDetails = all_product
+      .filter(
+        (product) => cartItems[product.id] && cartItems[product.id].quantity > 0
+      )
+      .map((product) => ({
+        name: product.name,
+        price: cartItems[product.id].price,
+        quantity: cartItems[product.id].quantity,
+      }));
+
+    return JSON.stringify(cartDetails, null, 2);
   };
 
   const handleQuantityChange = (id, delta) => {
@@ -29,7 +52,7 @@ const CartItems = () => {
   };
 
   return (
-    <div className='cartitems'>
+    <div className="cartitems">
       <div className="cartitems-format-main">
         <p>Products</p>
         <p>Title</p>
@@ -46,38 +69,44 @@ const CartItems = () => {
             return (
               <div key={product.id}>
                 <div className="cartitems-format cartitems-format-main">
-                  <img src={product.image || remove_icon} alt="" className='cartitem-product-icon' />
+                  <img
+                    src={product.image || remove_icon}
+                    alt=""
+                    className="cartitem-product-icon"
+                  />
                   <p>{product.name}</p>
                   <p>₱{cartItems[product.id].price}</p>
                   <p>{cartItems[product.id].size}</p>
-                  <div className='cartitems-quantity-controls'>
-                    <button 
-                      className='cartitems-quantity-button' 
+                  <div className="cartitems-quantity-controls">
+                    <button
+                      className="cartitems-quantity-button"
                       onClick={() => handleQuantityChange(product.id, -1)}
                     >
                       -
                     </button>
-                    <button 
-                      className='cartitems-quantity-button'
-                    >
+                    <button className="cartitems-quantity-button">
                       {cartItems[product.id].quantity}
                     </button>
-                    <button 
-                      className='cartitems-quantity-button' 
+                    <button
+                      className="cartitems-quantity-button"
                       onClick={() => handleQuantityChange(product.id, 1)}
                     >
                       +
                     </button>
                   </div>
-                  <p>₱{cartItems[product.id].price * cartItems[product.id].quantity}</p>
-                  <img 
-                    className='cartitems-remove-icon' 
-                    src={remove_icon} 
+                  <p>
+                    ₱
+                    {cartItems[product.id].price *
+                      cartItems[product.id].quantity}
+                  </p>
+                  <img
+                    className="cartitems-remove-icon"
+                    src={remove_icon}
                     onClick={() => {
-                      console.log('Removing item:', product.id); // Debugging line
+                      console.log("Removing item:", product.id); // Debugging line
                       removeFromCart(product.id);
-                    }} 
-                    alt="Remove" 
+                    }}
+                    alt="Remove"
                   />
                 </div>
                 <hr />
@@ -105,7 +134,10 @@ const CartItems = () => {
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
-              <h3>₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}</h3>
+              {getCartItemsDetailsAsJson()}
+              <h3>
+                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}
+              </h3>
             </div>
           </div>
           <button onClick={handleProceedToCheckout}>PROCEED TO CHECKOUT</button>
