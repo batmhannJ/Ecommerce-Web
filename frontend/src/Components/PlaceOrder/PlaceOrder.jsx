@@ -3,10 +3,11 @@ import { ShopContext } from "../../Context/ShopContext";
 import "./PlaceOrder.css";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { createCheckout } from "../Payment/services/checkout.ts"
+import { CreateCheckout } from "./PaymayaPayment";
 
 export const PlaceOrder = () => {
-  const { getTotalCartAmount, cartItems, prepareOrderItems } = useContext(ShopContext);
+  const { getTotalCartAmount, cartItems, prepareOrderItems } =
+    useContext(ShopContext);
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
 
@@ -38,59 +39,23 @@ export const PlaceOrder = () => {
       return;
     }
 
-    try {
-      const orderItems = await prepareOrderItems(cartItems);
-      console.log('Order Items to be sent:', orderItems);
+    const orderItems = await prepareOrderItems(cartItems);
+    console.log("Order Items to be sent:", orderItems);
 
-      const orderData = {
-        address: data,
-        items: orderItems,
-        amount: getTotalCartAmount() + 50,
-      };
+    const orderData = {
+      address: data,
+      items: orderItems,
+      amount: getTotalCartAmount() + 50,
+    };
 
-      const response = await fetch('http://localhost:4000/api/order/place', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const responseData = await response.json();
-
-      if (responseData.success) {
-        const checkoutResponse = await createCheckout(orderData, {
-          firstName: data.firstName,
-          lastName: data.lastName,
-        });
-
-        if (checkoutResponse.success) {
-          const { session_url } = checkoutResponse;
-          window.location.replace(session_url);
-        } else {
-          toast.error("Error creating Maya checkout session.", {
-            position: "top-left",
-          });
-          console.error("Error:", checkoutResponse.error);
-        }
-      } else {
-        toast.error("Error placing order", {
-          position: "top-left",
-        });
-      }
-    } catch (error) {
-      toast.error("An error occurred. Please try again.", {
-        position: "top-left",
-      });
-      console.error("Error placing order:", error);
-    }
+    const checkoutResponse = await CreateCheckout;
+    const { session_url } = checkoutResponse;
+    window.location.replace(session_url);
   };
 
   useEffect(() => {
     if (getTotalCartAmount() === 0) {
-      navigate('/cart');
+      navigate("/cart");
     }
   }, [navigate]);
 
@@ -193,7 +158,9 @@ export const PlaceOrder = () => {
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
-              <h3>₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}</h3>
+              <h3>
+                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}
+              </h3>
             </div>
           </div>
           <button type="submit">PROCEED TO PAYMENT</button>
