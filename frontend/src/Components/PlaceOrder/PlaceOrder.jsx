@@ -117,7 +117,7 @@ export const PlaceOrder = () => {
   
   useEffect(() => {
     if (getTotalCartAmount() === 0) {
-      navigate('/cart');
+      navigate("/cart");
     }
   }, [navigate, getTotalCartAmount]);
 
@@ -220,7 +220,9 @@ export const PlaceOrder = () => {
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
-              <h3>₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}</h3>
+              <h3>
+                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}
+              </h3>
             </div>
           </div>
           <button type="submit">PROCEED TO PAYMENT</button>

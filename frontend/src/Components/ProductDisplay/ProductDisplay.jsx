@@ -13,11 +13,12 @@ const ProductDisplay = (props) => {
   const [adjustedPrice, setAdjustedPrice] = useState(product.new_price);
   const [adjustedOldPrice, setAdjustedPriceOld] = useState(product.old_price);
   const [currentStock, setCurrentStock] = useState(product.stock); // Default to total stock
+  const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
     // Reset adjustedPrice and stock when product changes
     setAdjustedPrice(product.new_price);
-    setAdjustedPriceOld(product.new_price);
+    setAdjustedPriceOld(product.old_price);
     setSelectedSize(''); // Optionally reset size
     setCurrentStock(product.stock); // Reset to default total stock
   }, [product]);
@@ -50,8 +51,6 @@ const ProductDisplay = (props) => {
     }
     setAdjustedPriceOld(product.old_price + priceAdjustmentOld);
 
-    
-
     // Adjust stock based on size selection
     let stockAdjustment = '';
     if (size === 'S') {
@@ -62,19 +61,17 @@ const ProductDisplay = (props) => {
       stockAdjustment = product.l_stock;
     } else if (size === 'XL') {
       stockAdjustment = product.xl_stock;
-    }  
-    
+    }
+
     console.log(`Selected Size: ${size}, Stock Available: ${stockAdjustment}`); // Log selected size and stock
 
     // Ensure stock is updated
     setCurrentStock(stockAdjustment);
   };
-  
-
 
   const handleAddToCart = async () => {
     const authToken = localStorage.getItem('auth-token');
-  
+
     if (authToken) {
       if (!selectedSize) {
         toast.info('Please select a size before adding to cart.', {
@@ -100,51 +97,69 @@ const ProductDisplay = (props) => {
     }
   };
 
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+  };
+
   return (
     <div className='productdisplay'>
       <div className="productdisplay-left">
+        <img className='productdisplay-main-img' src={product.image} alt="Main Image" />
         <div className="productdisplay-img-list">
-          <img src={product.image} alt="" />
-          <img src={product.image} alt="" />
-          <img src={product.image} alt="" />
-          <img src={product.image} alt="" />
-        </div>
-        <div className="productdisplay-img">
-          <img className='productdisplay-main-img' src={product.image} alt="" />
+          <img src={product.image} alt="Small Image 1" />
+          <img src={product.image} alt="Small Image 2" />
+          <img src={product.image} alt="Small Image 3" />
+          <img src={product.image} alt="Small Image 4" />
         </div>
       </div>
-      <div className="productdisplay-right">
-        <h1>{product.name}</h1>
-        <h4>{product.description}</h4>
+      <div className="productdisplay-right-container">
+        <div className="productdisplay-tabs">
+          <div
+            className={`productdisplay-tab ${activeTab === 'details' ? 'active' : ''}`}
+            onClick={() => handleTabClick('details')}
+          >
+            Details
+          </div>
+          <div
+            className={`productdisplay-tab ${activeTab === 'sizes' ? 'active' : ''}`}
+            onClick={() => handleTabClick('sizes')}
+          >
+            Sizes
+          </div>
+        </div>
+        <div className={`productdisplay-tab-content ${activeTab === 'details' ? 'active' : ''}`}>
+          <h1>{product.name}</h1>
+          <h4>{product.description}</h4>
+        </div>
+        <div className={`productdisplay-tab-content ${activeTab === 'sizes' ? 'active' : ''}`}>
         <div className="productdisplay-right-prices">
-          <div className="productdisplay-right-price-old">₱{adjustedOldPrice}</div>
-          <div className="productdisplay-right-price-new">₱{adjustedPrice}</div>
-        </div>
+        <p>Price:</p>
+            <div className="productdisplay-right-price-new">₱{adjustedPrice}</div>
+          </div>
         <div className="productdisplay-stock">
-        <p>No. of Stock: {currentStock}</p>
-        </div>
-        <div className="productdisplay-right-size">
-          <h1>Select Size</h1>
+            <p>No. of Stock: {currentStock}</p>
+          </div>
+          <h2>Select Size</h2>
           <div className="productdisplay-right-sizes">
             {['S', 'M', 'L', 'XL'].map(size => (
-              <div 
-                key={size} 
-                onClick={() => handleSizeChange(size)} 
+              <div
+                key={size}
+                onClick={() => handleSizeChange(size)}
                 className={`size-option ${selectedSize === size ? 'selected' : ''}`}
               >
                 {size}
               </div>
             ))}
           </div>
-        </div>
-        <button 
-          onClick={handleAddToCart} 
-          disabled={currentStock === 0 || !selectedSize} // Disable if stock is 0 or no size selected
+          <button
+          onClick={handleAddToCart}
+          disabled={currentStock === 0 || !selectedSize}
+          className="productdisplay-button" // Add this class
         >
           {currentStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
         </button>
-        <p className="productdisplay-right-category"><span>Category: </span>{product.category.toUpperCase()}</p>
-        <p className="productdisplay-right-category"><span>Tags: </span>Modern, Latest</p>
+        </div>
+
       </div>
     </div>
   );
