@@ -1,6 +1,6 @@
 import React from 'react';
 import './NewsLetter.css';
-import News_image from '../Assets/News_image.png';
+import News_image from '../Assets/tll.png';
 
 const NewsLetter = () => {
   return (
