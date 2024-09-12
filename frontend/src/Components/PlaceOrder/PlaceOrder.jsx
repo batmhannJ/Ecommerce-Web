@@ -3,13 +3,18 @@ import { ShopContext } from "../../Context/ShopContext";
 import "./PlaceOrder.css";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { createCheckout } from "../Payment/services/checkout.ts"
+import axios from "axios";
+
+const generateReferenceNumber = () => {
+  // Using timestamp + random number for simplicity
+  return `REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+};
 
 export const PlaceOrder = () => {
-  const { getTotalCartAmount, cartItems, prepareOrderItems } = useContext(ShopContext);
+  const { getTotalCartAmount, all_product, cartItems } = useContext(ShopContext);
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
-
+  
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -28,74 +33,96 @@ export const PlaceOrder = () => {
     setData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const placeOrder = async (event) => {
-    event.preventDefault();
+  const handleProceedToCheckout = async () => {
+    if (token) {
+      const cartDetails = all_product
+        .filter(
+          (product) => cartItems[product.id] && cartItems[product.id].quantity > 0
+        )
+        .map((product) => ({
+          name: product.name,
+          price: cartItems[product.id].price,
+          quantity: cartItems[product.id].quantity,
+        }));
 
-    if (!token) {
-      toast.error("Please login again.", {
-        position: "top-left",
-      });
-      return;
-    }
-
-    try {
-      const orderItems = await prepareOrderItems(cartItems);
-      console.log('Order Items to be sent:', orderItems);
-
-      const orderData = {
-        address: data,
-        items: orderItems,
-        amount: getTotalCartAmount() + 50,
+        // Generate a unique reference number for this checkout request
+        const requestReferenceNumber = generateReferenceNumber();
+      const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
+  
+      const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
+      if (!secretKey) {
+        toast.error("Missing API Key. Please check the environment configuration.");
+        return;
+      }
+  
+      const encodedKey = btoa(`${secretKey}:`);
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${encodedKey}`,
       };
-
-      const response = await fetch('http://localhost:4000/api/order/place', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+  
+      const requestBody = {
+        totalAmount: {
+          value: getTotalCartAmount() + 50,
+          currency: "PHP",
         },
-        body: JSON.stringify(orderData),
-      });
-
-      const responseData = await response.json();
-
-      if (responseData.success) {
-        const checkoutResponse = await createCheckout(orderData, {
+        buyer: {
           firstName: data.firstName,
           lastName: data.lastName,
-        });
-
-        if (checkoutResponse.success) {
-          const { session_url } = checkoutResponse;
-          window.location.replace(session_url);
+          contact: {
+            email: data.email,
+            phone: data.phone,
+          },
+        },
+        items: cartDetails.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          amount: {
+            value: item.price,
+          },
+          totalAmount: {
+            value: item.price * item.quantity,
+          },
+        })),
+        redirectUrl: {
+          success: "http://localhost:3000/myorders",
+          failure: "http://localhost:3000/failure",
+          cancel: "http://localhost:3000/cancel",
+        },
+        requestReferenceNumber,
+      };
+  
+      try {
+        console.log("Request Headers:", headers);
+        console.log("Request Body:", requestBody);
+  
+        const response = await axios.post(mayaApiUrl, requestBody, { headers });
+        if (response.data && response.data.redirectUrl) {
+          console.log("Redirecting to PayMaya:", response.data.redirectUrl);
+          // Redirect to the PayMaya checkout page
+          window.location.href = response.data.redirectUrl;
         } else {
-          toast.error("Error creating Maya checkout session.", {
-            position: "top-left",
-          });
-          console.error("Error:", checkoutResponse.error);
+          console.error("Checkout Response Error:", response.data);
+          toast.error("Checkout failed, please try again.");
         }
-      } else {
-        toast.error("Error placing order", {
-          position: "top-left",
-        });
+      } catch (error) {
+        console.error("Error during Maya checkout:", error.response ? error.response.data : error);
+        toast.error(`Checkout failed: ${error.message}`);
       }
-    } catch (error) {
-      toast.error("An error occurred. Please try again.", {
-        position: "top-left",
-      });
-      console.error("Error placing order:", error);
+    } else {
+      toast.error("You are not logged in. Please log in to proceed to checkout.");
+      navigate("/login");
     }
   };
-
+  
   useEffect(() => {
     if (getTotalCartAmount() === 0) {
-      navigate('/cart');
+      navigate("/cart");
     }
-  }, [navigate]);
+  }, [navigate, getTotalCartAmount]);
 
   return (
-    <form onSubmit={placeOrder} className="place-order">
+    <form onSubmit={(e) => {e.preventDefault(); handleProceedToCheckout();}} className="place-order">
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
         <div className="multi-fields">
@@ -193,7 +220,9 @@ export const PlaceOrder = () => {
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
-              <h3>₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}</h3>
+              <h3>
+                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}
+              </h3>
             </div>
           </div>
           <button type="submit">PROCEED TO PAYMENT</button>

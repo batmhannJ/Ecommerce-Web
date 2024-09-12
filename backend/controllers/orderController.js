@@ -1,13 +1,20 @@
 const orderModel = require('../models/orderModel');
 const userModel = require('../models/userModels');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const axios = require('axios');
+
+const generateReferenceNumber = () => {
+  // Generate a unique reference using timestamp and random numbers
+  return `REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+};
+
+//const stripe = require('stripe')(process.env.REACT_APP_CHECKOUT_SECRET_API_KEY);
 
 const PlaceOrder = async (req, res) => {
   const frontend_url = 'http://localhost:3000';
 
   try {
     // Debugging: Print the Stripe key to verify it's being read correctly
-    console.log("Stripe Secret Key:", process.env.STRIPE_SECRET_KEY);
+    console.log("Paymaya Secret Key:", process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY);
 
     // Create new order
     const newOrder = new orderModel({
@@ -35,7 +42,7 @@ const PlaceOrder = async (req, res) => {
     // Add delivery charges
     line_items.push({
       price_data: {
-        currency: "php",
+        currency: "PHP",
         product_data: {
           name: "Delivery Charges",
         },
@@ -43,15 +50,102 @@ const PlaceOrder = async (req, res) => {
       },
       quantity: 1
     })
+    console.log(JSON.stringify(requestBody, null, 2));
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      line_items: line_items,
-      payment_method_types: ['card'],
-      mode: 'payment',
-      success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-      cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
-    })
+    const createPayMayaCheckout = async (order, buyerInfo, requestReferenceNumber) => {
+      try {
+        // PayMaya Sandbox API endpoint
+        const payMayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
+    
+        // Fetch your PayMaya API key from environment variables
+        const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
+        if (!secretKey) {
+          throw new Error("PayMaya API Key missing from environment configuration");
+        }
+    
+        // Prepare headers
+        const encodedKey = Buffer.from(`${secretKey}:`).toString("base64");
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${encodedKey}`,
+        };
+    
+        // Create the payload for PayMaya API
+        const requestBody = {
+          totalAmount: {
+            value: order.amount,
+            currency: "PHP",
+          },
+          buyer: {
+            firstName: buyerInfo.firstName,
+            lastName: buyerInfo.lastName,
+            contact: {
+              email: buyerInfo.email,
+              phone: buyerInfo.phone,
+            },
+          },
+          items: order.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            amount: {
+              value: item.price,
+            },
+            totalAmount: {
+              value: item.price * item.quantity,
+            },
+          })),
+          redirectUrl: {
+            success: `${frontend_url}/verify?success=true&orderId=${order._id}`,
+            failure: `${frontend_url}/verify?success=false&orderId=${order._id}`,
+            cancel: `${frontend_url}/verify?success=cancel&orderId=${order._id}`,
+          },
+          requestReferenceNumber,
+        };
+    
+        // Make API request to PayMaya
+        const response = await axios.post(payMayaApiUrl, requestBody, { headers });
+    
+        // Return the checkout URL to redirect the user
+        return response.data.checkoutUrl;
+    
+      } catch (error) {
+        console.error("Error creating PayMaya checkout session:", error.response ? error.response.data : error);
+        throw new Error("PayMaya checkout session failed");
+      }
+    };
+    
+    const PlaceOrder = async (req, res) => {
+      const frontend_url = 'http://localhost:3000';
+    
+      try {
+
+        const requestReferenceNumber = generateReferenceNumber();
+        // Create new order in your database
+        const newOrder = new orderModel({
+          userId: req.user.id,
+          items: req.body.items,
+          amount: req.body.amount,
+          address: req.body.address,
+          referenceNumber: requestReferenceNumber,
+        });
+    
+        await newOrder.save();
+        await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
+    
+        // Create a PayMaya checkout session
+        const checkoutUrl = await createPayMayaCheckout(newOrder, req.body.buyer, requestReferenceNumber);
+    
+        // Return the checkout URL so the frontend can redirect the user to PayMaya's checkout page
+        res.json({ success: true, checkoutUrl, referenceNumber: requestReferenceNumber });
+    
+      } catch (error) {
+        console.log("Error placing order:", error);
+        res.json({
+          success: false,
+          message: 'An error occurred while placing your order. Please try again.'
+        });
+      }
+    };
 
     res.json({ success: true, session_url: session.url })
 

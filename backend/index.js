@@ -29,6 +29,25 @@ app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
 
+/* app.post('/paymaya-checkout', async (req, res) => {
+  try {
+    const response = await axios.post('https://pg-sandbox.paymaya.com/checkout/v1/checkouts', req.body, {
+      headers: {
+        Authorization: 'Basic WDdZM2VUdnhLUEY5WWRRZzljdmxhckRzWjdiWUNZdjB3blJHOGVpb215cg==',
+        'Content-Type': 'application/json'
+      }
+    });
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send(error.response ? error.response.data : { error: 'Something went wrong' });
+  }
+});*/
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
 app.listen(port, (error) => {
   if (!error) {
     console.log("Server Running on Port: " + port);
