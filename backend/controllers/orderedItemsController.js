@@ -1,0 +1,81 @@
+const Order = require("../models/orderedItemsModel");
+
+exports.createOrderedList = async (req, res) => {
+  try {
+    const newOrder = new Order({
+      totalAmount: data.response.totalAmount,
+      buyer: data.response.buyer,
+      items: data.response.items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        amount: item.amount,
+        totalAmount: item.totalAmount,
+        price: item.price,
+        description: item.description,
+        image: item.image,
+      })),
+      redirectUrl: data.response.redirectUrl,
+      requestReferenceNumber: data.response.requestReferenceNumber,
+    });
+    await newOrder.save();
+    res.status(201).json(newOrder);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getOrderedList = async (req, res) => {
+  try {
+    const orders = await Order.find();
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getOrderedListById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateOrderedList = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!order) {
+      return;
+      res.status(404).json({ message: "Order not found" });
+    }
+    res.json(order);
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+exports.deleteOrderedList = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+    res.json({ message: "Order deleted successfully" });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

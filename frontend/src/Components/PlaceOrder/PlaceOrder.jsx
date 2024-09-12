@@ -4,17 +4,44 @@ import "./PlaceOrder.css";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
+
+async function submitOrder(orderData) {
+  try {
+    const response = await axios.post(
+      `http://localhost:4000/api/orderedItems/`,
+      orderData
+    );
+    console.log("Order created successfully:", response.data);
+    console.log("Order created successfully:", response.data);
+    console.log("Order created successfully:", response.data);
+    console.log("Order created successfully:", response.data);
+    console.log("Order created successfully:", response.data);
+    console.log("Order created successfully:", response.data);
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+    console.log("Order created successfully:");
+  } catch (error) {
+    console.error("Error creating order:", error);
+  }
+}
 
 const generateReferenceNumber = () => {
-  // Using timestamp + random number for simplicity
-  return `REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  return uuidv4();
 };
 
 export const PlaceOrder = () => {
-  const { getTotalCartAmount, all_product, cartItems } = useContext(ShopContext);
+  const { getTotalCartAmount, all_product, cartItems } =
+    useContext(ShopContext);
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
-  
+
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -37,7 +64,8 @@ export const PlaceOrder = () => {
     if (token) {
       const cartDetails = all_product
         .filter(
-          (product) => cartItems[product.id] && cartItems[product.id].quantity > 0
+          (product) =>
+            cartItems[product.id] && cartItems[product.id].quantity > 0
         )
         .map((product) => ({
           name: product.name,
@@ -45,22 +73,24 @@ export const PlaceOrder = () => {
           quantity: cartItems[product.id].quantity,
         }));
 
-        // Generate a unique reference number for this checkout request
-        const requestReferenceNumber = generateReferenceNumber();
+      // Generate a unique reference number for this checkout request
+      const requestReferenceNumber = generateReferenceNumber();
       const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
-  
+
       const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
       if (!secretKey) {
-        toast.error("Missing API Key. Please check the environment configuration.");
+        toast.error(
+          "Missing API Key. Please check the environment configuration."
+        );
         return;
       }
-  
+
       const encodedKey = btoa(`${secretKey}:`);
       const headers = {
         "Content-Type": "application/json",
         Authorization: `Basic ${encodedKey}`,
       };
-  
+
       const requestBody = {
         totalAmount: {
           value: getTotalCartAmount() + 50,
@@ -85,36 +115,45 @@ export const PlaceOrder = () => {
           },
         })),
         redirectUrl: {
-          success: "http://localhost:3000/myorders",
-          failure: "http://localhost:3000/failure",
-          cancel: "http://localhost:3000/cancel",
+          success:
+            "http://localhost:3000/myorders?rrn=" + requestReferenceNumber,
+          failure:
+            "http://localhost:3000/failure?rrn=" + requestReferenceNumber,
+          cancel: "http://localhost:3000/cancel?rrn=" + requestReferenceNumber,
         },
         requestReferenceNumber,
       };
-  
+
       try {
         console.log("Request Headers:", headers);
         console.log("Request Body:", requestBody);
-  
+
         const response = await axios.post(mayaApiUrl, requestBody, { headers });
         if (response.data && response.data.redirectUrl) {
           console.log("Redirecting to PayMaya:", response.data.redirectUrl);
-          // Redirect to the PayMaya checkout page
-          window.location.href = response.data.redirectUrl;
+
+          submitOrder(response);
+
+          // window.location.href = response.data.redirectUrl;
         } else {
           console.error("Checkout Response Error:", response.data);
           toast.error("Checkout failed, please try again.");
         }
       } catch (error) {
-        console.error("Error during Maya checkout:", error.response ? error.response.data : error);
+        console.error(
+          "Error during Maya checkout:",
+          error.response ? error.response.data : error
+        );
         toast.error(`Checkout failed: ${error.message}`);
       }
     } else {
-      toast.error("You are not logged in. Please log in to proceed to checkout.");
+      toast.error(
+        "You are not logged in. Please log in to proceed to checkout."
+      );
       navigate("/login");
     }
   };
-  
+
   useEffect(() => {
     if (getTotalCartAmount() === 0) {
       navigate("/cart");
@@ -122,7 +161,13 @@ export const PlaceOrder = () => {
   }, [navigate, getTotalCartAmount]);
 
   return (
-    <form onSubmit={(e) => {e.preventDefault(); handleProceedToCheckout();}} className="place-order">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleProceedToCheckout();
+      }}
+      className="place-order"
+    >
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
         <div className="multi-fields">
