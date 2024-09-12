@@ -1,39 +1,52 @@
 .about-container {
-    padding: 20px;
+    padding: 40px;
     max-width: 1200px;
     margin: 0 auto;
+    border-radius: 8px; /* Rounded corners */
 }
 
 .about-container h1 {
-    text-align: center; 
-    margin-bottom: 30px;
+    text-align: center;
+    font-size: 2.5em; /* Larger font size for emphasis */
+    color: #333; /* Darker text for readability */
+    margin-bottom: 20px;
 }
 
 .about-container h2 {
-    text-align: center; 
-    margin-bottom: 30px;
+    text-align: center;
+    font-size: 2em; /* Slightly smaller than h1 */
+    color: #555; /* Lighter shade for subheadings */
+    margin-bottom: 20px;
 }
 
 .about-sections {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px; 
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid layout */
+    gap: 20px; /* Adjust spacing between sections */
 }
 
 .about-section {
-    flex: 1 1 calc(33.333% - 30px); 
-    margin-bottom: 40px; 
-    padding: 20px; 
+    background-color: #fff; /* White background for sections */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: transform 0.3s, box-shadow 0.3s; /* Smooth hover effect */
+}
+
+.about-section:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
 }
 
 .about-section h2 {
-    text-align: center; 
-    margin-bottom: 20px; 
+    font-size: 1.5em; /* Adjust heading size for sections */
+    color: #333; /* Dark text color */
+    margin-bottom: 15px;
 }
 
 .about-section p {
-    text-align: left; 
     font-size: 1em;
     line-height: 1.6;
-    margin-bottom: 20px; 
+    color: #666; /* Lighter text color */
+    margin-bottom: 20px;
 }
