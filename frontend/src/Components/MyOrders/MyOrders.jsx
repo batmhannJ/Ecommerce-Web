@@ -5,10 +5,10 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 
 const MyOrders = () => {
-  const { rrn } = useParams(); // Destructure rrn directly from useParams
-  const [data, setData] = useState(null); // Initialize with null for better loading state handling
-  const [loading, setLoading] = useState(true); // Track loading state
-  const [error, setError] = useState(null); // Track any errors
+  const { rrn } = useParams();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,14 +25,14 @@ const MyOrders = () => {
     };
 
     fetchData();
-  }, [rrn]); // Dependency array to refetch data when rrn changes
+  }, [rrn]);
 
   if (loading) {
-    return <div>Loading...</div>; // Display loading message while data is being fetched
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>; // Display error message if there’s an error
+    return <div>Error: {error}</div>;
   }
 
   return (
