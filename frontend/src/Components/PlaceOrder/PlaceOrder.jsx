@@ -6,32 +6,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 
-async function submitOrder(orderData) {
-  try {
-    const response = await axios.post(
-      `http://localhost:4000/api/orderedItems/`,
-      orderData
-    );
-    console.log("Order created successfully:", response.data);
-    console.log("Order created successfully:", response.data);
-    console.log("Order created successfully:", response.data);
-    console.log("Order created successfully:", response.data);
-    console.log("Order created successfully:", response.data);
-    console.log("Order created successfully:", response.data);
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-    console.log("Order created successfully:");
-  } catch (error) {
-    console.error("Error creating order:", error);
-  }
-}
-
 const generateReferenceNumber = () => {
   return uuidv4();
 };
@@ -59,6 +33,18 @@ export const PlaceOrder = () => {
     const value = event.target.value;
     setData((prevData) => ({ ...prevData, [name]: value }));
   };
+
+  // async function submitOrder(orderData) {
+  //   try {
+  //     const response = await axios.post(
+  //       `http://localhost:4000/api/orderedItems/`,
+  //       orderData
+  //     );
+  //     console.log("Order created successfully:", response.data);
+  //   } catch (error) {
+  //     console.error("Error creating order:", error);
+  //   }
+  // }
 
   const handleProceedToCheckout = async () => {
     if (token) {
@@ -115,8 +101,7 @@ export const PlaceOrder = () => {
           },
         })),
         redirectUrl: {
-          success:
-            "http://localhost:3000/myorders?rrn=" + requestReferenceNumber,
+          success: "http://localhost:3000/myorders/" + requestReferenceNumber,
           failure:
             "http://localhost:3000/failure?rrn=" + requestReferenceNumber,
           cancel: "http://localhost:3000/cancel?rrn=" + requestReferenceNumber,
@@ -131,10 +116,11 @@ export const PlaceOrder = () => {
         const response = await axios.post(mayaApiUrl, requestBody, { headers });
         if (response.data && response.data.redirectUrl) {
           console.log("Redirecting to PayMaya:", response.data.redirectUrl);
-
-          submitOrder(response);
-
-          // window.location.href = response.data.redirectUrl;
+          axios.post(
+            "http://localhost:4000/api/ordered-items/addPaidItems",
+            requestBody
+          );
+          window.location.href = response.data.redirectUrl;
         } else {
           console.error("Checkout Response Error:", response.data);
           toast.error("Checkout failed, please try again.");

@@ -1,68 +1,50 @@
 import React, { useEffect, useState, useCallback } from "react";
 import "./MyOrders.css";
 import parcel_icon from "../../Components/Assets/parcel_icon.png";
+import axios from "axios";
+import { useParams } from "react-router-dom";
 
 const MyOrders = () => {
-  const token = localStorage.getItem("auth-token");
-  const [data, setData] = useState([]);
-
-  const fetchOrders = useCallback(async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/api/order/userorders",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({}),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders");
-      }
-      const result = await response.json();
-      const successfulOrders = result.data.filter(
-        (order) => order.payment || order.status === "Paid"
-      );
-
-      setData(successfulOrders);
-      console.log(successfulOrders);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    }
-  }, [token]);
+  const { rrn } = useParams(); // Destructure rrn directly from useParams
+  const [data, setData] = useState(null); // Initialize with null for better loading state handling
+  const [loading, setLoading] = useState(true); // Track loading state
+  const [error, setError] = useState(null); // Track any errors
 
   useEffect(() => {
-    if (token) {
-      fetchOrders();
-    }
-  }, [token, fetchOrders]);
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:4000/api/ordered-items/getOrderedItemsById/${rrn}`
+        );
+        setData(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [rrn]); // Dependency array to refetch data when rrn changes
+
+  if (loading) {
+    return <div>Loading...</div>; // Display loading message while data is being fetched
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>; // Display error message if there’s an error
+  }
 
   return (
     <div className="my-orders">
       <h2>My Orders</h2>
       <div className="container">
-        {data.map((order, index) => (
-          <div key={index} className="my-orders-order">
-            <img src={parcel_icon} alt="Parcel Icon" />
-            <p>
-              {order.items.map((item, idx) =>
-                idx === order.items.length - 1
-                  ? item.name + " x " + item.quantity
-                  : item.name + " x " + item.quantity + ", "
-              )}
-            </p>
-            <p>₱{order.amount}.00</p>
-            <p>Items: {order.items.length}</p>
-            <p>
-              <span>&#x25cf;</span> <b>{order.status}</b>
-            </p>
-            <button onClick={fetchOrders}>Track Orders</button>
-          </div>
-        ))}
+        {/* Render the data here */}
+        {data ? (
+          <pre>{JSON.stringify(data, null, 2)}</pre> // Display data as JSON for debugging
+        ) : (
+          <p>No data available</p>
+        )}
       </div>
     </div>
   );

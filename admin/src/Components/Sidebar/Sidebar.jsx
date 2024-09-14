@@ -26,6 +26,12 @@ export const Sidebar = () => {
           <p>User Manager</p>
         </div>
       </Link>
+      <Link to='/admin/transactions' style={{ textDecoration: 'none' }}>
+        <div className="sidebar-item">
+          <img src={user_management_icon} alt="User Management Icon" />
+          <p>Transaction Management</p>
+        </div>
+      </Link>
     </div>
   );
 };

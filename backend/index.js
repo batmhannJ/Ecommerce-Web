@@ -81,6 +81,8 @@ app.post("/upload", upload.single("product"), (req, res) => {
   });
 });
 
+const CartItems = require("./models/orderedItemsModel");
+
 // Schema for Creating Products
 const Product = require("./models/productModels");
 
@@ -96,6 +98,8 @@ app.use("/api/order", orderRouter);
 // Seller Login Sign Up Endpoint
 app.use("/api/seller", sellerRouter);
 
+app.use("/api/ordered-items", orderedItemsRouter);
+
 // Fetch all users
 app.get("/users", async (req, res) => {
   try {
@@ -104,6 +108,18 @@ app.get("/users", async (req, res) => {
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+app.post("/api/ordered-items", orderedItemsRouter);
+app.get("/getPaidItems", orderedItemsRouter);
+app.get("/getOrderedItemsById/:id", async (req, res) => {
+  try {
+    const orders = await Order.find({});
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
@@ -297,21 +313,11 @@ app.get("/relatedproducts/:category", async (req, res) => {
   }
 });
 
-// Admin Routes
-app.use("/api/admin", adminRoutes);
-app.use("/api", userRoutes);
-
 //Endpoint for handling ordered cart items
 app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
 
-app.use("/api/orderedItems", orderedItemsRouter);
-
-app.listen(port, (error) => {
-  if (!error) {
-    console.log("Server Running on Port: " + port);
-  } else {
-    console.log("Error: " + error);
-  }
-});
+// Admin Routes
+app.use("/api/admin", adminRoutes);
+app.use("/api", userRoutes);

@@ -2,21 +2,8 @@ const Order = require("../models/orderedItemsModel");
 
 exports.createOrderedList = async (req, res) => {
   try {
-    const newOrder = new Order({
-      totalAmount: data.response.totalAmount,
-      buyer: data.response.buyer,
-      items: data.response.items.map((item) => ({
-        name: item.name,
-        quantity: item.quantity,
-        amount: item.amount,
-        totalAmount: item.totalAmount,
-        price: item.price,
-        description: item.description,
-        image: item.image,
-      })),
-      redirectUrl: data.response.redirectUrl,
-      requestReferenceNumber: data.response.requestReferenceNumber,
-    });
+    const newOrder = new Order(req.body);
+
     await newOrder.save();
     res.status(201).json(newOrder);
   } catch (error) {
@@ -35,7 +22,9 @@ exports.getOrderedList = async (req, res) => {
 
 exports.getOrderedListById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findOne({
+      requestReferenceNumber: req.params.id,
+    });
     if (!order) {
       return res.status(404).json({
         message: "Order not found",

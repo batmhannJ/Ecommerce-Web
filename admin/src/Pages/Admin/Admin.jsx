@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import ListProduct from '../../Components/ListProduct/ListProduct';
 import Orders from '../../Components/Orders/Orders';
 import UserManagement from '../../Components/UserManagement/UserManagement';
+import TransactionManagement from '../../Components/TransactionManagement/TransactionManagement';
 
 const Admin = () => {
   return (
@@ -15,6 +16,7 @@ const Admin = () => {
           <Route path="listproduct" element={<ListProduct />} />
           <Route path="orderproduct" element={<Orders />} />
           <Route path="usermanagement" element={<UserManagement />} />
+          <Route path="transactions" element={<TransactionManagement />} />
         </Routes>
       </div>
     </div>
