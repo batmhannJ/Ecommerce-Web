@@ -19,7 +19,15 @@ const MyOrders = () => {
         setData(response.data);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        if (err.response && err.response.status === 404) {
+          const response = await axios.get(
+            `http://localhost:4000/api/ordered-items/getPaidItems`
+          );
+          setData(response.data);
+          setLoading(false);
+        } else {
+          setError("An unexpected error occurred.");
+        }
         setLoading(false);
       }
     };
