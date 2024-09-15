@@ -30,19 +30,19 @@ export const CartItems = () => {
     }
   };
 
-  const getCartItemsDetailsAsJson = () => {
-    const cartDetails = all_product
-      .filter(
-        (product) => cartItems[product.id] && cartItems[product.id].quantity > 0
-      )
-      .map((product) => ({
-        name: product.name,
-        price: cartItems[product.id].price,
-        quantity: cartItems[product.id].quantity,
-      }));
+  // const getCartItemsDetailsAsJson = () => {
+  //   const cartDetails = all_product
+  //     .filter(
+  //       (product) => cartItems[product.id] && cartItems[product.id].quantity > 0
+  //     )
+  //     .map((product) => ({
+  //       name: product.name,
+  //       price: cartItems[product.id].price,
+  //       quantity: cartItems[product.id].quantity,
+  //     }));
 
-    return JSON.stringify(cartDetails, null, 2);
-  };
+  //   return JSON.stringify(cartDetails, null, 2);
+  // };
 
   const handleQuantityChange = (id, delta) => {
     const currentQuantity = cartItems[id]?.quantity || 0;
@@ -134,7 +134,7 @@ export const CartItems = () => {
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
-              {getCartItemsDetailsAsJson()}
+
               <h3>
                 ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}
               </h3>

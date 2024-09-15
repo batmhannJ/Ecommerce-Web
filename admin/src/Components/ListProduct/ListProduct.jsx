@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import './ListProduct.css'
 import remove_icon from '../../assets/remove_icon.png'
 
-export const ListProduct = () => {
+export const ListProduct = () =>
+  {
 
   const [allproducts, setAllProducts] = useState([]);
 

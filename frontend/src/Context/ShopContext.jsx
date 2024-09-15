@@ -5,7 +5,7 @@ export const ShopContext = createContext(null);
 const getDefaultCart = () => {
   let cart = {};
   for (let index = 0; index < 300 + 1; index++) {
-    cart[index] = { quantity: 0, size: '', price: 0 };
+    cart[index] = { quantity: 0, size: "", price: 0 };
   }
   return cart;
 };
@@ -37,22 +37,22 @@ const ShopContextProvider = (props) => {
 
   const fetchAllProducts = async () => {
     try {
-      const response = await fetch('http://localhost:4000/allproducts'); 
+      const response = await fetch("http://localhost:4000/allproducts");
       if (!response.ok) {
-        throw new Error('Failed to fetch products');
+        throw new Error("Failed to fetch products");
       }
       const allProducts = await response.json();
       return allProducts;
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
       return [];
     }
   };
-  
+
   const prepareOrderItems = async (cartItems) => {
     const allProducts = await fetchAllProducts();
-    console.log('Cart Items:', cartItems); // Debugging line
-    console.log('All Products:', allProducts); // Debugging line
+    console.log("Cart Items:", cartItems); // Debugging line
+    console.log("All Products:", allProducts); // Debugging line
 
     let orderItems = [];
     allProducts.forEach((item) => {
@@ -64,18 +64,18 @@ const ShopContextProvider = (props) => {
         orderItems.push(itemInfo);
       }
     });
-    console.log('Order Items:', orderItems);
+    console.log("Order Items:", orderItems);
     return orderItems;
   };
 
   const addToCart = (itemId, size, price) => {
-    setCartItems((prev) => ({ 
-      ...prev, 
-      [itemId]: { 
-        quantity: (prev[itemId]?.quantity || 0) + 1, 
-        size: size, 
-        price: price 
-      } 
+    setCartItems((prev) => ({
+      ...prev,
+      [itemId]: {
+        quantity: (prev[itemId]?.quantity || 0) + 1,
+        size: size,
+        price: price,
+      },
     }));
     const authToken = localStorage.getItem("auth-token");
     if (authToken) {
@@ -116,13 +116,13 @@ const ShopContextProvider = (props) => {
   const removeFromCart = (itemId) => {
     setCartItems((prev) => {
       const newQuantity = (prev[itemId]?.quantity || 0) - 1;
-      return { 
-        ...prev, 
-        [itemId]: { 
-          quantity: newQuantity > 0 ? newQuantity : 0, 
-          size: prev[itemId]?.size || '', 
-          price: prev[itemId]?.price || 0 
-        } 
+      return {
+        ...prev,
+        [itemId]: {
+          quantity: newQuantity > 0 ? newQuantity : 0,
+          size: prev[itemId]?.size || "",
+          price: prev[itemId]?.price || 0,
+        },
       };
     });
     const authToken = localStorage.getItem("auth-token");
@@ -169,7 +169,7 @@ const ShopContextProvider = (props) => {
     addToCart,
     removeFromCart,
     updateQuantity,
-    prepareOrderItems
+    prepareOrderItems,
   };
 
   return (
