@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/adminRoute');
 const orderRouter = require('./routes/orderRoute');
 const sellerRouter = require('./routes/sellerRoute');
 const userRoutes = require('./routes/userRoute');
+const transactionRoutes = require('./routes/transactionRoute');
 require('dotenv').config();
 
 const mongoURI = process.env.MONGODB_URI;
@@ -110,9 +111,9 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.post("/api/ordered-items", orderedItemsRouter);
-app.get("/getPaidItems", orderedItemsRouter);
-app.get("/getOrderedItemsById/:id", async (req, res) => {
+//app.post("/api/ordered-items", orderedItemsRouter);
+//app.get("/getPaidItems", orderedItemsRouter);
+/*app.get("/getOrderedItemsById/:id", async (req, res) => {
   try {
     const orders = await Order.find({});
     res.json(orders);
@@ -120,7 +121,7 @@ app.get("/getOrderedItemsById/:id", async (req, res) => {
     console.error("Error fetching orders:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-});
+});*/
 
 app.post("/addproduct", async (req, res) => {
   let products = await Product.find({});

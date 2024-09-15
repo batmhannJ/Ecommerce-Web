@@ -4,7 +4,7 @@ import "./PlaceOrder.css";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";  // useLocation for URL
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+//import { v4 as uuidv4 } from "uuid";
 
 const generateReferenceNumber = () => {
   // Using timestamp + random number for simplicity
@@ -16,7 +16,9 @@ export const PlaceOrder = () => {
     useContext(ShopContext);
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
+  const location = useLocation();
   
+  const [transactionId, setTransactionId] = useState(null);
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -102,11 +104,11 @@ export const PlaceOrder = () => {
           },
         })),
         redirectUrl: {
-          success: "http://localhost:3000/myorders",
-          failure: "http://localhost:3000/failure",
-          cancel: "http://localhost:3000/cancel",
+          success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+          failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+          cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
         },
-        requestReferenceNumber,
+      requestReferenceNumber,
       };
 
       try {

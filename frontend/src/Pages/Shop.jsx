@@ -8,15 +8,8 @@ import About from '../Components/About/About'
 import { useUser } from '../Context/UserContext';
 
 const Shop = () => {
-  const { user } = useUser();
-  console.log("User in Shop component:", user); 
   return (
     <div>
-        {user ? (
-          <p>Welcome back, {user.id}!</p>
-        ) : (
-          <p>Welcome to our shop! Please log in.</p>
-        )}
       <Hero/>
       <Popular />
       <Offers />
