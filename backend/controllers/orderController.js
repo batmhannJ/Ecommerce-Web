@@ -127,6 +127,7 @@ const PlaceOrder = async (req, res) => {
           amount: req.body.amount,
           address: req.body.address,
           referenceNumber: requestReferenceNumber,
+          status: "Pending"
         });
     
         await newOrder.save();
@@ -136,7 +137,7 @@ const PlaceOrder = async (req, res) => {
         const checkoutUrl = await createPayMayaCheckout(newOrder, req.body.buyer, requestReferenceNumber);
     
         // Return the checkout URL so the frontend can redirect the user to PayMaya's checkout page
-        res.json({ success: true, checkoutUrl, referenceNumber: requestReferenceNumber });
+        res.json({ success: true, checkoutUrl, referenceNumber: requestReferenceNumber, orderId: newOrder._id });
     
       } catch (error) {
         console.log("Error placing order:", error);
@@ -159,43 +160,108 @@ const PlaceOrder = async (req, res) => {
 }
 
 const verifyOrder = async (req, res) => {
-  const {orderId, success} = req.body;
+  const { orderId, success, transactionId } = req.query;
+
   try {
-    if (success=="true") {
-      await orderModel.findByIdAndUpdate(orderId, {payment: true});
-      res.json({success:true, message:"Paid"})
+    // Validate orderId and success
+    if (!orderId || !['true', 'false', 'cancel'].includes(success)) {
+      return res.status(400).json({ success: false, message: 'Invalid parameters' });
     }
-    else {
-      await orderModel.findByIdAndDelete(orderId);
-      await res.json({success:false, message:"Not Paid"})
+
+    let updateData;
+    let redirectUrl;
+
+    if (success === 'true') {
+      // Update the order to mark it as paid
+      updateData = { payment: true, status: 'paid' };
+      redirectUrl = `/myorders?orderId=${orderId}`;
+    } else if (success === 'cancel') {
+      // Handle cancel logic
+      updateData = { status: 'cancelled' };
+      redirectUrl = '/cancel';
+    } else {
+      // Handle payment failure
+      updateData = { status: 'failed' };
+      redirectUrl = '/failure';
     }
+
+    // Update order status
+    await orderModel.findByIdAndUpdate(orderId, updateData);
+
+    // Save transaction details
+    await transactionModel.create({
+      date: new Date(),
+      name: 'Some Name', // Update with actual user info
+      transactionId: transactionId,
+      orderId: orderId,
+      status: success === 'true' ? 'Paid' : 'Failed',
+    });
+
+    // Return success response
+    res.json({ success: true, redirectUrl });
+
   } catch (error) {
-    console.log(error);
-    res.json({success:false, message:"Error"})
+    console.log('Error verifying order:', error);
+    res.status(500).json({ success: false, message: 'Error processing payment verification.' });
   }
-}
+};
+
+
 
 // User Orders for Frontend
-const userOrders = async (req,res) => {
+const userOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({id:req.body.id});
-    res.json({success:true,data:orders})
+    const orders = await orderModel.find({ userId: req.body.id }); // Use userId to fetch orders
+
+    res.json({
+      success: true,
+      data: orders // Return the entire order data (including _id and status)
+    });
   } catch (error) {
     console.log(error);
-    res.json({success:false, message:"Error"})
+    res.json({
+      success: false,
+      message: "Error fetching orders"
+    });
   }
-}
+};
+
+/*const Orders = require('../models/Order');
+
+exports.getUserOrders = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const orders = await Orders.find({ userId });
+
+    if (!orders) {
+      return res.status(404).json({ success: false, message: "No orders found" });
+    }
+
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch orders" });
+  }
+};*/
+
+
+
 
 // Listing Orders for Admin Panel
 const listOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({});
-    res.json({ success:true, data:orders})
+    const orders = await orderModel.find({}); // Fetch all orders for admin
+
+    res.json({ 
+      success: true, 
+      data: orders // Return the order data including the status and _id
+    });
   } catch (error) {
     console.log(error);
-    res.json({ success:false, message:"Error"})
+    res.json({ success: false, message: "Error fetching orders" });
   }
-}
+};
+
 
 // API for Updating Order Status
  const updateStatus = async (req,res) => {

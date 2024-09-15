@@ -85,6 +85,7 @@ function UserManagement() {
       <table className="user-table">
         <thead>
           <tr>
+            <th>Id</th>
             <th>Name</th>
             <th>Email</th>
             <th>Actions</th>
@@ -93,6 +94,7 @@ function UserManagement() {
         <tbody>
           {users.map((user, index) => (
             <tr key={user._id}>
+              <td>{user._id}</td>
               <td>{user.name}</td>
               <td>{user.email}</td>
               <td>

@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useUser } from '../Context/UserContext';  // Import User Context
 import './CSS/LoginSignup.css';
 
 const LoginSignup = () => {
-  
+  const { login: contextLogin } = useUser();  
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
-    username:"",
-    password:"",
-    email:"",
+    username: "",
+    password: "",
+    email: "",
     agreed: false
   });
 
@@ -21,7 +22,7 @@ const LoginSignup = () => {
     setFormData({...formData, agreed: !formData.agreed});
   };
 
-  const login = async() => {
+  const login = async () => {
     if (!formData.agreed) {
       toast.error("Please agree to the terms of use & privacy policy.", {
         position: "top-left"
@@ -30,26 +31,33 @@ const LoginSignup = () => {
     }
 
     console.log("Login Function Executed", formData);
-    let responseData;
-    await fetch('http://localhost:4000/login', {
-      method:'POST',
-      headers:{
-        Accept:'application/form-data',
-        'Content-Type':'application/json',
-      },
-      body: JSON.stringify(formData),
-    }).then((response) => response.json()).then((data) => responseData=data);
-
-    if (responseData.success) {
-      localStorage.setItem('auth-token', responseData.token);
-      window.location.replace("/");
-    }
-    else {
-      toast.error(responseData.errors, {
-        position: "top-left"
+    try {
+      const response = await fetch('http://localhost:4000/login', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
+      const responseData = await response.json();
+      console.log('Response Data:', responseData); // Debugging
+
+      if (responseData.success) {
+        console.log('Logging in user:', responseData.userData); // Debugging
+        console.log('Token:', responseData.token); // Debugging
+        contextLogin(responseData.userData, responseData.token); // Update context
+        window.location.replace("/"); // Redirect after login
+      } else {
+        toast.error(responseData.errors, {
+          position: "top-left"
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error); // Handle fetch errors
     }
   };
+  
 
   const signup = async() => {
     if (!formData.agreed) {

@@ -16,33 +16,36 @@ import MyOrders from './Components/MyOrders/MyOrders';
 import About from './Components/About/About';
 import UserProfile from './Pages/User/UserProfile';
 import UserSideBar from './Components/UserProfile/UserSideBar';
-import AccountSettings  from './Components/UserProfile/AccountSettings';
+import AccountSettings from './Components/UserProfile/AccountSettings';
+import { UserProvider } from './Context/UserContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path='/' element={<Shop />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/crafts' element={<ShopCategory banner={Crafts_Banner} category="crafts" />} />
-        <Route path='/clothes' element={<ShopCategory banner={Clothes_Banner} category="clothes" />} />
-        <Route path='/food' element={<ShopCategory banner={Food_Banner} category="food" />} />
-        <Route path='/product' element={<Product />}>
-          <Route path=':productId' element={<Product />} />
-        </Route>
-        <Route path='/cart' element={<Cart />} />
-        <Route path='/login' element={<LoginSignup />} />
-        <Route path='/order' element={<PlaceOrder />} />
-        <Route path='/verify' element={<Verify />} />
-        <Route path='/myorders' element={<MyOrders />} />
-        <Route path='/user/:activepage' element={<UserProfile />} />
-        <Route path='usersidebar' element={<UserSideBar />} />
-        <Route path='accountsettings' element={<AccountSettings />} /> 
-        <Route path='about' element={<About />} /> 
-      </Routes>
-      <Footer />
-    </BrowserRouter>
+    <UserProvider>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+          <Route path='/' element={<Shop />} />
+          <Route path='/about' element={<About />} />
+          <Route path='/crafts' element={<ShopCategory banner={Crafts_Banner} category="crafts" />} />
+          <Route path='/clothes' element={<ShopCategory banner={Clothes_Banner} category="clothes" />} />
+          <Route path='/food' element={<ShopCategory banner={Food_Banner} category="food" />} />
+          <Route path='/product'>
+            <Route path=':productId' element={<Product />} />
+          </Route>
+          <Route path='/cart' element={<Cart />} />
+          <Route path='/login' element={<LoginSignup />} />
+          <Route path='/order' element={<PlaceOrder />} />
+          <Route path='/verify' element={<Verify />} />
+          <Route path='/myorders' element={<MyOrders />} />
+          <Route path='/user/:activepage' element={<UserProfile />}>
+            <Route path='usersidebar' element={<UserSideBar />} />
+            <Route path='accountsettings' element={<AccountSettings />} />
+          </Route>
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </UserProvider>
   );
 }
 

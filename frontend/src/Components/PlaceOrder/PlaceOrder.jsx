@@ -2,11 +2,10 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../../Context/ShopContext";
 import "./PlaceOrder.css";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";  // useLocation for URL
 import axios from "axios";
 
 const generateReferenceNumber = () => {
-  // Using timestamp + random number for simplicity
   return `REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
@@ -14,6 +13,9 @@ export const PlaceOrder = () => {
   const { getTotalCartAmount, all_product, cartItems } = useContext(ShopContext);
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
+  const location = useLocation();  // Use useLocation to get the URL
+
+  const [transactionId, setTransactionId] = useState(null);
   
   const [data, setData] = useState({
     firstName: "",
@@ -45,8 +47,7 @@ export const PlaceOrder = () => {
           quantity: cartItems[product.id].quantity,
         }));
 
-        // Generate a unique reference number for this checkout request
-        const requestReferenceNumber = generateReferenceNumber();
+      const requestReferenceNumber = generateReferenceNumber();
       const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
   
       const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
@@ -84,11 +85,11 @@ export const PlaceOrder = () => {
             value: item.price * item.quantity,
           },
         })),
-        redirectUrl: {
-          success: "http://localhost:3000/myorders",
-          failure: "http://localhost:3000/failure",
-          cancel: "http://localhost:3000/cancel",
-        },
+          redirectUrl: {
+            success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+            failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+            cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+          },
         requestReferenceNumber,
       };
   
@@ -99,8 +100,36 @@ export const PlaceOrder = () => {
         const response = await axios.post(mayaApiUrl, requestBody, { headers });
         if (response.data && response.data.redirectUrl) {
           console.log("Redirecting to PayMaya:", response.data.redirectUrl);
-          // Redirect to the PayMaya checkout page
           window.location.href = response.data.redirectUrl;
+
+          const cartDetails = requestBody.items;
+
+// Calculate total quantity and amount
+          const totalQuantity = cartDetails.reduce((sum, item) => sum + item.quantity, 0);
+          const totalAmount = cartDetails.reduce((sum, item) => sum + item.totalAmount.value, 0);
+          const itemNames = cartDetails.map(item => item.name).join(', ');
+          
+          const saveTransaction = async (transactionDetails) => {
+            try {
+              await axios.post('http://localhost:4000/api/transactions', transactionDetails);
+              console.log("Transaction saved:", transactionDetails);
+            } catch (error) {
+              console.error("Error saving transaction:", error);
+            }
+          };
+          
+          saveTransaction({
+            transactionId: requestReferenceNumber,  // Pass the requestReferenceNumber here instead
+            date: new Date(),
+            name: `${data.firstName} ${data.lastName}`,
+            contact: data.phone,  // Adjusted contact format
+            item: itemNames,      // Concatenated item names
+            quantity: totalQuantity,
+            amount: totalAmount,
+            address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
+            status: 'Paid'
+          });
+          
         } else {
           console.error("Checkout Response Error:", response.data);
           toast.error("Checkout failed, please try again.");
@@ -120,6 +149,18 @@ export const PlaceOrder = () => {
       navigate("/cart");
     }
   }, [navigate, getTotalCartAmount]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search); // Get the query parameters from the URL
+    const id = searchParams.get("orderId");  // Extract the 'orderId' parameter from the URL
+    if (id) {
+      console.log("Transaction ID from URL:", id);  // Ensure this logs correctly
+      setTransactionId(id); // Set the extracted id in state
+    } else {
+      console.error("No Transaction ID found in URL");
+    }
+  }, [location]);
+  
 
   return (
     <form onSubmit={(e) => {e.preventDefault(); handleProceedToCheckout();}} className="place-order">

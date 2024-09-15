@@ -12,12 +12,17 @@ const adminRoutes = require('./routes/adminRoute');
 const orderRouter = require('./routes/orderRoute');
 const sellerRouter = require('./routes/sellerRoute');
 const userRoutes = require('./routes/userRoute');
+const transactionRoutes = require('./routes/transactionRoute');
 require('dotenv').config();
+
 
 const mongoURI = process.env.MONGODB_URI;
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
+app.use('/api/transactions', transactionRoutes);
+
+
 
 // Database Connection
 mongoose.connect(mongoURI)
@@ -43,9 +48,8 @@ app.get("/", (req, res) => {
   }
 });*/
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.get('/api/transactions', (req, res) => {
+  res.json({ message: 'This is the transactions endpoint' });
 });
 
 app.listen(port, (error) => {
@@ -90,6 +94,9 @@ app.use('/api/order', orderRouter);
 
 // Seller Login Sign Up Endpoint
 app.use('/api/seller', sellerRouter);
+
+// Ensure this is correctly placed in your server code
+
 
 // Fetch all users
 app.get('/users', async (req, res) => {
@@ -273,6 +280,10 @@ app.get('/relatedproducts/:category', async (req, res) => {
   }
 });
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
 
 
 // Admin Routes
