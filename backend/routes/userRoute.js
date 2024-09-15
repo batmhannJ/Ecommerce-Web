@@ -2,6 +2,25 @@ const express = require('express');
 const router = express.Router();
 const Users = require('../models/userModels');
 
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await Users.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ success: false, errors: "User not found" });
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, errors: "Invalid credentials" });
+        }
+        const token = jwt.sign({ id: user._id }, 'your_jwt_secret', { expiresIn: '1h' });
+        res.json({ success: true, token, user: { id: user._id, username: user.username, email: user.email } });
+    } catch (error) {
+        console.error("Error logging in user:", error);
+        res.status(500).json({ error: "Failed to log in user" });
+    }
+});
+
 // Fetch all users
 router.get('/users', async (req, res) => {
     try {

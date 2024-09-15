@@ -2,8 +2,9 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../../Context/ShopContext";
 import "./PlaceOrder.css";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";  // useLocation for URL
 import axios from "axios";
+//import { v4 as uuidv4 } from "uuid";
 
 const generateReferenceNumber = () => {
   // Using timestamp + random number for simplicity
@@ -11,10 +12,13 @@ const generateReferenceNumber = () => {
 };
 
 export const PlaceOrder = () => {
-  const { getTotalCartAmount, all_product, cartItems } = useContext(ShopContext);
+  const { getTotalCartAmount, all_product, cartItems } =
+    useContext(ShopContext);
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
+  const location = useLocation();
   
+  const [transactionId, setTransactionId] = useState(null);
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -33,11 +37,24 @@ export const PlaceOrder = () => {
     setData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  // async function submitOrder(orderData) {
+  //   try {
+  //     const response = await axios.post(
+  //       `http://localhost:4000/api/orderedItems/`,
+  //       orderData
+  //     );
+  //     console.log("Order created successfully:", response.data);
+  //   } catch (error) {
+  //     console.error("Error creating order:", error);
+  //   }
+  // }
+
   const handleProceedToCheckout = async () => {
     if (token) {
       const cartDetails = all_product
         .filter(
-          (product) => cartItems[product.id] && cartItems[product.id].quantity > 0
+          (product) =>
+            cartItems[product.id] && cartItems[product.id].quantity > 0
         )
         .map((product) => ({
           name: product.name,
@@ -48,19 +65,21 @@ export const PlaceOrder = () => {
         // Generate a unique reference number for this checkout request
         const requestReferenceNumber = generateReferenceNumber();
       const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
-  
+
       const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
       if (!secretKey) {
-        toast.error("Missing API Key. Please check the environment configuration.");
+        toast.error(
+          "Missing API Key. Please check the environment configuration."
+        );
         return;
       }
-  
+
       const encodedKey = btoa(`${secretKey}:`);
       const headers = {
         "Content-Type": "application/json",
         Authorization: `Basic ${encodedKey}`,
       };
-  
+
       const requestBody = {
         totalAmount: {
           value: getTotalCartAmount() + 50,
@@ -85,44 +104,96 @@ export const PlaceOrder = () => {
           },
         })),
         redirectUrl: {
-          success: "http://localhost:3000/myorders",
-          failure: "http://localhost:3000/failure",
-          cancel: "http://localhost:3000/cancel",
+          success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+          failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+          cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
         },
-        requestReferenceNumber,
+      requestReferenceNumber,
       };
-  
+
       try {
         console.log("Request Headers:", headers);
         console.log("Request Body:", requestBody);
-  
+
         const response = await axios.post(mayaApiUrl, requestBody, { headers });
         if (response.data && response.data.redirectUrl) {
           console.log("Redirecting to PayMaya:", response.data.redirectUrl);
           // Redirect to the PayMaya checkout page
           window.location.href = response.data.redirectUrl;
+
+          const cartDetails = requestBody.items;
+
+// Calculate total quantity and amount
+          const totalQuantity = cartDetails.reduce((sum, item) => sum + item.quantity, 0);
+          const totalAmount = cartDetails.reduce((sum, item) => sum + item.totalAmount.value, 0);
+          const itemNames = cartDetails.map(item => item.name).join(', ');
+          
+          const saveTransaction = async (transactionDetails) => {
+            try {
+              await axios.post('http://localhost:4000/api/transactions', transactionDetails);
+              console.log("Transaction saved:", transactionDetails);
+            } catch (error) {
+              console.error("Error saving transaction:", error);
+            }
+          };
+          
+          saveTransaction({
+            transactionId: requestReferenceNumber,  // Pass the requestReferenceNumber here instead
+            date: new Date(),
+            name: `${data.firstName} ${data.lastName}`,
+            contact: data.phone,  // Adjusted contact format
+            item: itemNames,      // Concatenated item names
+            quantity: totalQuantity,
+            amount: totalAmount,
+            address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
+            status: 'Paid'
+          });
+          
         } else {
           console.error("Checkout Response Error:", response.data);
           toast.error("Checkout failed, please try again.");
         }
       } catch (error) {
-        console.error("Error during Maya checkout:", error.response ? error.response.data : error);
+        console.error(
+          "Error during Maya checkout:",
+          error.response ? error.response.data : error
+        );
         toast.error(`Checkout failed: ${error.message}`);
       }
     } else {
-      toast.error("You are not logged in. Please log in to proceed to checkout.");
+      toast.error(
+        "You are not logged in. Please log in to proceed to checkout."
+      );
       navigate("/login");
     }
   };
-  
+
   useEffect(() => {
     if (getTotalCartAmount() === 0) {
       navigate("/cart");
     }
   }, [navigate, getTotalCartAmount]);
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search); // Get the query parameters from the URL
+    const id = searchParams.get("orderId");  // Extract the 'orderId' parameter from the URL
+    if (id) {
+      console.log("Transaction ID from URL:", id);  // Ensure this logs correctly
+      setTransactionId(id); // Set the extracted id in state
+    } else {
+      console.error("No Transaction ID found in URL");
+    }
+  }, [location]);
+  
+
   return (
-    <form onSubmit={(e) => {e.preventDefault(); handleProceedToCheckout();}} className="place-order">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleProceedToCheckout();
+      }}
+      className="place-order"
+    >
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
         <div className="multi-fields">

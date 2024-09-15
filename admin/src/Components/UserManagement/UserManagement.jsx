@@ -41,7 +41,7 @@ function UserManagement() {
     try {
       const response = await axios.patch(
         `http://localhost:4000/api/edituser/${users[editingUser]._id}`,
-        { name, email } // Only update name and email
+        { name, email } 
       );
       setUsers(
         users.map((user, idx) => (idx === editingUser ? response.data : user))
@@ -85,6 +85,7 @@ function UserManagement() {
       <table className="user-table">
         <thead>
           <tr>
+            <th>Id</th>
             <th>Name</th>
             <th>Email</th>
             <th>Actions</th>
@@ -93,6 +94,7 @@ function UserManagement() {
         <tbody>
           {users.map((user, index) => (
             <tr key={user._id}>
+              <td>{user._id}</td>
               <td>{user.name}</td>
               <td>{user.email}</td>
               <td>
