@@ -8,7 +8,7 @@ const Orders = () => {
 
   const fetchAllOrders = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/order/list');
+      const response = await fetch('http://localhost:4000/api/orders');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }

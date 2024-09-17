@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './AccountSettings.css';
 
 const AccountSettings = () => {
@@ -10,6 +10,40 @@ const AccountSettings = () => {
 
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
+  useEffect(() => {
+    const authToken = localStorage.getItem("auth-token");
+
+
+  if (!authToken) {
+    console.error('No token found');
+    return;
+  }
+
+    console.log('authToken', authToken); // Check if the token is available
+    fetch('http://localhost:4000/api/user', {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        // Handle different response status codes
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      setFormData({
+        name: data.name || '',
+        phone: data.phone || '',
+        email: data.email || ''
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching user data:', error);
+    });
+}, []);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,6 +64,20 @@ const AccountSettings = () => {
     if (validateForm()) {
       setFormSubmitted(true);
       // Handle form submission logic
+      fetch('/api/updateUser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('User updated successfully:', data);
+        })
+        .catch(error => {
+          console.error('Error updating user:', error);
+        });
     }
   };
 

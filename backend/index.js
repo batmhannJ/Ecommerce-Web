@@ -21,6 +21,29 @@ require('dotenv').config();
 
 const mongoURI = process.env.MONGODB_URI;
 
+// Define the sendEmail function
+const sendEmail = async (to, subject, text) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    text,
+  };
+
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        reject(error);
+      } else {
+        console.log('Email sent:', info.response);
+        resolve(info.response);
+      }
+    });
+  });
+};
+
+
 app.use(cors());
 app.use(express.json());
 app.use('/api/transactions', transactionRoutes);
@@ -397,6 +420,99 @@ app.post("/verify-otp", async (req, res) => {
 
   const token = jwt.sign(data, "secret_ecom");
   res.json({ success: true, token });
+});
+
+// Function to generate a 6-digit OTP
+
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // Generates a number between 100000 and 999999
+}
+// In your Express.js backend
+app.post('/forgot-password', async (req, res) => {
+  console.log("Forgot Password route hit"); 
+  const { email } = req.body;
+
+  // Check if email exists in your database
+  try {
+    // Check if email exists in your database
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, errors: "User not found." });
+    }
+
+    // Generate OTP
+    const otp = generateOTP(); // Function to generate OTP
+    user.otp = otp; // Save OTP to user record
+    await user.save();
+
+    // Send OTP to the user's email
+    await sendEmail(user.email, `Your OTP: ${otp}`);
+
+    return res.status(200).json({ success: true, message: "OTP sent successfully." });
+  } catch (error) {
+    console.error("Error processing forgot password request:", error);
+    res.status(500).json({ success: false, errors: "Internal server error." });
+  }
+});
+
+
+app.post("/verify-otp", async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  // Check if the OTP is valid
+  if (otpStore[email] !== otp) {
+    return res.status(400).json({ success: false, errors: 'Invalid OTP' });
+  }
+
+  // Clear OTP after successful verification
+  delete otpStore[email];
+
+  // Update user password
+  try {
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, errors: 'User not found' });
+    }
+    user.password = newPassword; // Consider hashing the password before saving
+    await user.save();
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ success: false, errors: 'Failed to update password' });
+  }
+});
+
+app.post('/reset-password', async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ success: false, errors: 'Please provide all required fields.' });
+  }
+
+  try {
+    // Find user by email
+    const user = await Users.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, errors: 'User not found.' });
+    }
+
+    // Verify OTP (You should implement your own OTP verification logic here)
+    if (user.otp !== otp) {
+      return res.status(400).json({ success: false, errors: 'Invalid OTP.' });
+    }
+
+    // Update the user's password directly (plain text)
+    user.password = newPassword;
+    user.otp = null; // Clear OTP after successful reset
+    await user.save();
+
+    // Respond with success
+    res.json({ success: true, message: 'Password successfully reset.' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ success: false, errors: 'Server error.' });
+  }
 });
 
 

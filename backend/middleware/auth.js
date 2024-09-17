@@ -8,12 +8,13 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const token_decode = jwt.verify(token, 'secret_ecom');
-    req.user = token_decode.user;
+    req.user = token_decode;
     next();
   } catch (error) {
     console.error("Token verification error:", error);
     return res.json({ success: false, message: "Invalid token. Please login again." });
   }
 };
+
 
 module.exports = authMiddleware;

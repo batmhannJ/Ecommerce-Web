@@ -12,6 +12,19 @@
   margin: 0;
 }
 
+.forgot-password {
+  color: #007bff;  /* Color for the link */
+  cursor: pointer;  /* Changes the mouse cursor to a pointer on hover */
+  margin-top: 10px;
+  font-size: 0.9em;  /* Adjust font size */
+  text-align: right; /* Align to the right */
+  text-decoration: underline;
+}
+
+.forgot-password:hover {
+  color: #0056b3;  /* Darker shade on hover */
+}
+
 .loginsignup-container {
   width: 90%;
   max-width: 450px;
