@@ -1,61 +1,96 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import './MyOrders.css';
-import parcel_icon from '../../Components/Assets/parcel_icon.png';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "./MyOrders.css"; // Include your CSS here
 
 const MyOrders = () => {
-  const token = localStorage.getItem("auth-token");
-  const [data, setData] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/order/userorders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({})
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
-      const result = await response.json();
-          // Filter only successful transactions
-          const successfulOrders = result.data.filter(order => order.payment || order.status === 'Paid');
-      
-          setData(successfulOrders); // Set only successful orders to state
-          console.log(successfulOrders);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-    }
-  }, [token]);
-
+  // Fetch orders on mount
   useEffect(() => {
-    if (token) {
-      fetchOrders();
-    }
-  }, [token, fetchOrders]);
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get("http://localhost:4000/api/orders");
+        console.log("Response Status:", response.status);
+        console.log("Response Data:", response.data);
+        const fetchedOrders = Array.isArray(response.data) ? response.data : [];
+        setOrders(fetchedOrders);
+        setFilteredOrders(fetchedOrders);
+      } catch (error) {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          console.error("Error Response Data:", error.response.data);
+          console.error("Error Response Status:", error.response.status);
+          console.error("Error Response Headers:", error.response.headers);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("Error Request:", error.request);
+        } else {
+          // Something happened in setting up the request
+          console.error("Error Message:", error.message);
+        }
+        toast.error("Error fetching orders.");
+      } finally {
+        setLoading(false);
+      }
+    };    
+
+
+    fetchOrders();
+  }, []);
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // Filter orders based on search term
+    const filtered = orders.filter((order) =>
+      order.item.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredOrders(filtered);
+  };
 
   return (
-    <div className='my-orders'>
-      <h2>My Orders</h2>
-      <div className="container">
-        {data.map((order, index) => (
-          <div key={index} className='my-orders-order'>
-            <img src={parcel_icon} alt="Parcel Icon" />
-            <p>{order.items.map((item, idx) => (
-              idx === order.items.length - 1
-                ? item.name + " x " + item.quantity
-                : item.name + " x " + item.quantity + ", "
-            ))}</p>
-            <p>₱{order.amount}.00</p>
-            <p>Items: {order.items.length}</p>
-            <p><span>&#x25cf;</span> <b>{order.status}</b></p>
-            <button onClick={fetchOrders}>Track Orders</button>
-          </div>
-        ))}
-      </div>
+    <div className="my-order-container">
+      <h1>My Orders</h1>    
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <table className="order-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders.length > 0 ? (
+              filteredOrders.map((order) => (
+                <tr key={order._id}>
+                  <td>{order.orderId}</td>
+                  <td>{order.date}</td>
+                  <td>{order.item}</td>
+                  <td>{order.quantity}</td>
+                  <td>{order.amount}</td>
+                  <td>{order.status}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6">No orders found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };

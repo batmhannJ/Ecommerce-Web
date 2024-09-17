@@ -1,27 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "./TransactionManagement.css"; // Include your CSS here
 
 const TransactionManagement = () => {
   const [transactions, setTransactions] = useState([]);
 
+  // Fetch transactions on mount
   useEffect(() => {
-    fetch('http://localhost:4000/api/transactions')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Fetched Transactions:", data);
-        setTransactions(data);
-      })
-      .catch(error => console.error('Error fetching transactions:', error));
+    fetchTransactions();
   }, []);
 
+  // Fetch transactions from the API
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/transactions");
+      setTransactions(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
+
+  // Handle delete transaction
+  const handleDeleteTransaction = async (id, index) => {
+    if (window.confirm("Are you sure you want to delete this transaction?")) {
+      try {
+        await axios.delete(`http://localhost:4000/api/deletetransaction/${id}`);
+        // Remove transaction from state after successful delete
+        setTransactions(transactions.filter((_, idx) => idx !== index));
+        toast.success("Transaction deleted successfully.");
+      } catch (error) {
+        toast.error("Transaction delete error.");
+        console.error(error);
+      }
+    }
+  };
+
   return (
-    <div>
-      <h1>Transaction Management</h1>
-      <table>
+    <div className="transaction-management-container">
+      <h1>Manage Transactions</h1>
+      <table className="transaction-table">
         <thead>
           <tr>
             <th>Date</th>
@@ -33,11 +51,12 @@ const TransactionManagement = () => {
             <th>Address</th>
             <th>Transaction ID</th>
             <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {transactions.map(transaction => (
-            <tr key={transaction.transactionId}>
+          {transactions.map((transaction, index) => (
+            <tr key={transaction._id}>
               <td>{transaction.date}</td>
               <td>{transaction.name}</td>
               <td>{transaction.contact}</td>
@@ -47,6 +66,14 @@ const TransactionManagement = () => {
               <td>{transaction.address}</td>
               <td>{transaction.transactionId}</td>
               <td>{transaction.status}</td>
+              <td>
+                <button
+                  className="action-button delete"
+                  onClick={() => handleDeleteTransaction(transaction._id, index)}
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
