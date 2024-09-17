@@ -4,7 +4,9 @@
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
+  height: 650px; /* Set a fixed height */
+  width: 1180px;
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 .user-management-container h1 {

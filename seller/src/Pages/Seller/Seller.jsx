@@ -1,12 +1,12 @@
 import React from "react";
-import "./Admin.css";
+import "./Seller.css";
 import { Sidebar } from "../../Components/Sidebar/Sidebar";
 import { Routes, Route } from "react-router-dom";
 import AddProduct from "../../Components/AddProduct/AddProduct";
 import ListProduct from "../../Components/ListProduct/ListProduct";
 import Orders from "../../Components/Orders/Orders";
 
-const Admin = () => {
+const Seller = () => {
   return (
     <div className="admin">
       <Sidebar />
@@ -19,4 +19,4 @@ const Admin = () => {
   );
 };
 
-export default Admin;
+export default Seller;
