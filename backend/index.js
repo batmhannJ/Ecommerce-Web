@@ -7,6 +7,10 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 
+const nodemailer = require('nodemailer');
+const otpGenerator = require('otp-generator');
+
+
 // import routes
 const adminRoutes = require('./routes/adminRoute');
 const orderRouter = require('./routes/orderRoute');
@@ -311,6 +315,88 @@ app.get("/relatedproducts/:category", async (req, res) => {
     console.error("Error fetching related products:", error);
     res.status(500).json({ error: "Failed to fetch related products" });
   }
+});
+
+
+let otpStore = {};
+
+// Set up nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Use your email service provider (like Gmail)
+  auth: {
+    user: process.env.EMAIL_USER, // Your email
+    pass: process.env.EMAIL_PASSWORD, // Your email password
+  },
+  tls: {
+    rejectUnauthorized: false // Disable SSL certificate validation
+  }
+});
+
+app.post("/send-otp", async (req, res) => {
+  const { email } = req.body;
+  console.log("Request Body:", req.body);  
+  // Check if the email is already used
+  let check = await Users.findOne({ email });
+  if (check) {
+    return res.status(400).json({ success: false, errors: "Existing User Found" });
+  }
+
+  // Generate OTP
+  const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+  otpStore[email] = otp;
+
+  // Send OTP via email
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Your OTP Code',
+    text: `Your OTP code is ${otp}`,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending OTP:', error);
+      return res.status(500).json({ success: false, errors: 'Failed to send OTP' });
+    }
+    console.log('OTP sent:', info.response);
+    res.json({ success: true, message: 'OTP sent to your email' });
+  });
+});
+
+// Endpoint to verify OTP and sign up user
+app.post("/verify-otp", async (req, res) => {
+  const { email, otp, username, password } = req.body;
+
+  // Check if the OTP is valid
+  if (otpStore[email] !== otp) {
+    return res.status(400).json({ success: false, errors: 'Invalid OTP' });
+  }
+
+  // Clear OTP after successful verification
+  delete otpStore[email];
+
+  // Create user after OTP is verified
+  let cart = {};
+  for (let i = 0; i < 300; i++) {
+    cart[i] = 0;
+  }
+  const user = new Users({
+    name: username,
+    email,
+    password,
+    cartData: cart,
+  });
+
+  await user.save();
+
+  const data = {
+    user: {
+      id: user.id,
+    },
+  };
+
+  const token = jwt.sign(data, "secret_ecom");
+  res.json({ success: true, token });
 });
 
 
