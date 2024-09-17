@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ReCAPTCHA from 'react-google-recaptcha';
 import './CSS/LoginSignup.css';
 
 const LoginSignup = () => {
+
+  const [recaptchaToken, setRecaptchaToken] = useState(null); // State to store reCAPTCHA token
+
+  // Handler for when reCAPTCHA is completed
+  const onRecaptchaChange = (token) => {
+    setRecaptchaToken(token);
+  };
   
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
     username:"",
     password:"",
     email:"",
-    agreed: false
+    agreed: false,
+    recaptchaToken: "" 
   });
 
   const changeHandler = (e) => {
@@ -29,31 +38,49 @@ const LoginSignup = () => {
       return;
     }
 
-    console.log("Login Function Executed", formData);
-    let responseData;
-    await fetch('http://localhost:4000/login', {
-      method:'POST',
-      headers:{
-        Accept:'application/form-data',
-        'Content-Type':'application/json',
-      },
-      body: JSON.stringify(formData),
-    }).then((response) => response.json()).then((data) => responseData=data);
-
-    if (responseData.success) {
-      localStorage.setItem('auth-token', responseData.token);
-      window.location.replace("/");
-    }
-    else {
-      toast.error(responseData.errors, {
+    if (!recaptchaToken) {
+      toast.error("Please complete the CAPTCHA.", {
         position: "top-left"
       });
+      return;
+    }
+
+    try {
+      let responseData;
+      const response = await fetch('http://localhost:4000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          recaptchaToken: recaptchaToken
+        })
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        toast.error(data.errors);
+      } else {
+        toast.success("Login successful!");
+        localStorage.setItem('auth-token', data.token);
+        window.location.replace("/");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      toast.error("An error occurred. Please try again.");
     }
   };
 
   const signup = async() => {
     if (!formData.agreed) {
       toast.error("Please agree to the terms of use & privacy policy.", {
+        position: "top-left"
+      });
+      return;
+    }
+
+    if (!recaptchaToken) {
+      toast.error("Please complete the CAPTCHA.", {
         position: "top-left"
       });
       return;
@@ -90,6 +117,13 @@ const LoginSignup = () => {
           <input name='email' value={formData.email} onChange={changeHandler} type="email" placeholder='Email Address' />
           <input name='password' value={formData.password} onChange={changeHandler} type="password" placeholder='Password' />
         </div>
+
+        {/* reCAPTCHA Component */}
+        <ReCAPTCHA
+          sitekey="6LcCKEcqAAAAAF8ervh2kGqovSNLl1B9L02UZBhD"
+          onChange={onRecaptchaChange}
+        />
+
         <button onClick={() => {state === "Login" ? login() : signup()}}>Continue</button>
         {state === "Sign Up" ? 
           <p className="loginsignup-login">Already have an account? <span onClick={() => {setState("Login")}}>Login</span></p> 

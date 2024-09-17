@@ -3,8 +3,25 @@ const router = express.Router();
 const Users = require('../models/userModels');
 
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, recaptchaToken } = req.body;
+
+    // First, check if the CAPTCHA token is present
+    if (!recaptchaToken) {
+        return res.status(400).json({ success: false, errors: "Please complete the CAPTCHA." });
+    }
+
+    const secretKey = "6LcCKEcqAAAAAPPobVGRQtrDKHWj50SLLr2WzCUV";  // Your reCAPTCHA secret key
+    const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${recaptchaToken}`;
     try {
+        // Verify reCAPTCHA
+        const captchaResponse = await axios.post(verificationUrl);
+        console.log("CAPTCHA response:", captchaResponse.data); 
+        const { success: captchaSuccess } = captchaResponse.data;
+
+        if (!captchaSuccess) {
+            return res.status(400).json({ success: false, errors: "CAPTCHA verification failed." });
+        }
+
         const user = await Users.findOne({ email });
         if (!user) {
             return res.status(400).json({ success: false, errors: "User not found" });
