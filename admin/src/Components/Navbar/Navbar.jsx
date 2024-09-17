@@ -40,6 +40,7 @@ export const Navbar = () => {
       <Link to="/admin/profile">
         <p>TIENDA</p>
       </Link>
+      <p>ADMIN PANEL</p>
       <div className="nav-profile-container">
         <img
           src={navProfile}
