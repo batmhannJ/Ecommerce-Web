@@ -61,4 +61,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// DELETE specific transaction by ID route
+router.delete('/:id', async (req, res) => {
+  try {
+    const transaction = await Transaction.findByIdAndDelete(req.params.id);
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Transaction not found' });
+    }
+    res.status(200).json({ success: true, message: 'Transaction deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting transaction.' });
+  }
+});
+
 module.exports = router;

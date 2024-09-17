@@ -21,11 +21,12 @@ const TransactionManagement = () => {
     }
   };
 
+
   // Handle delete transaction
   const handleDeleteTransaction = async (id, index) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
       try {
-        await axios.delete(`http://localhost:4000/api/deletetransaction/${id}`);
+        await axios.delete(`http://localhost:4000/api/transactions/${id}`); // Adjusted endpoint
         // Remove transaction from state after successful delete
         setTransactions(transactions.filter((_, idx) => idx !== index));
         toast.success("Transaction deleted successfully.");
