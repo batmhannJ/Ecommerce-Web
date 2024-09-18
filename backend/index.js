@@ -515,7 +515,52 @@ app.post('/reset-password', async (req, res) => {
   }
 });
 
+app.get('/transactions/totalAmount', async (req, res) => {
+  try {
+    const transactions = await Transaction.find({}); // Fetch all transactions
 
+    if (!transactions.length) {
+      return res.json(0); // Return 0 if no transactions
+    }
+
+    // Calculate the total amount
+    const totalAmount = transactions.reduce((total, Transaction) => {
+      return total + Transaction.amount; // Assuming 'amount' is a number
+    }, 0);
+
+    res.json(totalAmount); // Return total amount
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+const fetchSalesGrowthRateFromDB = async () => {
+  // Simulate a database call
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // Example data
+      const data = [
+        { date: '2024-01-01', totalSales: 1000 },
+        { date: '2024-01-02', totalSales: 1500 },
+        // Add more data here
+      ];
+      resolve(data);
+    }, 1000);
+  });
+};
+
+app.get('/api/transactions/salesGrowthRate', async (req, res) => {
+  try {
+    // Fetch sales growth rate data from the database
+    const data = await fetchSalesGrowthRateFromDB();
+    // Send the data as JSON response
+    res.json(data);
+  } catch (error) {
+    // Log the error and send a 500 Internal Server Error response
+    console.error('Error fetching sales growth rate:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);

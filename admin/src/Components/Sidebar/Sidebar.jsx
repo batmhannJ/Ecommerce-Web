@@ -8,6 +8,12 @@ import user_management_icon from '../../assets/user_management_icon.png'; // Add
 export const Sidebar = () => {
   return (
     <div className='sidebar'>
+      <Link to='/admin/dashboard' style={{ textDecoration: 'none' }}>
+        <div className="sidebar-item">
+          <img src={list_product_icon} alt="Product List Icon" />
+          <p>Dasboard</p>
+        </div>
+      </Link>
       <Link to='/admin/listproduct' style={{ textDecoration: 'none' }}>
         <div className="sidebar-item">
           <img src={list_product_icon} alt="Product List Icon" />

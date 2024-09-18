@@ -6,6 +6,7 @@ import ListProduct from '../../Components/ListProduct/ListProduct';
 import Orders from '../../Components/Orders/Orders';
 import UserManagement from '../../Components/UserManagement/UserManagement';
 import TransactionManagement from '../../Components/TransactionManagement/TransactionManagement';
+import Dashboard from '../../Components/Dashboard/Dashboard';
 
 const Admin = () => {
   return (
@@ -13,6 +14,7 @@ const Admin = () => {
       <Sidebar />
       <div className="admin-content">
         <Routes>
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="listproduct" element={<ListProduct />} />
           <Route path="orderproduct" element={<Orders />} />
           <Route path="usermanagement" element={<UserManagement />} />
