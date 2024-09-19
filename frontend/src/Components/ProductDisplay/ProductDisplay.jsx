@@ -81,6 +81,12 @@ const ProductDisplay = (props) => {
         });
         return;
       }
+      if (quantity > currentStock) {
+        toast.error(`Only ${currentStock} items are available in stock.`, {
+          position: "top-left"
+        });
+        return;
+      }
       try {
         await addToCart(product.id, selectedSize, adjustedPrice, quantity); 
         toast.success('Product added to cart!', {
@@ -104,11 +110,18 @@ const ProductDisplay = (props) => {
   };
 
   const handleQuantityChange = (delta) => {
-    if (quantity + delta > 0 && quantity + delta <= currentStock) {
+    if (quantity + delta <= 0) {
+      toast.info('Quantity cannot be less than 1.', {
+        position: "bottom-left"
+      });
+    } else if (quantity + delta > currentStock) {
+      toast.warning(`Only ${currentStock} items are available in stock.`, {
+        position: "top-left"
+      });
+    } else {
       setQuantity(quantity + delta);
     }
   };
-
   return (
     <div className='productdisplay'>
       <div className="productdisplay-left">
