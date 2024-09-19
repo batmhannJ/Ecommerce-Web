@@ -13,14 +13,16 @@ const ProductDisplay = (props) => {
   const [adjustedPrice, setAdjustedPrice] = useState(product.new_price);
   const [adjustedOldPrice, setAdjustedPriceOld] = useState(product.old_price);
   const [currentStock, setCurrentStock] = useState(product.stock); // Default to total stock
+  const [quantity, setQuantity] = useState(1); // State for quantity
   const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
-    // Reset adjustedPrice and stock when product changes
+    // Reset adjustedPrice, stock, and quantity when product changes
     setAdjustedPrice(product.new_price);
     setAdjustedPriceOld(product.old_price);
     setSelectedSize(''); // Optionally reset size
     setCurrentStock(product.stock); // Reset to default total stock
+    setQuantity(1); // Reset quantity
   }, [product]);
 
   const handleSizeChange = async (size) => {
@@ -80,7 +82,7 @@ const ProductDisplay = (props) => {
         return;
       }
       try {
-        await addToCart(product.id, selectedSize, adjustedPrice);
+        await addToCart(product.id, selectedSize, adjustedPrice, quantity); 
         toast.success('Product added to cart!', {
           position: "top-left"
         });
@@ -99,6 +101,12 @@ const ProductDisplay = (props) => {
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
+  };
+
+  const handleQuantityChange = (delta) => {
+    if (quantity + delta > 0 && quantity + delta <= currentStock) {
+      setQuantity(quantity + delta);
+    }
   };
 
   return (
@@ -151,6 +159,15 @@ const ProductDisplay = (props) => {
               </div>
             ))}
           </div>
+
+
+          <div className="quantity-controls">
+            <p>Quantity: </p>
+            <button className="quantity-button" onClick={() => handleQuantityChange(-1)}> - </button>
+            <span className="quantity-value">{quantity}</span>
+            <button className="quantity-button" onClick={() => handleQuantityChange(1)}> + </button>
+          </div>
+
           <button
           onClick={handleAddToCart}
           disabled={currentStock === 0 || !selectedSize}
