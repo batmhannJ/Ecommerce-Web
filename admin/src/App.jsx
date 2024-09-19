@@ -11,7 +11,7 @@ const App = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={!isAuthenticated ? <LoginSignup /> : <Navigate to="/admin/listproducts" />} />
+      <Route path="/login" element={!isAuthenticated ? <LoginSignup /> : <Navigate to="/admin/dashboard" />} />
       <Route
         path="/admin/*"
         element={

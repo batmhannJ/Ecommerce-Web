@@ -35,7 +35,7 @@ const LoginSignup = () => {
       const responseData = await adminLogin(formData);
 
       localStorage.setItem('admin_token', responseData.token);
-      navigate('/admin/listproduct');
+      navigate('/admin/dashboard');
       window.location.reload()
     } catch (error) {
       console.error('Frontend Error:', error);
