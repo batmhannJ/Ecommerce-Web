@@ -68,11 +68,12 @@ const ShopContextProvider = (props) => {
     return orderItems;
   };
 
-  const addToCart = (itemId, size, price) => {
+  const addToCart = (itemId, size, price, quantity) => {
+    const cartKey = `${itemId}_${size}`; // Use itemId and size as key
     setCartItems((prev) => ({
       ...prev,
-      [itemId]: {
-        quantity: (prev[itemId]?.quantity || 0) + 1,
+      [cartKey]: {
+        quantity: (prev[cartKey]?.quantity || 0) + quantity,
         size: size,
         price: price,
       },
@@ -86,7 +87,7 @@ const ShopContextProvider = (props) => {
           Authorization: `${authToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ itemId, size, price }),
+        body: JSON.stringify({ itemId, size, price, quantity }),
       })
         .then((response) => {
           if (!response.ok) {
@@ -108,7 +109,7 @@ const ShopContextProvider = (props) => {
       ...prevCartItems,
       [id]: {
         ...prevCartItems[id],
-        quantity,
+        quantity: quantity,
       },
     }));
   };

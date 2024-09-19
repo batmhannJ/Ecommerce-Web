@@ -1,18 +1,25 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import ReCAPTCHA from 'react-google-recaptcha';
-import './CSS/LoginSignup.css';
+import React, { useState } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ReCAPTCHA from "react-google-recaptcha";
+import "./CSS/LoginSignup.css";
 
 const LoginSignup = () => {
-  const [recaptchaToken, setRecaptchaToken] = useState(null);
+
+  const [recaptchaToken, setRecaptchaToken] = useState(null); // State to store reCAPTCHA token
+
+  // Handler for when reCAPTCHA is completed
+  const onRecaptchaChange = (token) => {
+    setRecaptchaToken(token);
+  };
+
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [emailForReset, setEmailForReset] = useState("");
   const [otpSentForReset, setOtpSentForReset] = useState(false);
   const [resetPasswordForm, setResetPasswordForm] = useState({
-    otp: '',
-    newPassword: '',
-    confirmPassword: ''
+    otp: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [state, setState] = useState("Login");
@@ -24,7 +31,7 @@ const LoginSignup = () => {
     newPassword: "",
     confirmPassword: "",
     agreed: false,
-    recaptchaToken: "" 
+    recaptchaToken: "",
   });
 
   const [otpSent, setOtpSent] = useState(false);
@@ -41,24 +48,24 @@ const LoginSignup = () => {
     setFormData({ ...formData, agreed: !formData.agreed });
   };
 
-  const sendOtp = async () => {
+   // Send OTP to user's email
+   const sendOtp = async () => {
     if (!formData.email) {
       setEmailError("Please enter your email address.");
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:4000/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:4000/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
       });
 
       const data = await response.json();
       if (data.success) {
         toast.success("OTP sent to your email.");
-        setOtpSent(true);
-        setEmailError(""); // Clear any previous errors
+        setOtpSent(true);  // Show the OTP input field
       } else {
         setEmailError(data.errors || "Failed to send OTP.");
       }
@@ -75,9 +82,9 @@ const LoginSignup = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:4000/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:4000/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: formData.email,
           otp: formData.otp,
@@ -90,7 +97,7 @@ const LoginSignup = () => {
       if (data.success) {
         toast.success("Signup successful!");
         localStorage.setItem('auth-token', data.token);
-        window.location.replace("/"); 
+        window.location.replace("/");
       } else {
         toast.error(data.errors);
       }
@@ -114,21 +121,21 @@ const LoginSignup = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:4000/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:4000/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: emailForReset,
           otp,
-          newPassword
-        })
+          newPassword,
+        }),
       });
 
       const data = await response.json();
       if (data.success) {
         toast.success("Password successfully changed!");
         localStorage.setItem('auth-token', data.token);
-        window.location.replace("/"); 
+        window.location.replace("/");
       } else {
         toast.error(data.errors);
       }
@@ -137,77 +144,76 @@ const LoginSignup = () => {
       toast.error("Failed to reset password.");
     }
   };
-
-  const sendPasswordResetEmail = async () => {
-    if (!emailForReset) {
-      setEmailError("Please enter your email address.");
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:4000/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailForReset }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast.success("OTP sent to your email.");
-        setOtpSentForReset(true);
-        setEmailError(""); // Clear any previous errors
-      } else {
-        setEmailError(data.errors || "Failed to send password reset email.");
+  
+    // Send OTP for password reset
+    const sendPasswordResetEmail = async () => {
+      if (!emailForReset) {
+        toast.error("Please enter your email address.");
+        return;
       }
-    } catch (error) {
-      console.error("Error sending reset password email:", error);
-      setEmailError("Failed to send password reset email.");
-    }
-  };
+  
+      try {
+        const response = await fetch('http://localhost:4000/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailForReset }),
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            toast.success("OTP sent to your email.");
+            setOtpSentForReset(true); // Show OTP input field for reset password
+          } else {
+            toast.error(data.errors);
+          }
+        } else {
+          const errorText = await response.text();
+          console.error("Error response:", errorText);
+          toast.error("Failed to send password reset email.");
+        }
+      } catch (error) {
+        console.error("Error sending reset password email:", error);
+        toast.error("Failed to send password reset email.");
+      }
+    };
+  
+    const handleResetPasswordFormChange = (e) => {
+      setResetPasswordForm({ ...resetPasswordForm, [e.target.name]: e.target.value });
+    };
 
-  const handleResetPasswordFormChange = (e) => {
-    setResetPasswordForm({ ...resetPasswordForm, [e.target.name]: e.target.value });
-  };
-
-  const handleRecaptchaChange = (value) => {
-    setRecaptchaToken(value);
-  };
-
-  const login = async () => {
+  const login = async() => {
     if (!formData.agreed) {
-      toast.error("Please agree to the terms of use & privacy policy.");
+      toast.error("Please agree to the terms of use & privacy policy.", {
+        position: "top-left"
+      });
       return;
     }
 
     if (!recaptchaToken) {
-      toast.error("Please complete the CAPTCHA.");
+      toast.error("Please complete the CAPTCHA.", {
+        position: "top-left"
+      });
       return;
     }
 
     try {
+      let responseData;
       const response = await fetch('http://localhost:4000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          recaptchaToken: recaptchaToken
-        })
+          recaptchaToken: recaptchaToken,
+        }),
       });
 
       const data = await response.json();
       if (data.success) {
         toast.success("Login successful!");
         localStorage.setItem('auth-token', data.token);
-        window.location.replace("/"); 
-      } else {
-        if (data.errors.includes("email")) {
-          setEmailError("Invalid email address.");
-        }
-        if (data.errors.includes("password")) {
-          setPasswordError("Incorrect password.");
-        }
-        toast.error(data.errors);
+        window.location.replace("/");
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -217,32 +223,36 @@ const LoginSignup = () => {
 
   const signup = async () => {
     if (!formData.agreed) {
-      toast.error("Please agree to the terms of use & privacy policy.");
+      toast.error("Please agree to the terms of use & privacy policy.", {
+        position: "top-left"
+      });
       return;
     }
 
-    try {
-      const response = await fetch('http://localhost:4000/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    console.log("Signup Function Executed", formData);
+    let responseData;
+    await fetch('http://localhost:4000/signup', {
+      method:'POST',
+      headers:{
+        Accept:'application/json',
+        'Content-Type':'application/json',
+      },
+      body: JSON.stringify(formData),
+    }).then((response) => response.json()).then((data) => responseData=data);
 
-      const data = await response.json();
-      if (data.success) {
-        localStorage.setItem('auth-token', data.token);
-        window.location.replace("/"); 
-      } else {
-        toast.error(data.errors);
-      }
-    } catch (error) {
-      console.error("Signup failed:", error);
-      toast.error("An error occurred. Please try again.");
+    if (responseData.success) {
+      localStorage.setItem('auth-token', responseData.token);
+      window.location.replace("/");
+    }
+    else {
+      toast.error(responseData.errors, {
+        position: "top-left"
+      });
     }
   };
 
   return (
-    <div className='loginsignup'>
+    <div className="loginsignup">
       <div className="loginsignup-container">
         <h1>{forgotPasswordMode ? "Forgot Password" : state}</h1>
         {forgotPasswordMode ? (
@@ -250,11 +260,11 @@ const LoginSignup = () => {
             {!otpSentForReset ? (
               <>
                 <input
-                  name='emailForReset'
+                  name="emailForReset"
                   value={emailForReset}
                   onChange={(e) => setEmailForReset(e.target.value)}
                   type="email"
-                  placeholder='Email Address'
+                  placeholder="Email Address"
                 />
                 {emailError && <p className="error-message">{emailError}</p>}
                 <button onClick={sendPasswordResetEmail}>Send OTP</button>
@@ -262,100 +272,82 @@ const LoginSignup = () => {
             ) : (
               <>
                 <input
-                  name='otp'
+                  name="otp"
                   value={resetPasswordForm.otp}
                   onChange={handleResetPasswordFormChange}
                   type="text"
-                  placeholder='Enter OTP'
+                  placeholder="Enter OTP"
                 />
                 <input
-                  name='newPassword'
+                  name="newPassword"
                   value={resetPasswordForm.newPassword}
                   onChange={handleResetPasswordFormChange}
-                  type="password"
-                  placeholder='New Password'
+                  type={showPassword ? "text" : "password"}
+                  placeholder="New Password"
                 />
                 <input
-                  name='confirmPassword'
+                  name="confirmPassword"
                   value={resetPasswordForm.confirmPassword}
                   onChange={handleResetPasswordFormChange}
-                  type="password"
-                  placeholder='Confirm Password'
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
                 />
-                {passwordError && <p className="error-message">{passwordError}</p>}
                 <button onClick={verifyOtpAndResetPassword}>Reset Password</button>
               </>
             )}
-            <p onClick={() => setForgotPasswordMode(false)} className="back-to-login">
+            <p onClick={() => setForgotPasswordMode(false)} className="loginsignup-login">
               Back to Login
             </p>
           </div>
         ) : (
           <>
             <div className="loginsignup-fields">
-              {state === "Sign Up" ? 
-                <input name='username' value={formData.username} onChange={changeHandler} type="text" placeholder='Your Name' /> 
-                : null
-              }
-              <input
-                name='email'
-                value={formData.email}
-                onChange={changeHandler}
-                type="email"
-                placeholder='Email Address'
-              />
-              {emailError && <p className="error-message">{emailError}</p>}
-              <input
-                name='password'
-                value={formData.password}
-                onChange={changeHandler}
-                type="password"
-                placeholder='Password'
-              />
-              {passwordError && <p className="error-message">{passwordError}</p>}
+              {state === "Sign Up" ? <input name='username' value={formData.username} onChange={changeHandler} type="text" placeholder='Your Name' /> : null}
+              <input name='email' value={formData.email} onChange={changeHandler} type="email" placeholder='Email Address' />
+              <input name='password' value={formData.password} onChange={changeHandler} type="password" placeholder='Password' />
+
               {otpSent && (
-                <input
-                  name='otp'
-                  value={formData.otp}
-                  onChange={changeHandler}
-                  type="text"
-                  placeholder='Enter OTP'
-                />
+                <input name='otp' value={formData.otp} onChange={changeHandler} type="text" placeholder='Enter OTP' />
               )}
             </div>
-
+            <div className="show-password">
+              <input
+                type="checkbox"
+                id="showPassword"
+                checked={showPassword}
+                onChange={() => setShowPassword(!showPassword)}
+              />
+              <label htmlFor="showPassword">Show Password</label>
+            </div>
             {state === "Login" && (
               <>
-                <div className="recaptcha-container">
-                  <ReCAPTCHA
-                    sitekey="6LcCKEcqAAAAAF8ervh2kGqovSNLl1B9L02UZBhD"
-                    onChange={handleRecaptchaChange}
-                  />
-                </div>
+                <ReCAPTCHA
+                  sitekey="6LcCKEcqAAAAAF8ervh2kGqovSNLl1B9L02UZBhD"
+                  onChange={onRecaptchaChange}
+                />
                 <p className="forgot-password" onClick={() => setForgotPasswordMode(true)}>
                   Forgot Password?
                 </p>
               </>
             )}
 
-            <button onClick={() => { 
-              state === "Login" 
-                ? login()
-                : otpSent ? verifyOtp() : sendOtp();
-            }}>Continue</button>
-            {state === "Sign Up" ? 
-              <p className="loginsignup-login">Already have an account? <span onClick={() => setState("Login")}>Login</span></p> 
-              : <p className="loginsignup-login">Create an account? <span onClick={() => setState("Sign Up")}>Sign Up</span></p>
-            }
-            <div className="loginsignup-agree">
-              <input type="checkbox" name='agreed' checked={formData.agreed} onChange={checkboxHandler} />
-              <p>By continuing I agree to the terms of use & privacy policy</p>
-            </div>
-          </>
+        <button onClick={() => { 
+          state === "Login" 
+            ? login()  // Only CAPTCHA verification for Login
+            : otpSent ? verifyOtp() : sendOtp();  // OTP verification for Sign Up
+        }}>Continue</button>
+        {state === "Sign Up" ? 
+          <p className="loginsignup-login">Already have an account? <span onClick={() => {setState("Login")}}>Login</span></p> 
+          : <p className="loginsignup-login">Create an account? <span onClick={() => {setState("Sign Up")}}>Sign Up</span></p>}
+        <div className="loginsignup-agree">
+          <input type="checkbox" name='agreed' checked={formData.agreed} onChange={checkboxHandler} />
+          <p>By continuing I agree to the terms of use & privacy policy</p>
+        </div>
+        </>
         )}
       </div>
     </div>
   );
-}
+};
 
 export default LoginSignup;

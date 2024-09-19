@@ -65,55 +65,52 @@ export const CartItems = () => {
       <hr />
       {all_product && all_product.length > 0 ? (
         all_product.map((product) => {
-          if (cartItems[product.id] && cartItems[product.id].quantity > 0) {
-            return (
-              <div key={product.id}>
-                <div className="cartitems-format cartitems-format-main">
-                  <img
-                    src={product.image || remove_icon}
-                    alt=""
-                    className="cartitem-product-icon"
-                  />
-                  <p>{product.name}</p>
-                  <p>₱{cartItems[product.id].price}</p>
-                  <p>{cartItems[product.id].size}</p>
-                  <div className="cartitems-quantity-controls">
-                    <button
-                      className="cartitems-quantity-button"
-                      onClick={() => handleQuantityChange(product.id, -1)}
-                    >
-                      -
-                    </button>
-                    <button className="cartitems-quantity-button">
-                      {cartItems[product.id].quantity}
-                    </button>
-                    <button
-                      className="cartitems-quantity-button"
-                      onClick={() => handleQuantityChange(product.id, 1)}
-                    >
-                      +
-                    </button>
+          // Loop over the cartItems keys to ensure we differentiate between sizes
+          return Object.keys(cartItems).map((key) => {
+            const [itemId, size] = key.split("_"); // Split the cartKey back to itemId and size
+            if (parseInt(itemId) === product.id && cartItems[key].quantity > 0) {
+              return (
+                <div key={key}>
+                  <div className="cartitems-format cartitems-format-main">
+                    <img
+                      src={product.image || remove_icon}
+                      alt="Product Image"
+                      className="cartitem-product-icon"
+                    />
+                    <p>{product.name}</p>
+                    <p>₱{cartItems[key].price}</p>
+                    <p>{size}</p>
+                    <div className="cartitems-quantity-controls">
+                      <button
+                        className="cartitems-quantity-button"
+                        onClick={() => handleQuantityChange(key, -1)}
+                      >
+                        -
+                      </button>
+                      <button className="cartitems-quantity-button">
+                        {cartItems[key].quantity}
+                      </button>
+                      <button
+                        className="cartitems-quantity-button"
+                        onClick={() => handleQuantityChange(key, 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p>₱{cartItems[key].price * cartItems[key].quantity}</p>
+                    <img
+                      className="cartitems-remove-icon"
+                      src={remove_icon}
+                      onClick={() => removeFromCart(key)}
+                      alt="Remove"
+                    />
                   </div>
-                  <p>
-                    ₱
-                    {cartItems[product.id].price *
-                      cartItems[product.id].quantity}
-                  </p>
-                  <img
-                    className="cartitems-remove-icon"
-                    src={remove_icon}
-                    onClick={() => {
-                      console.log("Removing item:", product.id); // Debugging line
-                      removeFromCart(product.id);
-                    }}
-                    alt="Remove"
-                  />
+                  <hr />
                 </div>
-                <hr />
-              </div>
-            );
-          }
-          return null;
+              );
+            }
+            return null;
+          });
         })
       ) : (
         <p>No products in the cart</p>
@@ -134,17 +131,14 @@ export const CartItems = () => {
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
-
-              <h3>
-                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}
-              </h3>
+              <h3>₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}</h3>
             </div>
           </div>
           <button onClick={handleProceedToCheckout}>PROCEED TO CHECKOUT</button>
         </div>
       </div>
     </div>
-  );
+  );  
 };
 
 export default CartItems;

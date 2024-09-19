@@ -75,7 +75,7 @@ const AccountSettings = () => {
       try {
         const response = await axios.patch(
           `http://localhost:4000/api/edituser/${userId}`,
-          { name: formData.name, email: formData.email }
+          { name: formData.name, email: formData.email, phone: formData.phone }
         );
         console.log("User updated successfully:", response.data);
       } catch (error) {

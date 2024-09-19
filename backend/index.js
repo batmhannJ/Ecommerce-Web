@@ -7,9 +7,8 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 
-const nodemailer = require('nodemailer');
-const otpGenerator = require('otp-generator');
-
+const nodemailer = require("nodemailer");
+const otpGenerator = require("otp-generator");
 
 // import routes
 const adminRoutes = require('./routes/adminRoute');
@@ -17,6 +16,7 @@ const orderRouter = require('./routes/orderRoute');
 const sellerRouter = require('./routes/sellerRoute');
 const userRoutes = require('./routes/userRoute');
 const transactionRoutes = require('./routes/transactionRoute');
+const productRoute = require('./routes/productRoute');
 require('dotenv').config();
 
 const mongoURI = process.env.MONGODB_URI;
@@ -33,20 +33,20 @@ const sendEmail = async (to, subject, text) => {
   return new Promise((resolve, reject) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error('Error sending email:', error);
+        console.error("Error sending email:", error);
         reject(error);
       } else {
-        console.log('Email sent:', info.response);
+        console.log("Email sent:", info.response);
         resolve(info.response);
       }
     });
   });
 };
 
-
 app.use(cors());
 app.use(express.json());
 app.use('/api/transactions', transactionRoutes);
+app.use('/api', productRoute);
 
 
 
@@ -75,8 +75,8 @@ app.get("/", (req, res) => {
   }
 });*/
 
-app.get('/api/transactions', (req, res) => {
-  res.json({ message: 'This is the transactions endpoint' });
+app.get("/api/transactions", (req, res) => {
+  res.json({ message: "This is the transactions endpoint" });
 });
 
 app.listen(port, (error) => {
@@ -125,7 +125,7 @@ const Users = require("./models/userModels");
 app.use("/api/order", orderRouter);
 
 // Seller Login Sign Up Endpoint
-app.use('/api/seller', sellerRouter);
+app.use("/api/seller", sellerRouter);
 
 // Fetch all users
 app.get("/users", async (req, res) => {
@@ -149,6 +149,32 @@ app.get("/users", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });*/
+//change password api
+app.post("/updatepassword/:id", async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body;
+
+  try {
+    const user = await Users.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.password === newPassword) {
+      return res.status(400).json({
+        message: "New password cannot be the same as the current password",
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 app.post("/addproduct", async (req, res) => {
   let products = await Product.find({});
@@ -340,49 +366,55 @@ app.get("/relatedproducts/:category", async (req, res) => {
   }
 });
 
-
 let otpStore = {};
 
 // Set up nodemailer transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // Use your email service provider (like Gmail)
+  service: "gmail", // Use your email service provider (like Gmail)
   auth: {
     user: process.env.EMAIL_USER, // Your email
     pass: process.env.EMAIL_PASSWORD, // Your email password
   },
   tls: {
-    rejectUnauthorized: false // Disable SSL certificate validation
-  }
+    rejectUnauthorized: false, // Disable SSL certificate validation
+  },
 });
 
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
-  console.log("Request Body:", req.body);  
+  console.log("Request Body:", req.body);
   // Check if the email is already used
   let check = await Users.findOne({ email });
   if (check) {
-    return res.status(400).json({ success: false, errors: "Existing User Found" });
+    return res
+      .status(400)
+      .json({ success: false, errors: "Existing User Found" });
   }
 
   // Generate OTP
-  const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+  const otp = otpGenerator.generate(6, {
+    upperCaseAlphabets: false,
+    specialChars: false,
+  });
   otpStore[email] = otp;
 
   // Send OTP via email
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Your OTP Code',
+    subject: "Your OTP Code",
     text: `Your OTP code is ${otp}`,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error('Error sending OTP:', error);
-      return res.status(500).json({ success: false, errors: 'Failed to send OTP' });
+      console.error("Error sending OTP:", error);
+      return res
+        .status(500)
+        .json({ success: false, errors: "Failed to send OTP" });
     }
-    console.log('OTP sent:', info.response);
-    res.json({ success: true, message: 'OTP sent to your email' });
+    console.log("OTP sent:", info.response);
+    res.json({ success: true, message: "OTP sent to your email" });
   });
 });
 
@@ -392,7 +424,7 @@ app.post("/verify-otp", async (req, res) => {
 
   // Check if the OTP is valid
   if (otpStore[email] !== otp) {
-    return res.status(400).json({ success: false, errors: 'Invalid OTP' });
+    return res.status(400).json({ success: false, errors: "Invalid OTP" });
   }
 
   // Clear OTP after successful verification
@@ -426,10 +458,10 @@ app.post("/verify-otp", async (req, res) => {
 
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // Generates a number between 100000 and 999999
-}
+};
 // In your Express.js backend
-app.post('/forgot-password', async (req, res) => {
-  console.log("Forgot Password route hit"); 
+app.post("/forgot-password", async (req, res) => {
+  console.log("Forgot Password route hit");
   const { email } = req.body;
 
   // Check if email exists in your database
@@ -437,7 +469,9 @@ app.post('/forgot-password', async (req, res) => {
     // Check if email exists in your database
     const user = await Users.findOne({ email });
     if (!user) {
-      return res.status(404).json({ success: false, errors: "User not found." });
+      return res
+        .status(404)
+        .json({ success: false, errors: "User not found." });
     }
 
     // Generate OTP
@@ -448,20 +482,21 @@ app.post('/forgot-password', async (req, res) => {
     // Send OTP to the user's email
     await sendEmail(user.email, `Your OTP: ${otp}`);
 
-    return res.status(200).json({ success: true, message: "OTP sent successfully." });
+    return res
+      .status(200)
+      .json({ success: true, message: "OTP sent successfully." });
   } catch (error) {
     console.error("Error processing forgot password request:", error);
     res.status(500).json({ success: false, errors: "Internal server error." });
   }
 });
 
-
 app.post("/verify-otp", async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   // Check if the OTP is valid
   if (otpStore[email] !== otp) {
-    return res.status(400).json({ success: false, errors: 'Invalid OTP' });
+    return res.status(400).json({ success: false, errors: "Invalid OTP" });
   }
 
   // Clear OTP after successful verification
@@ -471,22 +506,26 @@ app.post("/verify-otp", async (req, res) => {
   try {
     const user = await Users.findOne({ email });
     if (!user) {
-      return res.status(404).json({ success: false, errors: 'User not found' });
+      return res.status(404).json({ success: false, errors: "User not found" });
     }
     user.password = newPassword; // Consider hashing the password before saving
     await user.save();
-    res.json({ success: true, message: 'Password updated successfully' });
+    res.json({ success: true, message: "Password updated successfully" });
   } catch (error) {
     console.error("Error updating password:", error);
-    res.status(500).json({ success: false, errors: 'Failed to update password' });
+    res
+      .status(500)
+      .json({ success: false, errors: "Failed to update password" });
   }
 });
 
-app.post('/reset-password', async (req, res) => {
+app.post("/reset-password", async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword) {
-    return res.status(400).json({ success: false, errors: 'Please provide all required fields.' });
+    return res
+      .status(400)
+      .json({ success: false, errors: "Please provide all required fields." });
   }
 
   try {
@@ -494,12 +533,14 @@ app.post('/reset-password', async (req, res) => {
     const user = await Users.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ success: false, errors: 'User not found.' });
+      return res
+        .status(404)
+        .json({ success: false, errors: "User not found." });
     }
 
     // Verify OTP (You should implement your own OTP verification logic here)
     if (user.otp !== otp) {
-      return res.status(400).json({ success: false, errors: 'Invalid OTP.' });
+      return res.status(400).json({ success: false, errors: "Invalid OTP." });
     }
 
     // Update the user's password directly (plain text)
@@ -508,14 +549,14 @@ app.post('/reset-password', async (req, res) => {
     await user.save();
 
     // Respond with success
-    res.json({ success: true, message: 'Password successfully reset.' });
+    res.json({ success: true, message: "Password successfully reset." });
   } catch (error) {
-    console.error('Error resetting password:', error);
-    res.status(500).json({ success: false, errors: 'Server error.' });
+    console.error("Error resetting password:", error);
+    res.status(500).json({ success: false, errors: "Server error." });
   }
 });
 
-app.get('/transactions/totalAmount', async (req, res) => {
+app.get("/transactions/totalAmount", async (req, res) => {
   try {
     const transactions = await Transaction.find({}); // Fetch all transactions
 
@@ -530,7 +571,7 @@ app.get('/transactions/totalAmount', async (req, res) => {
 
     res.json(totalAmount); // Return total amount
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -540,8 +581,8 @@ const fetchSalesGrowthRateFromDB = async () => {
     setTimeout(() => {
       // Example data
       const data = [
-        { date: '2024-01-01', totalSales: 1000 },
-        { date: '2024-01-02', totalSales: 1500 },
+        { date: "2024-01-01", totalSales: 1000 },
+        { date: "2024-01-02", totalSales: 1500 },
         // Add more data here
       ];
       resolve(data);
@@ -549,7 +590,7 @@ const fetchSalesGrowthRateFromDB = async () => {
   });
 };
 
-app.get('/api/transactions/salesGrowthRate', async (req, res) => {
+app.get("/api/transactions/salesGrowthRate", async (req, res) => {
   try {
     // Fetch sales growth rate data from the database
     const data = await fetchSalesGrowthRateFromDB();
@@ -557,8 +598,8 @@ app.get('/api/transactions/salesGrowthRate', async (req, res) => {
     res.json(data);
   } catch (error) {
     // Log the error and send a 500 Internal Server Error response
-    console.error('Error fetching sales growth rate:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching sales growth rate:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
