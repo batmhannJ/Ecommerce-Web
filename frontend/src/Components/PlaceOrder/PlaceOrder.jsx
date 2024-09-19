@@ -89,6 +89,7 @@ export const PlaceOrder = () => {
         Authorization: `Basic ${encodedKey}`,
       };
 
+      const deliveryFee = 50; // Delivery fee amount
       const requestBody = {
         totalAmount: {
           value: getTotalCartAmount() + 50,
@@ -102,16 +103,27 @@ export const PlaceOrder = () => {
             phone: data.phone,
           },
         },
-        items: cartDetails.map((item) => ({
-          name: item.name,
-          quantity: item.quantity,
-          amount: {
-            value: item.price,
-          },
-          totalAmount: {
-            value: item.price * item.quantity,
-          },
-        })),
+        items: [
+          ...cartDetails.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            amount: {
+              value: item.price,
+            },
+            totalAmount: {
+              value: item.price * item.quantity,
+            },
+          })),
+          {
+            name: "Delivery Fee", // Name for delivery fee item
+            amount: {
+              value: deliveryFee,
+            },
+            totalAmount: {
+              value: deliveryFee,
+            },
+          }
+        ],
         redirectUrl: {
           success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
           failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
