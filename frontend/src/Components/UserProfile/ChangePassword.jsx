@@ -1,63 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import './ChangePassword.css';
+import React, { useState, useEffect } from "react";
+import "./ChangePassword.css";
+import axios from "axios";
 
 const ChangePassword = () => {
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    const initialPassword = localStorage.getItem('password');
-    if (!initialPassword) {
-      localStorage.setItem('password', 'oldpassword123');
+  const getUserIdFromToken = () => {
+    const authToken = localStorage.getItem("auth-token");
+    if (authToken) {
+      const payload = JSON.parse(atob(authToken.split(".")[1]));
+      return payload.user.id;
     }
-  }, []);
+    return null;
+  };
 
-  const handleSaveChanges = () => {
-    const storedPassword = localStorage.getItem('password') || '';
+  const handleSaveChanges = async (e) => {
+    e.preventDefault();
 
-    if (oldPassword === storedPassword) {
-      localStorage.setItem('password', newPassword);
-      setMessage('Password change successful!');
-    } else {
-      setMessage('Old password is incorrect.');
+    const userId = getUserIdFromToken();
+
+    if (newPassword !== confirmPassword) {
+      setMessage("New password and confirm password do not match.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:4000/updatepassword/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password: newPassword }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(data.message);
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setMessage(data.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessage("An error occurred while changing the password.");
     }
   };
 
   return (
-    <div className='change-password'>
-      <div className='change-password-container'>
-        <h1 className='change-password__heading'>Change Password</h1>
-        
-        <form className='change-password__form' onSubmit={(e) => e.preventDefault()}>
-          <div className='change-password__form-group'>
-            <label htmlFor='oldpass'>Old Password <span>*</span></label>
+    <div className="change-password">
+      <div className="change-password-container">
+        <h1 className="change-password__heading">Change Password</h1>
+
+        <form className="change-password__form" onSubmit={handleSaveChanges}>
+          <div className="change-password__form-group">
+            <label htmlFor="oldpass">
+              Old Password <span>*</span>
+            </label>
             <input
-              type='password'
-              id='oldpass'
+              type="password"
+              id="oldpass"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              aria-required='true'
+              aria-required="true"
             />
           </div>
 
-          <div className='change-password__form-group'>
-            <label htmlFor='newpass'>New Password <span>*</span></label>
+          <div className="change-password__form-group">
+            <label htmlFor="newpass">
+              New Password <span>*</span>
+            </label>
             <input
-              type='password'
-              id='newpass'
+              type="password"
+              id="newpass"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              aria-required='true'
+              aria-required="true"
             />
           </div>
 
-          <button className='change-password__button' onClick={handleSaveChanges}>
+          <div className="change-password__form-group">
+            <label htmlFor="confirmpass">
+              Confirm Password <span>*</span>
+            </label>
+            <input
+              type="password"
+              id="confirmpass"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              aria-required="true"
+            />
+          </div>
+
+          <button className="change-password__button" type="submit">
             Save Changes
           </button>
         </form>
 
-        {message && <p className='change-password__message'>{message}</p>}
+        {message && <p className="change-password__message">{message}</p>}
       </div>
     </div>
   );
