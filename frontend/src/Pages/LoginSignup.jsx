@@ -282,14 +282,14 @@ const LoginSignup = () => {
                   name="newPassword"
                   value={resetPasswordForm.newPassword}
                   onChange={handleResetPasswordFormChange}
-                  type={showPassword ? "text" : "password"}
+                  //type={showPassword ? "text" : "password"}
                   placeholder="New Password"
                 />
                 <input
                   name="confirmPassword"
                   value={resetPasswordForm.confirmPassword}
                   onChange={handleResetPasswordFormChange}
-                  type={showPassword ? "text" : "password"}
+                  //type={showPassword ? "text" : "password"}
                   placeholder="Confirm Password"
                 />
                 <button onClick={verifyOtpAndResetPassword}>Reset Password</button>
@@ -309,15 +309,6 @@ const LoginSignup = () => {
               {otpSent && (
                 <input name='otp' value={formData.otp} onChange={changeHandler} type="text" placeholder='Enter OTP' />
               )}
-            </div>
-            <div className="show-password">
-              <input
-                type="checkbox"
-                id="showPassword"
-                checked={showPassword}
-                onChange={() => setShowPassword(!showPassword)}
-              />
-              <label htmlFor="showPassword">Show Password</label>
             </div>
             {state === "Login" && (
               <>
