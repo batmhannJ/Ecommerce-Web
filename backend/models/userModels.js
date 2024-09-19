@@ -1,8 +1,13 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
+  },
+  phone: {
+    type: String,
+    unique: true,
+    trim: true,
   },
   email: {
     type: String,
@@ -16,14 +21,14 @@ const UserSchema = new mongoose.Schema({
   },
   otp: {
     type: String,
-    default: null
+    default: null,
   },
   date: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 
-const Users = mongoose.model('Users', UserSchema);
+const Users = mongoose.model("Users", UserSchema);
 
 module.exports = Users;
