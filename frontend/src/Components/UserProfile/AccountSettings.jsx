@@ -1,49 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import './AccountSettings.css';
+import React, { useState, useEffect } from "react";
+import "./AccountSettings.css";
+import axios from "axios";
 
 const AccountSettings = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: ''
+    name: "",
+    phone: "",
+    email: "",
   });
+
+  const getUserIdFromToken = () => {
+    const authToken = localStorage.getItem("auth-token");
+    if (authToken) {
+      const payload = JSON.parse(atob(authToken.split(".")[1]));
+      return payload.user.id;
+    }
+    return null;
+  };
 
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   useEffect(() => {
     const authToken = localStorage.getItem("auth-token");
 
+    if (!authToken) {
+      console.error("No token found");
+      return;
+    }
 
-  if (!authToken) {
-    console.error('No token found');
-    return;
-  }
-
-    console.log('authToken', authToken); // Check if the token is available
-    fetch('http://localhost:4000/api/user', {
+    console.log("authToken", authToken);
+    fetch("http://localhost:4000/api/user", {
       headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
+        Authorization: `Bearer ${authToken}`,
+      },
     })
-    .then(response => {
-      if (!response.ok) {
-        // Handle different response status codes
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      setFormData({
-        name: data.name || '',
-        phone: data.phone || '',
-        email: data.email || ''
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setFormData({
+          name: data.name || "",
+          phone: data.phone || "",
+          email: data.email || "",
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
       });
-    })
-    .catch(error => {
-      console.error('Error fetching user data:', error);
-    });
-}, []);
-  
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,83 +59,99 @@ const AccountSettings = () => {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.name) errors.name = 'Name is required';
-    if (!formData.phone) errors.phone = 'Phone is required';
-    if (!formData.email) errors.email = 'Email is required';
+    if (!formData.name) errors.name = "Name is required";
+    if (!formData.phone) errors.phone = "Phone is required";
+    if (!formData.email) errors.email = "Email is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const userId = getUserIdFromToken();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
       setFormSubmitted(true);
-      // Handle form submission logic
-      fetch('/api/updateUser', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('User updated successfully:', data);
-        })
-        .catch(error => {
-          console.error('Error updating user:', error);
-        });
+      try {
+        const response = await axios.patch(
+          `http://localhost:4000/api/edituser/${userId}`,
+          { name: formData.name, email: formData.email }
+        );
+        console.log("User updated successfully:", response.data);
+      } catch (error) {
+        console.error("Error updating user:", error);
+      }
     }
   };
 
   return (
-    <div className='account-settings'>
-      <div className='account-settings-container'>
-        <h1 className='account-settings__heading'>Personal Information</h1>
-        
-        {formSubmitted && <p className='account-settings__success'>Changes saved successfully!</p>}
-        
-        <form className='account-settings__form' onSubmit={handleSubmit}>
-          <div className='account-settings__form-group'>
-            <label htmlFor='name'>Your Name <span>*</span></label>
+    <div className="account-settings">
+      <div className="account-settings-container">
+        <h1 className="account-settings__heading">Personal Information</h1>
+
+        {formSubmitted && (
+          <p className="account-settings__success">
+            Changes saved successfully!
+          </p>
+        )}
+
+        <form className="account-settings__form" onSubmit={handleSubmit}>
+          <div className="account-settings__form-group">
+            <label htmlFor="name">
+              Your Name <span>*</span>
+            </label>
             <input
-              type='text'
-              name='name'
-              id='name'
+              type="text"
+              name="name"
+              id="name"
               value={formData.name}
               onChange={handleChange}
-              aria-required='true'
+              aria-required="true"
             />
-            {formErrors.name && <span className='account-settings__error'>{formErrors.name}</span>}
+            {formErrors.name && (
+              <span className="account-settings__error">{formErrors.name}</span>
+            )}
           </div>
 
-          <div className='account-settings__form-group'> 
-            <label htmlFor='phone'>Phone/Mobile <span>*</span></label>
+          <div className="account-settings__form-group">
+            <label htmlFor="phone">
+              Phone/Mobile <span>*</span>
+            </label>
             <input
-              type='text'
-              name='phone'
-              id='phone'
+              type="text"
+              name="phone"
+              id="phone"
               value={formData.phone}
               onChange={handleChange}
-              aria-required='true'
+              aria-required="true"
             />
-            {formErrors.phone && <span className='account-settings__error'>{formErrors.phone}</span>}
+            {formErrors.phone && (
+              <span className="account-settings__error">
+                {formErrors.phone}
+              </span>
+            )}
           </div>
 
-          <div className='account-settings__form-group'> 
-            <label htmlFor='email'>Email <span>*</span></label>
+          <div className="account-settings__form-group">
+            <label htmlFor="email">
+              Email <span>*</span>
+            </label>
             <input
-              type='text'
-              name='email'
-              id='email'
+              type="text"
+              name="email"
+              id="email"
               value={formData.email}
               onChange={handleChange}
-              aria-required='true'
+              aria-required="true"
             />
-            {formErrors.email && <span className='account-settings__error'>{formErrors.email}</span>}
+            {formErrors.email && (
+              <span className="account-settings__error">
+                {formErrors.email}
+              </span>
+            )}
           </div>
-          
-          <button className='account-settings__button' type='submit'>
+
+          <button className="account-settings__button" type="submit">
             Save Changes
           </button>
         </form>
