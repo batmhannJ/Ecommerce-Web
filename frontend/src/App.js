@@ -17,6 +17,7 @@ import About from "./Components/About/About";
 import UserProfile from "./Pages/User/UserProfile";
 import UserSideBar from "./Components/UserProfile/UserSideBar";
 import AccountSettings from "./Components/UserProfile/AccountSettings";
+import Offices from "./Components/Offices/Offices";  // Add this import
 
 function App() {
   return (
@@ -48,7 +49,7 @@ function App() {
         <Route path="/user/:activepage" element={<UserProfile />} />
         <Route path="usersidebar" element={<UserSideBar />} />
         <Route path="accountsettings" element={<AccountSettings />} />
-        <Route path="about" element={<About />} />
+        <Route path="/offices" element={<Offices />} />  {/* Add this route */}
       </Routes>
       <Footer />
     </BrowserRouter>

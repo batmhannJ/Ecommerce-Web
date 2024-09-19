@@ -208,6 +208,7 @@ export const Dashboard = () => {
   };
 
   return (
+    <div class="dashboard-container">
     <div className='dashboard'>
         <h1>Dashboard</h1>
 
@@ -235,26 +236,27 @@ export const Dashboard = () => {
             </div>
         </div>
 
-        {/* Sales by Product Graph */}
-        <div className='chart'>
-            <h3>Sales by Product</h3>
-            <Bar data={salesByProduct} />
-        </div>
-
-        {/* Container for bottom charts */}
-        <div className='chart-container'>
-            {/* Sales by Category Graph */}
-            <div className='chart'>
-                <h3>Sales by Category</h3>
-                <Pie data={salesByCategory} />
-            </div>
-
+                <div className='chart-container'>
             {/* Sales Growth Rate Graph */}
-            <div className='chart'>
+            <div className='chart1'>
                 <h3>Sales Growth Rate</h3>
                 <Line data={salesGrowthRate} />
             </div>
+
+            {/* Sales by Category Graph */}
+            <div className='chart3'>
+                <h3>Sales by Category</h3>
+                <Pie data={salesByCategory} />
+            </div>
         </div>
+
+        {/* Sales by Product Graph */}
+        <div className='chart2'>
+            <h3>Sales by Product</h3>
+            <Bar data={salesByProduct} />
+        </div>
+        </div>
+
 
         {/* Top Purchases Product Graph 
         <div className='chart'>

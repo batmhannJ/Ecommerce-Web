@@ -1,3 +1,4 @@
+/* Sidebar Styles */
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -5,7 +6,7 @@
   padding-bottom: 30px;
   gap: 20px;
   width: 100%;
-  max-width: 250px;
+  max-width: 300px; /* Increased width for a wider sidebar */
   height: 100vh;
   background: #2c3e50;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
@@ -56,6 +57,7 @@
   color: #ffffff;
 }
 
+/* Responsive Design for Smaller Screens */
 @media (max-width: 800px) {
   .sidebar {
     padding: 10px 0;

@@ -30,7 +30,8 @@ const Footer = () => {
         <div className="footer-column">
           <h3>About</h3>
           <ul>
-            <li><a href="#company">Company</a></li>
+          <li><a href="#about">About Us</a></li>
+            <li><a href="Offices">Our Offices</a></li>
             <li><a href="#careers">Tienda Careers</a></li>
             <li><a href="#flash">Flash Deals</a></li>
             <li><a href="#privacy">Privacy Policy</a></li>
