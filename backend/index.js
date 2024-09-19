@@ -17,6 +17,7 @@ const orderRouter = require('./routes/orderRoute');
 const sellerRouter = require('./routes/sellerRoute');
 const userRoutes = require('./routes/userRoute');
 const transactionRoutes = require('./routes/transactionRoute');
+const productRoute = require('./routes/productRoute');
 require('dotenv').config();
 
 const mongoURI = process.env.MONGODB_URI;
@@ -47,6 +48,7 @@ const sendEmail = async (to, subject, text) => {
 app.use(cors());
 app.use(express.json());
 app.use('/api/transactions', transactionRoutes);
+app.use('/api', productRoute);
 
 
 

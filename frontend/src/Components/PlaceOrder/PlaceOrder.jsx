@@ -29,6 +29,7 @@ export const PlaceOrder = () => {
     zipcode: "",
     country: "",
     phone: "",
+    size: "",
   });
 
   const onChangeHandler = (event) => {
@@ -51,19 +52,27 @@ export const PlaceOrder = () => {
 
   const handleProceedToCheckout = async () => {
     if (token) {
-      const cartDetails = all_product
-        .filter(
-          (product) =>
-            cartItems[product.id] && cartItems[product.id].quantity > 0
-        )
-        .map((product) => ({
+      const requestReferenceNumber = generateReferenceNumber(); // This is your transaction ID
+      console.log("Generated Transaction ID:", requestReferenceNumber);
+      const cartDetails = Object.keys(cartItems)
+      .filter(key => {
+        const [itemId, size] = key.split("_");
+        return all_product.some(product => product.id === parseInt(itemId));
+      })
+      .map(key => {
+        const [itemId, size] = key.split("_");
+        const product = all_product.find(product => product.id === parseInt(itemId));
+        return {
+          id: product.id,
           name: product.name,
-          price: cartItems[product.id].price,
-          quantity: cartItems[product.id].quantity,
-        }));
+          price: cartItems[key].price,
+          quantity: cartItems[key].quantity,
+          size: size
+        };
+      });
 
-        // Generate a unique reference number for this checkout request
-        const requestReferenceNumber = generateReferenceNumber();
+    console.log("Cart Details:", cartDetails); // Ensure this logs correctly
+
       const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
 
       const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
@@ -121,19 +130,19 @@ export const PlaceOrder = () => {
           // Redirect to the PayMaya checkout page
           window.location.href = response.data.redirectUrl;
 
-          const cartDetails = requestBody.items;
-
-// Calculate total quantity and amount
+          // Reuse the existing cartDetails array before making the PayMaya request
           const totalQuantity = cartDetails.reduce((sum, item) => sum + item.quantity, 0);
-          const totalAmount = cartDetails.reduce((sum, item) => sum + item.totalAmount.value, 0);
+          const totalAmount = cartDetails.reduce((sum, item) => sum + item.price * item.quantity, 0);
           const itemNames = cartDetails.map(item => item.name).join(', ');
+
           
           const saveTransaction = async (transactionDetails) => {
+            console.log("Saving Transaction Details:", transactionDetails); 
             try {
               await axios.post('http://localhost:4000/api/transactions', transactionDetails);
               console.log("Transaction saved:", transactionDetails);
             } catch (error) {
-              console.error("Error saving transaction:", error);
+              console.error("Error saving transaction:", error.response ? error.response.data : error.message);
             }
           };
           
@@ -148,6 +157,23 @@ export const PlaceOrder = () => {
             address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
             status: 'Paid'
           });
+
+          const updateStock = async () => {
+            try {
+              const stockUpdates = cartDetails.map(item => ({
+                id: item.id.toString(), 
+                size: item.size,
+                quantity: item.quantity
+              }));
+              await axios.post('http://localhost:4000/api/updateStock', { updates: stockUpdates });
+              console.log("Stock updated successfully");
+            } catch (error) {
+              console.error("Error updating stock:", error.response ? error.response.data : error.message);
+              toast.error("Failed to update stock");
+            }
+          };
+  
+          updateStock();
           
         } else {
           console.error("Checkout Response Error:", response.data);
