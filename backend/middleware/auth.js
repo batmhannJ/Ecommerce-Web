@@ -9,6 +9,11 @@ const authMiddleware = async (req, res, next) => {
   try {
     const token_decode = jwt.verify(token, 'secret_ecom');
     req.user = token_decode;
+    const decoded = jwt.verify(token, 'secret_ecom');
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, errors: ['Access denied.'] });
+    }
+    req.admin = decoded;
     next();
   } catch (error) {
     console.error("Token verification error:", error);

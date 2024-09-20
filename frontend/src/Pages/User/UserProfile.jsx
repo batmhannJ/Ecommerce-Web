@@ -5,6 +5,7 @@ import AccountSettings from "../../Components/UserProfile/AccountSettings"; // C
 import ViewTransactions from "../../Components/UserProfile/ViewTransactions";
 import "./UserProfile.css";
 import ChangePassword from "../../Components/UserProfile/ChangePassword";
+import Address from "../../Components/UserProfile/address";
 
 export const UserProfile = () => {
   const { activepage } = useParams();
@@ -19,6 +20,7 @@ export const UserProfile = () => {
           {activepage === "transactions" && <ViewTransactions />}
           {activepage === "accountsettings" && <AccountSettings />}
           {activepage === "changepassword" && <ChangePassword />}
+          {activepage === "address" && <Address />}
         </div>
       </div>
     </div>

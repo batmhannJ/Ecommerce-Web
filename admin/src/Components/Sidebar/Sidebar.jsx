@@ -38,6 +38,12 @@ export const Sidebar = () => {
           <p>Transactions</p>
         </div>
       </Link>
+      <Link to='/admin/sellerrequest' style={{ textDecoration: 'none' }}>
+        <div className="sidebar-item">
+          <img src={user_management_icon} alt="User Management Icon" />
+          <p>Requests</p>
+        </div>
+      </Link>
     </div>
   );
 };

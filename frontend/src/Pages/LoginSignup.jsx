@@ -14,8 +14,8 @@ const LoginSignup = () => {
   };
 
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
-  const [emailForReset, setEmailForReset] = useState("");
-  const [otpSentForReset, setOtpSentForReset] = useState(false);
+  const [emailForReset, setEmailForReset] = useState(""); // For forgot password
+  const [otpSentForReset, setOtpSentForReset] = useState(false); // Flag to show OTP field for reset password
   const [resetPasswordForm, setResetPasswordForm] = useState({
     otp: "",
     newPassword: "",
@@ -24,10 +24,10 @@ const LoginSignup = () => {
 
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    email: "",
-    otp: "",
+    username:"",
+    password:"",
+    email:"",
+    otp:"",
     newPassword: "",
     confirmPassword: "",
     agreed: false,
@@ -51,7 +51,7 @@ const LoginSignup = () => {
    // Send OTP to user's email
    const sendOtp = async () => {
     if (!formData.email) {
-      setEmailError("Please enter your email address.");
+      toast.error("Please enter your email address.");
       return;
     }
 
@@ -66,8 +66,9 @@ const LoginSignup = () => {
       if (data.success) {
         toast.success("OTP sent to your email.");
         setOtpSent(true);  // Show the OTP input field
+        setEmailError(""); // Clear any previous errors
       } else {
-        setEmailError(data.errors || "Failed to send OTP.");
+        toast.error(data.errors);
       }
     } catch (error) {
       console.error("Error sending OTP:", error);
@@ -210,11 +211,15 @@ const LoginSignup = () => {
       });
 
       const data = await response.json();
-      if (data.success) {
+      if (!data.success) {
+        toast.error(data.errors);
+      } else {
+        if (data.success) {
         toast.success("Login successful!");
         localStorage.setItem('auth-token', data.token);
         window.location.replace("/");
       }
+    }
     } catch (error) {
       console.error("Login failed:", error);
       toast.error("An error occurred. Please try again.");

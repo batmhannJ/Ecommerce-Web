@@ -3,9 +3,9 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
-const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+const multer = require('multer');
 
 const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
@@ -17,6 +17,8 @@ const sellerRouter = require('./routes/sellerRoute');
 const userRoutes = require('./routes/userRoute');
 const transactionRoutes = require('./routes/transactionRoute');
 const productRoute = require('./routes/productRoute');
+const { signup } = require('./controllers/sellerController');
+
 require('dotenv').config();
 
 const mongoURI = process.env.MONGODB_URI;
@@ -109,6 +111,8 @@ app.post("/upload", upload.single("product"), (req, res) => {
     image_url: `http://localhost:${port}/images/${req.file.filename}`,
   });
 });
+
+app.post('/api/signup', upload.single('idPicture'), signup);
 
 const CartItems = require("./models/orderedItemsModel");
 
@@ -605,4 +609,5 @@ app.get("/api/transactions/salesGrowthRate", async (req, res) => {
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
+app.use("/api/seller", sellerRouter);
 app.use("/api", userRoutes);

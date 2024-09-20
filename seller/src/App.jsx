@@ -1,14 +1,31 @@
-import React from 'react'
-import { Navbar } from './Components/Navbar/Navbar'
-import Seller from './Pages/Seller/Seller'
+import React from 'react';
+import { Navbar } from './Components/Navbar/Navbar';
+import Seller from './Pages/Seller/Seller';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import SLoginSignup from './Components/SLoginSignUp/SLoginSignup';
+
 
 const App = () => {
+  const isAuthenticated = !!localStorage.getItem('admin_token');
   return (
-    <div>
-      <Navbar />
-      <Seller />
-    </div>
-  )
+    <Routes>
+      <Route path="/login" element={!isAuthenticated ? <SLoginSignup /> : <Navigate to="/seller/addproduct" />} />
+      <Route
+        path="/seller/*"
+        element={
+          isAuthenticated ? (
+            <>
+              <Navbar />
+              <Seller />
+            </>
+          ) : (
+            <Navigate to="/signup" />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/signup" />} />
+    </Routes>
+  );
 }
 
 export default App
