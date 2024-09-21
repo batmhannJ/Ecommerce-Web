@@ -5,21 +5,21 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const cors = require("cors");
-const multer = require('multer');
+const multer = require("multer");
 
 const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
 
 // import routes
-const adminRoutes = require('./routes/adminRoute');
-const orderRouter = require('./routes/orderRoute');
-const sellerRouter = require('./routes/sellerRoute');
-const userRoutes = require('./routes/userRoute');
-const transactionRoutes = require('./routes/transactionRoute');
-const productRoute = require('./routes/productRoute');
-const { signup } = require('./controllers/sellerController');
+const adminRoutes = require("./routes/adminRoute");
+const orderRouter = require("./routes/orderRoute");
+const sellerRouter = require("./routes/sellerRoute");
+const userRoutes = require("./routes/userRoute");
+const transactionRoutes = require("./routes/transactionRoute");
+const productRoute = require("./routes/productRoute");
+const { signup } = require("./controllers/sellerController");
 
-require('dotenv').config();
+require("dotenv").config();
 
 const mongoURI = process.env.MONGODB_URI;
 
@@ -47,10 +47,8 @@ const sendEmail = async (to, subject, text) => {
 
 app.use(cors());
 app.use(express.json());
-app.use('/api/transactions', transactionRoutes);
-app.use('/api', productRoute);
-
-
+app.use("/api/transactions", transactionRoutes);
+app.use("/api", productRoute);
 
 // Database Connection
 mongoose
@@ -112,7 +110,7 @@ app.post("/upload", upload.single("product"), (req, res) => {
   });
 });
 
-app.post('/api/signup', upload.single('idPicture'), signup);
+app.post("/api/signup", upload.single("idPicture"), signup);
 
 const CartItems = require("./models/orderedItemsModel");
 
@@ -156,26 +154,21 @@ app.get("/users", async (req, res) => {
 //change password api
 app.post("/updatepassword/:id", async (req, res) => {
   const { id } = req.params;
-  const { password } = req.body;
+  const { password: password } = req.body;
 
+  const user = await Users.findByIdAndUpdate(id, password);
+  console.log(id);
+  console.log(password);
+  user.password = password;
+  await user.save();
+});
+
+app.get("/fetchuser/:id", async (req, res) => {
+  const { id } = req.params;
   try {
     const user = await Users.findById(id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (user.password === newPassword) {
-      return res.status(400).json({
-        message: "New password cannot be the same as the current password",
-      });
-    }
-
-    user.password = newPassword;
-    await user.save();
-
-    res.status(200).json({ message: "Password updated successfully" });
-  } catch (error) {
-    console.error(error);
+    res.json(user);
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });

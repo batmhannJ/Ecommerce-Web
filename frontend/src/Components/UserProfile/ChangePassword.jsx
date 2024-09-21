@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "./ChangePassword.css";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  let fetchedUser = null;
+  let oldPasswordCheck = false;
 
   const getUserIdFromToken = () => {
     const authToken = localStorage.getItem("auth-token");
@@ -23,12 +26,32 @@ const ChangePassword = () => {
     const userId = getUserIdFromToken();
 
     if (newPassword !== confirmPassword) {
-      setMessage("New password and confirm password do not match.");
+      toast.error("Passwords do not match");
       return;
     }
 
     try {
-      const response = await fetch(
+      const userResponse = await fetch(
+        `http://localhost:4000/fetchuser/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const fetchedUser = await userResponse.json();
+
+      if (oldPassword !== fetchedUser.password) {
+        toast.error("Incorrect password");
+        return;
+      }
+      toast.success("Password changed successfully");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      const updateResponse = await fetch(
         `http://localhost:4000/updatepassword/${userId}`,
         {
           method: "POST",
@@ -39,19 +62,17 @@ const ChangePassword = () => {
         }
       );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(data.message);
+      if (updateResponse.ok) {
         setOldPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
-        setMessage(data.message);
+        const errorData = await updateResponse.json();
+        toast.error(errorData.message);
       }
     } catch (error) {
       console.error("Error:", error);
-      setMessage("An error occurred while changing the password.");
+      toast.error("An error occurred while changing the password.");
     }
   };
 
