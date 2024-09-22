@@ -29,7 +29,7 @@ const AccountSettings = () => {
     }
 
     console.log("authToken", authToken);
-    fetch("http://localhost:4000/api/user", {
+    fetch("http://localhost:4000/api/users", {
       headers: {
         Authorization: `Bearer ${authToken}`,
       },

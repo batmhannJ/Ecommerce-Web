@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import "./App.css";
 import Navbar from "./Components/Navbar/Navbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -17,9 +18,53 @@ import About from "./Components/About/About";
 import UserProfile from "./Pages/User/UserProfile";
 import UserSideBar from "./Components/UserProfile/UserSideBar";
 import AccountSettings from "./Components/UserProfile/AccountSettings";
-import Offices from "./Components/Offices/Offices";  // Add this import
+import Offices from "./Components/Offices/Offices"; // Add this import
+// Import the functions from the package
+import { regions, provincesByCode, cities, barangays } from "select-philippines-address";
 
 function App() {
+
+  // Fetch regions, provinces, cities, and barangays
+  const fetchAddressDetails = async () => {
+    try {
+      // Fetch regions
+      const regionList = await regions();
+      console.log("Regions:", regionList);
+
+      // Get the first region's code
+      const regionCode = regionList[0]?.region_code;
+      if (!regionCode) throw new Error("Region code not found");
+
+      // Fetch provinces by region code
+      const provinceList = await provincesByCode(regionCode);
+      console.log("Provinces:", provinceList);
+
+      // Get the first province's code
+      const provinceCode = provinceList[0]?.province_code;
+      if (!provinceCode) throw new Error("Province code not found");
+
+      // Fetch cities by province code
+      const cityList = await cities(provinceCode);
+      console.log("Cities:", cityList);
+
+      // Get the first city's code
+      const cityCode = cityList[0]?.city_code;
+      if (!cityCode) throw new Error("City code not found");
+
+      // Fetch barangays by city code
+      const barangayList = await barangays(cityCode);
+      console.log("Barangays:", barangayList);
+
+    } catch (error) {
+      console.error("Error fetching address details:", error);
+    }
+  };
+
+  // Use useEffect to trigger fetch when the component mounts
+  useEffect(() => {
+    fetchAddressDetails();
+  }, []); // Empty dependency array ensures this only runs once when the component mounts.
+
   return (
     <BrowserRouter>
       <Navbar />
@@ -49,7 +94,7 @@ function App() {
         <Route path="/user/:activepage" element={<UserProfile />} />
         <Route path="usersidebar" element={<UserSideBar />} />
         <Route path="accountsettings" element={<AccountSettings />} />
-        <Route path="/offices" element={<Offices />} />  {/* Add this route */}
+        <Route path="/offices" element={<Offices />} /> {/* Add this route */}
       </Routes>
       <Footer />
     </BrowserRouter>

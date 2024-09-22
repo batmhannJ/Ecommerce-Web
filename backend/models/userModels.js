@@ -16,34 +16,15 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
   },
-  street: {
-    type: String,
-    require: true,
-  },
-  barangay: {
-    type: String,
-    require: true,
-  },
-  municipality: {
-    type: String,
-    require: true,
-  },
-  province: {
-    type: String,
-    require: true,
-  },
-  region: {
-    type: String,
-    require: true,
-  },
-  country: {
-    type: String,
-    require: true,
-  },
-  zip: {
-    type: Number,
-    require: true,
-  },
+  address: {
+    street: String,
+    barangay: String,
+    municipality: String,
+    province: String,
+    region: String,
+    zip: String,
+    country: { type: String, default: "Philippines" },
+},
   cartData: {
     type: Object,
   },

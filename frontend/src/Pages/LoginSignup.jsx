@@ -183,48 +183,46 @@ const LoginSignup = () => {
       setResetPasswordForm({ ...resetPasswordForm, [e.target.name]: e.target.value });
     };
 
-  const login = async() => {
-    if (!formData.agreed) {
-      toast.error("Please agree to the terms of use & privacy policy.", {
-        position: "top-left"
-      });
-      return;
-    }
-
-    if (!recaptchaToken) {
-      toast.error("Please complete the CAPTCHA.", {
-        position: "top-left"
-      });
-      return;
-    }
-
-    try {
-      let responseData;
-      const response = await fetch('http://localhost:4000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          recaptchaToken: recaptchaToken,
-        }),
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        toast.error(data.errors);
-      } else {
-        if (data.success) {
-        toast.success("Login successful!");
-        localStorage.setItem('auth-token', data.token);
-        window.location.replace("/");
+    const login = async () => {
+      if (!formData.agreed) {
+        toast.error("Please agree to the terms of use & privacy policy.", {
+          position: "top-left"
+        });
+        return;
       }
-    }
-    } catch (error) {
-      console.error("Login failed:", error);
-      toast.error("An error occurred. Please try again.");
-    }
-  };
+    
+      if (!recaptchaToken) {
+        toast.error("Please complete the CAPTCHA.", {
+          position: "top-left"
+        });
+        return;
+      }
+    
+      try {
+        const response = await fetch('http://localhost:4000/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            recaptchaToken: recaptchaToken,
+          }),
+        });
+    
+        const data = await response.json();
+        if (!data.success) {
+          toast.error(data.errors);
+        } else {
+          toast.success("Login successful!");
+          localStorage.setItem('auth-token', data.token); // Store token
+          localStorage.setItem('userId', data.userId); // Store user ID
+          window.location.replace("/");
+        }
+      } catch (error) {
+        console.error("Login failed:", error);
+        toast.error("An error occurred. Please try again.");
+      }
+    };    
 
   const signup = async () => {
     if (!formData.agreed) {

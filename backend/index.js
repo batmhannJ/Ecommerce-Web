@@ -296,7 +296,8 @@ app.post("/login", async (req, res) => {
         },
       };
       const token = jwt.sign(data, "secret_ecom");
-      res.json({ success: true, token });
+      // Ibalik ang user ID kasama ang token
+      res.json({ success: true, token, userId: user._id }); // Idagdag ang user ID dito
     } else {
       res.json({ success: false, errors: "Error: Wrong Password" });
     }
@@ -304,6 +305,7 @@ app.post("/login", async (req, res) => {
     res.json({ success: false, errors: "Error: Wrong Email Address" });
   }
 });
+
 
 // Creating Endpoint for NewCollection Data
 app.get("/newcollections", async (req, res) => {
@@ -602,6 +604,30 @@ app.get("/api/transactions/salesGrowthRate", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+app.patch('/api/edituser/address', async (req, res) => {
+  try {
+    const { userId, addressData } = req.body;
+    
+    // Check if userId and addressData exist
+    if (!userId || !addressData) {
+      return res.status(400).json({ error: 'Missing userId or addressData' });
+    }
+
+    // Perform the update in your database
+    const updatedUser = await Users.findByIdAndUpdate(userId, { address: addressData }, { new: true });
+    
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User updated successfully', data: updatedUser });
+  } catch (error) {
+    console.error(error); // Log the actual error in your server
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);

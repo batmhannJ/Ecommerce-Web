@@ -1,11 +1,10 @@
 :root {
-  --primary-color: #6a994e; /* Soft green */
-  --secondary-color: #f0f0f0; /* Light gray */
-  --hover-color: #4e7031; /* Darker green */
-  --error-color: #d9534f; /* Red */
-  --input-border-color: #ccc; /* Gray */
-  --input-text-color: #333; /* Dark text */
-  --background-opacity: 0.95;
+  --primary-color: #BAC195;
+  --hover-color: #747b50;
+  --error-color: #FF0000;
+  --input-border-color: #c9c9c9;
+  --input-text-color: #5c5c5c;
+  --background-opacity: 0.9;
 }
 
 .account-settings {
