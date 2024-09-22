@@ -1,10 +1,11 @@
 :root {
-  --primary-color: #BAC195;
-  --hover-color: #747b50;
-  --error-color: #FF0000;
-  --input-border-color: #c9c9c9;
-  --input-text-color: #5c5c5c;
-  --background-opacity: 0.9;
+  --primary-color: #6a994e; /* Soft green */
+  --secondary-color: #f0f0f0; /* Light gray */
+  --hover-color: #4e7031; /* Darker green */
+  --error-color: #d9534f; /* Red */
+  --input-border-color: #ccc; /* Gray */
+  --input-text-color: #333; /* Dark text */
+  --background-opacity: 0.95;
 }
 
 .account-settings {
@@ -14,82 +15,62 @@
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
-  margin-bottom: 40px; /* Added space below */
+  margin-bottom: 40px;
+  background-color: var(--secondary-color);
 }
 
 .address-form {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  .form-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-  }
-  
-  .form-row select, .form-row input {
-    flex: 1;
-    margin-right: 10px;
-    padding: 10px;
-  }
-  
-  .form-row select:last-child, .form-row input:last-child {
-    margin-right: 0;
-  }
-  
-  button {
-    padding: 10px 20px;
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-
-.account-settings-container {
-  width: 50%;
   max-width: 600px;
+  margin: 0 auto;
+  padding: 30px;
   background: white;
   border-radius: 10px;
-  padding: 30px 40px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.account-settings__heading {
+.form-row {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 20px;
-  font-size: 20px;
-  text-align: center;
 }
 
-.account-settings__form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.form-row label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: var(--primary-color);
 }
 
-.account-settings__form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.account-settings__form-group label {
-  font-size: 1.0rem;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-
-.account-settings__form-group input {
-  height: 50px;
-  padding: 10px;
+.form-row select, 
+.form-row input {
+  width: 100%;
+  padding: 12px;
   border: 1px solid var(--input-border-color);
   border-radius: 5px;
   font-size: 16px;
   color: var(--input-text-color);
+  transition: border-color 0.3s;
 }
 
-.account-settings__form-group input:focus {
+.form-row select:focus, 
+.form-row input:focus {
   border-color: var(--primary-color);
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+  background-color: var(--hover-color);
 }
 
 .account-settings__error {
@@ -98,73 +79,42 @@
   margin-top: 5px;
 }
 
-.account-settings__button {
-  width: 100%;
-  height: 50px;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  font-size: 18px;
-  font-weight: 200;
-  cursor: pointer;
+.selected-address {
+  background: var(--secondary-color);
   border-radius: 5px;
-  margin-top: 20px;
-  transition: background 0.3s, transform 0.2s;
-}
-
-.account-settings__button:hover {
-  background: var(--hover-color);
-}
-
-.account-settings__button:active {
-  transform: scale(0.95);
-}
-
-.account-settings__success {
-  color: var(--primary-color);
+  padding: 15px;
   margin-bottom: 20px;
-  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
+.selected-address h3 {
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+.selected-address p {
+  margin: 5px 0;
+  font-size: 16px;
+  color: var(--input-text-color);
+}
+
 
 @media (max-width: 992px) {
-  .account-settings-container {
-    padding: 20px 30px;
+  .address-form {
+    padding: 20px;
   }
 
-  .account-settings__heading {
-    font-size: 24px;
-  }
-
-  .account-settings__form-group input {
-    height: 45px;
-  }
-
-  .account-settings__button {
-    height: 45px;
+  button {
     font-size: 16px;
   }
 }
 
 @media (max-width: 768px) {
   .account-settings {
-    padding: 0 20px;
+    padding: 0 10px;
   }
 
-  .account-settings-container {
-    width: 95%;
-    padding: 20px;
-  }
-
-  .account-settings__heading {
-    font-size: 22px;
-  }
-
-  .account-settings__form-group input {
-    height: 40px;
-  }
-
-  .account-settings__button {
-    height: 40px;
-    font-size: 14px;
+  .address-form {
+    width: 90%;
   }
 }
