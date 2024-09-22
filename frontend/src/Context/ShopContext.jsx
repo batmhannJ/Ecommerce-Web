@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-
+import axios from "axios";
 export const ShopContext = createContext(null);
 
 const getDefaultCart = () => {
@@ -13,6 +13,32 @@ const getDefaultCart = () => {
 const ShopContextProvider = (props) => {
   const [all_product, setAll_Product] = useState([]);
   const [cartItems, setCartItems] = useState(getDefaultCart());
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [users, setUser] = useState(null);
+
+  const calculateDeliveryFee = (distance) => {
+    // Example logic for delivery fee
+    const baseFee = 50; // Base delivery fee
+    const perKmRate = 10; // Rate per kilometer
+    const fee = baseFee + perKmRate * distance;
+    setDeliveryFee(fee);
+  };
+
+  const getUserDetails = async () => {
+    const token = localStorage.getItem("auth-token");
+    if (token) {
+      try {
+        const response = await axios.get('/api/user', { headers: { Authorization: `Bearer ${token}` } });
+        setUser(response.data);
+        return response.data; // Return user data
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        return null; // Handle error accordingly
+      }
+    }
+    return null; // If no token, return null
+  };
+
 
   useEffect(() => {
     fetch("http://localhost:4000/allproducts")
@@ -165,13 +191,18 @@ const ShopContextProvider = (props) => {
   const contextValue = {
     getTotalCartAmount,
     getTotalCartItems,
+    deliveryFee, // Add delivery fee to context
     all_product,
     cartItems,
     addToCart,
     removeFromCart,
     updateQuantity,
     prepareOrderItems,
+    calculateDeliveryFee, 
+    getUserDetails,
+    users,
   };
+  
 
   return (
     <ShopContext.Provider value={contextValue}>

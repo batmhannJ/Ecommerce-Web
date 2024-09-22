@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./address.css";
 import axios from "axios";
+import 'react-toastify/dist/ReactToastify.css';
 import { regions, provincesByCode, cities, barangays } from 'select-philippines-address';
 
 const Address = () => {

@@ -12,6 +12,11 @@ const generateReferenceNumber = () => {
   return `REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
+const MAIN_OFFICE_COORDINATES = {
+  latitude: 14.628488,  // Sunnymede IT Center latitude
+  longitude: 121.033420
+};
+
 export const PlaceOrder = () => {
   const { getTotalCartAmount, all_product, cartItems } =
     useContext(ShopContext);
@@ -34,6 +39,9 @@ export const PlaceOrder = () => {
     provinceCode: "", // Add a state to hold the selected province code
     provinces: [],
   });
+
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  
 
    // Fetch user data on component mount
      // Fetch user data on component mount
@@ -113,6 +121,73 @@ export const PlaceOrder = () => {
         navigate("/login");
       }
     }, [token, navigate]);
+
+    const fetchCoordinates = async (address) => {
+      const apiKey = process.env.REACT_APP_POSITION_STACK_API_KEY; // Set this in your .env file
+      console.log("Position Stack API Key:", apiKey);
+      const url = `http://api.positionstack.com/v1/forward?access_key=48ceab57881e0d4b21c7d7c68d31d792&query=${address}`;
+  
+      try {
+        const response = await axios.get(url);
+        return {
+          latitude: response.data.data[0].latitude,
+          longitude: response.data.data[0].longitude,
+        };
+      } catch (error) {
+        console.error("Error fetching coordinates:", error);
+        toast.error("Error fetching coordinates.");
+        return null;
+      }
+    };
+
+    const calculateDeliveryFee = async () => {
+      const customerAddress = `${data.street}, ${data.city}`;
+      const coordinates = await fetchCoordinates(customerAddress);
+    
+      if (coordinates) {
+        const distance = getDistanceFromLatLonInKm(
+          MAIN_OFFICE_COORDINATES.latitude,
+          MAIN_OFFICE_COORDINATES.longitude,
+          coordinates.latitude,
+          coordinates.longitude
+        );
+    
+        // Adjusting base fee and fee per km
+        const baseFee = 40; // Lowered base fee
+        const feePerKm = 5; // Reduced per km fee to make it more reasonable
+    
+        let totalFee = baseFee + (feePerKm * Math.ceil(distance));
+    
+        // Capping the delivery fee to avoid extreme values
+        const maxDeliveryFee = 200; // Maximum delivery fee
+        totalFee = totalFee > maxDeliveryFee ? maxDeliveryFee : totalFee;
+    
+        setDeliveryFee(totalFee);
+      }
+    };
+    
+  
+    const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+      const R = 6371; // Radius of the Earth in km
+      const dLat = degreesToRadians(lat2 - lat1);
+      const dLon = degreesToRadians(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // Distance in km
+    };
+  
+    const degreesToRadians = (degrees) => {
+      return degrees * (Math.PI / 180);
+    };
+  
+    useEffect(() => {
+      if (data.street && data.city) {
+        calculateDeliveryFee();
+      }
+    }, [data.street, data.city]);
     
 
   const onChangeHandler = (event) => {
@@ -172,10 +247,9 @@ export const PlaceOrder = () => {
         Authorization: `Basic ${encodedKey}`,
       };
 
-      const deliveryFee = 50; // Delivery fee amount
       const requestBody = {
         totalAmount: {
-          value: getTotalCartAmount() + 50,
+          value: getTotalCartAmount() + deliveryFee,
           currency: "PHP",
         },
         buyer: {
@@ -417,13 +491,13 @@ export const PlaceOrder = () => {
             <hr />
             <div className="cartitems-total-item">
               <p>Delivery Fee</p>
-              <p>₱{getTotalCartAmount() === 0 ? 0 : 50}</p>
+              <p> ₱{deliveryFee}</p>
             </div>
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
               <h3>
-                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 50}
+                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee}
               </h3>
             </div>
           </div>
