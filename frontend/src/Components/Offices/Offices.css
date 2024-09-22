@@ -1,3 +1,58 @@
+.offices {
+  padding: 10px;
+}
+
+.offices-content {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* 6 columns */
+  
+}
+
+.offices-content img {
+  width: 100%; /* Make images responsive */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: cover; /* Cover the space without stretching */
+  margin-top: 50px;
+}
+
+.offices h1 {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5 rem;
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  text-align: center;
+  z-index: 2;
+  margin-top: 20px;
+}
+
+.offices h1:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* Responsive Styles for h1 */
+@media (max-width: 992px) {
+  .offices h1 {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .offices h1 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 506px) {
+  .newsletter h1 {
+    font-size: 20px;
+  }
+}
+
+
 .newsletter {
   width: 100%;
   height: 70vh;
