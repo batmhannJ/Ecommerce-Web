@@ -44,11 +44,11 @@ function SellerRequest() {
 
   const handleApproveSeller = async (id) => {
     if (!window.confirm("Are you sure you want to approve this seller?")) return;
-
+  
     setApproving(true);
     try {
       const response = await axios.patch(
-        `http://localhost:4000/api/seller/${id}/approve`,
+        `http://localhost:4000/api/seller/${id}/approve`, // Ensure this route matches your backend
         {},
         {
           headers: {
@@ -56,7 +56,7 @@ function SellerRequest() {
           },
         }
       );
-
+  
       if (response.data.success) {
         toast.success(`Seller ${response.data.seller.name} approved successfully.`);
         // Remove the approved seller from the list
@@ -71,6 +71,7 @@ function SellerRequest() {
       setApproving(false);
     }
   };
+  
 
   const handleDeleteSeller = async (id) => {
     if (!window.confirm("Are you sure you want to delete this seller?")) return;

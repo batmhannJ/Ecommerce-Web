@@ -15,6 +15,11 @@ export const Navbar = () => {
   const closeProfileMenu = () => {
     setProfileMenuVisible(false);
   };
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token');
+    navigate('/login', { replace: true }); 
+    window.location.reload();
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -48,9 +53,7 @@ export const Navbar = () => {
             <Link to="/profile" onClick={closeProfileMenu}>
               <button>Profile</button>
             </Link>
-            <Link to="/login" onClick={closeProfileMenu}>
-              <button>Logout</button>
-            </Link>
+            <button onClick={handleLogout}>Logout</button>
           </div>
         )}
       </div>

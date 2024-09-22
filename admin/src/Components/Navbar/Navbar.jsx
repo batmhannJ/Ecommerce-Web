@@ -16,11 +16,13 @@ export const Navbar = () => {
     setProfileMenuVisible(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
-    navigate('/login', { replace: true }); 
-    window.location.reload();
-  };
+const handleLogout = () => {
+  console.log('Logging out...'); // For debugging
+  localStorage.removeItem('admin_token');
+  console.log('Token removed from localStorage'); // For debugging
+  navigate('/login', { replace: true }); 
+};
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {

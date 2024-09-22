@@ -54,31 +54,35 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    // Find the seller by email
     const seller = await Seller.findOne({ email });
-
+    
+    // Check if seller exists
     if (!seller) {
-      return res.status(400).json({ success: false, errors: ['User not found.'] });
+      return res.status(404).json({ success: false, message: "Seller not found." });
     }
 
-    // Compare hashed passwords
-    const isMatch = await bcrypt.compare(password, seller.password);
-    if (!isMatch) {
-      return res.status(400).json({ success: false, errors: ['Invalid Credentials.'] });
-    }
-
-    // Check if the seller is approved by admin
+    // Check if the seller is approved
     if (!seller.isApproved) {
-      return res.status(200).json({ success: false, errors: ['Your account is pending admin approval.'] });
+      return res.status(403).json({ success: false, message: "Seller is not approved." });
     }
 
-    // If approved, generate token
-    const token = jwt.sign({ id: seller.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ success: true, token });
-  } catch (err) {
-    console.error('Login Controller Error:', err);
-    res.status(500).json({ success: false, errors: ['Server Error.'] });
+    // Validate password (assuming you have a method to compare passwords)
+    const isMatch = await seller.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid credentials." });
+    }
+
+    // Create a token or session and send response
+    res.status(200).json({ success: true, seller });
+  } catch (error) {
+    console.error("Error during seller login:", error);
+    res.status(500).json({ success: false, message: "Server error." });
   }
 };
+
+
 
 const getPendingSellers = async (req, res) => {
   try {

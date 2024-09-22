@@ -19,11 +19,11 @@ const App = () => {
               <Seller />
             </>
           ) : (
-            <Navigate to="/signup" />
+            <Navigate to="/login" />
           )
         }
       />
-      <Route path="*" element={<Navigate to="/signup" />} />
+      <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
 }

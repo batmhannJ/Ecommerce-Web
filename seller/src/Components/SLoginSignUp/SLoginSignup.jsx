@@ -62,33 +62,48 @@ const SLoginSignup = () => {
   // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    if (!validatePassword(formData.password)) {
-      setPasswordError('Password must be at least 8 characters long and include at least one capital letter.');
-      return;
-    } else {
-      setPasswordError('');
-    }
-
+  
+    const loginData = {
+      email: formData.email,
+      password: formData.password,
+    };
+  
     try {
-      const responseData = await sellerLogin(formData); // Call API for seller login
-
-      // Check if seller is approved
-      if (!responseData.isApproved) {
+      const responseData = await sellerLogin(loginData); // Axios call
+      console.log('Response Data:', responseData);
+  
+      if (!responseData.data.success) {
+        toast.error(responseData.data.message || 'Login failed. Please try again.');
+        return;
+      }
+  
+      // Extract seller from the response
+      const seller = responseData.data.seller;
+  
+      if (!seller) {
+        toast.error('Seller account not found.');
+        return;
+      }
+  
+      // Check if the seller is approved
+      if (!seller.isApproved) {
         toast.error('Your account is pending approval from the admin.');
         return;
       }
-
-      // If approved, proceed to seller dashboard
-      localStorage.setItem('admin_token', responseData.token);
+  
+      // Proceed if seller is approved
+      localStorage.setItem('admin_token', responseData.data.token); // Store token
       toast.success('Login successful! Redirecting to the dashboard...');
       navigate('/seller/addproduct');
-      window.location.reload();
+      window.location.reload(); // Optional: Reload if necessary
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.response?.data?.errors || 'Login failed. Please try again.');
+      toast.error(error.response?.data?.message || 'Login failed. Please try again.');
     }
   };
+  
+  
+
 
   const onSubmit = async (e) => {
     e.preventDefault();
