@@ -4,7 +4,12 @@ import "./PlaceOrder.css";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation for URL
 import axios from "axios";
-import { regions, provincesByCode, cities, barangays } from 'select-philippines-address';
+import {
+  regions,
+  provincesByCode,
+  cities,
+  barangays,
+} from "select-philippines-address";
 //import { v4 as uuidv4 } from "uuid";
 
 const generateReferenceNumber = () => {
@@ -45,85 +50,96 @@ export const PlaceOrder = () => {
     provinces: [],
   });
 
-   // Fetch user data on component mount
-     // Fetch user data on component mount
-     useEffect(() => {
-      const fetchUserData = async () => {
-        try {
-          const response = await axios.get("http://localhost:4000/api/users", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const allUsersData = response.data;
-          const loggedInUserId = localStorage.getItem("userId");
-    
-          const loggedInUser = allUsersData.find(user => user._id === loggedInUserId);
-    
-          if (loggedInUser) {
-            // Extracting address details
-            const { barangay, municipality, province, region, street, zip, country } = loggedInUser.address;
-    
-            // Get names from the imported data
-            const barangayName = await barangays(municipality); 
-            const cityData = await cities(province); // Replace with province_code or id
-            //const regionsData = await regions();
-            const provincesData = await provincesByCode(region); 
-                    // Debugging Logs
-        console.log('Province Data:', provincesData);  // See the structure of the provinceData array
-        console.log('Province Code:', province);
-            
-                    // Assuming these functions return arrays, map the correct names
-        const selectedBarangay = barangayName.find(b => b.brgy_code === barangay)?.brgy_name || "";
-        const selectedCity = cityData.find(c => c.city_code === municipality)?.city_name || "";
-        const selectedProvince = provincesData.find(p => p.province_code === province)?.province_name || "";
-        
-        console.log('Selected Province:', selectedProvince); 
+  // Fetch user data on component mount
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get("http://localhost:4000/api/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const allUsersData = response.data;
+        const loggedInUserId = localStorage.getItem("userId");
 
-    
-            setData({
-              firstName: loggedInUser.name.split(" ")[0] || "",
-              lastName: loggedInUser.name.split(" ")[1] || "",
-              email: loggedInUser.email || "",
-              street: street || "",
-              barangay: selectedBarangay || "",
-              city: selectedCity || "",
-              state: selectedProvince || "",
-              zipcode: zip || "",
-              country: country || "Philippines",
-              phone: loggedInUser.phone || "",
-            });
-            
-          } else {
-            console.error("Logged-in user not found.");
-            toast.error("Error fetching logged-in user's data.");
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          toast.error("Error fetching user data.");
+        const loggedInUser = allUsersData.find(
+          (user) => user._id === loggedInUserId
+        );
+
+        if (loggedInUser) {
+          // Extracting address details
+          const {
+            barangay,
+            municipality,
+            province,
+            region,
+            street,
+            zip,
+            country,
+          } = loggedInUser.address;
+
+          // Get names from the imported data
+          const barangayName = await barangays(municipality);
+          const cityData = await cities(province); // Replace with province_code or id
+          //const regionsData = await regions();
+          const provincesData = await provincesByCode(region);
+          // Debugging Logs
+          console.log("Province Data:", provincesData); // See the structure of the provinceData array
+          console.log("Province Code:", province);
+
+          // Assuming these functions return arrays, map the correct names
+          const selectedBarangay =
+            barangayName.find((b) => b.brgy_code === barangay)?.brgy_name || "";
+          const selectedCity =
+            cityData.find((c) => c.city_code === municipality)?.city_name || "";
+          const selectedProvince =
+            provincesData.find((p) => p.province_code === province)
+              ?.province_name || "";
+
+          console.log("Selected Province:", selectedProvince);
+
+          setData({
+            firstName: loggedInUser.name.split(" ")[0] || "",
+            lastName: loggedInUser.name.split(" ")[1] || "",
+            email: loggedInUser.email || "",
+            street: street || "",
+            barangay: selectedBarangay || "",
+            city: selectedCity || "",
+            state: selectedProvince || "",
+            zipcode: zip || "",
+            country: country || "Philippines",
+            phone: loggedInUser.phone || "",
+          });
+        } else {
+          console.error("Logged-in user not found.");
+          toast.error("Error fetching logged-in user's data.");
         }
-      };
-    
-      const fetchProvinceData = async () => {
-        try {
-          const regionCode = 'some-region-code'; // Replace with the actual region code
-          const provincesData = await provincesByCode(regionCode);
-          setData(prevData => ({ ...prevData, provinces: provincesData }));
-          console.log('Provinces Data:', provincesData);
-        } catch (error) {
-          console.error('Error fetching province data:', error);
-        }
-      };
-  
-      if (token) {
-        fetchUserData(); // Call to fetch user data
-        fetchProvinceData(); // Fetch province data here
-      } else {
-        toast.error("Please log in to proceed.");
-        navigate("/login");
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        toast.error("Error fetching user data.");
       }
-    }, [token, navigate]);
-    
+    };
+
+    const fetchProvinceData = async () => {
+      try {
+        const regionCode = "some-region-code"; // Replace with the actual region code
+        const provincesData = await provincesByCode(regionCode);
+        setData((prevData) => ({ ...prevData, provinces: provincesData }));
+        console.log("Provinces Data:", provincesData);
+      } catch (error) {
+        console.error("Error fetching province data:", error);
+      }
+    };
+
+    if (token) {
+      fetchUserData(); // Call to fetch user data
+      fetchProvinceData(); // Fetch province data here
+    } else {
+      toast.error("Please log in to proceed.");
+      navigate("/login");
+    }
+  }, [token, navigate]);
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -220,9 +236,9 @@ export const PlaceOrder = () => {
           },
         ],
         redirectUrl: {
-          success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
-          failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
-          cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+          success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=Success`,
+          failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=Failed`,
+          cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=Cancelled`,
         },
         requestReferenceNumber,
       };
@@ -415,7 +431,7 @@ export const PlaceOrder = () => {
           />
         </div>
         <div className="multi-fields">
-        <input
+          <input
             required
             name="zipcode"
             onChange={onChangeHandler}
@@ -423,14 +439,14 @@ export const PlaceOrder = () => {
             type="text"
             placeholder="Zip Code"
           />
-        <input
-          required
-          name="phone"
-          onChange={onChangeHandler}
-          value={data.phone}
-          type="text"
-          placeholder="Phone"
-        />
+          <input
+            required
+            name="phone"
+            onChange={onChangeHandler}
+            value={data.phone}
+            type="text"
+            placeholder="Phone"
+          />
         </div>
       </div>
       <div className="place-order-right">

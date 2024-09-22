@@ -46,8 +46,29 @@ const MyOrders = () => {
   const url = new URL(currentUrl);
   const params = url.searchParams;
   const userId = getUserIdFromToken();
+  const status = params.get("status");
 
-  if (params.toString() !== "") {
+  useEffect(() => {
+    handleTransactionStatus(status);
+  }, [status]);
+
+  const handleTransactionStatus = (status) => {
+    switch (status) {
+      case "Failed":
+        toast.warn("The transaction Failed.");
+        break;
+      case "Success":
+        toast.success("The transaction has been processed successfully.");
+        break;
+      case "Cancelled":
+        toast.info("The transaction has been cancelled.");
+        break;
+      default:
+        toast.error("Unknown status.");
+    }
+  };
+
+  if (params.toString() !== "" && status == "Paid") {
     const orderId = params.get("orderId");
     if (orderId) {
       console.log("Order ID:", orderId);
