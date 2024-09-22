@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Users = require('../models/userModels');
+const authMiddleware = require('../middleware/auth'); 
 
 router.post('/login', async (req, res) => {
     const { email, password, recaptchaToken } = req.body;
@@ -109,5 +110,31 @@ router.get('/users/search', async (req, res) => {
     }
 });
 
+router.patch("/edituser/address", async (req, res) => {
+    const { userId, addressData } = req.body;
+  
+    // Validate userId
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: "Invalid User ID" });
+    }
+  
+    try {
+      // Update the user's address
+      const updatedUser = await Users.findByIdAndUpdate(
+        userId,
+        { address: addressData }, // Assuming your schema has an 'address' field
+        { new: true } // Return the updated document
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+  
+      res.json({ success: true, updatedUser });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+  });
 
 module.exports = router;
