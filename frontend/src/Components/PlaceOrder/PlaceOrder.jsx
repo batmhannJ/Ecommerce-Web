@@ -154,21 +154,27 @@ export const PlaceOrder = () => {
       const coordinates = await fetchCoordinates(customerAddress);
     
       if (coordinates) {
-        const distance = getDistanceFromLatLonInKm(
+        const distanceKm = getDistanceFromLatLonInKm(
           MAIN_OFFICE_COORDINATES.latitude,
           MAIN_OFFICE_COORDINATES.longitude,
           coordinates.latitude,
           coordinates.longitude
         );
     
-        // Adjusting base fee and fee per km
-        const baseFee = 40; // Lowered base fee
-        const feePerKm = 5; // Reduced per km fee to make it more reasonable
+        // Convert distance to miles
+        const distanceMiles = distanceKm * 0.621371;
     
-        let totalFee = baseFee + (feePerKm * Math.ceil(distance));
+        // Determine region (Example: Assuming you know how to identify NCR)
+        const isSameRegion = data.state === "Metro Manila" || data.region === "NCR";
+    
+        // Adjust base fee and fee per mile depending on the region
+        let baseFee = isSameRegion ? 20 : 40; // Lower base fee within NCR
+        let feePerMile = isSameRegion ? 2 : 3; // Lower fee per mile within NCR
+    
+        let totalFee = baseFee + feePerMile * Math.ceil(distanceMiles);
     
         // Capping the delivery fee to avoid extreme values
-        const maxDeliveryFee = 200; // Maximum delivery fee
+        const maxDeliveryFee = isSameRegion ? 100 : 200; // Lower cap for same region
         totalFee = totalFee > maxDeliveryFee ? maxDeliveryFee : totalFee;
     
         setDeliveryFee(totalFee);
