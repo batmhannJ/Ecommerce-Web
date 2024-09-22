@@ -330,9 +330,10 @@ router.delete("/:id", async (req, res) => {
 router.post("/updateTransactionStatus/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const { status } = req.body;
     const updatedTransaction = await Transaction.findOneAndUpdate(
       { transactionId: id },
-      { $set: { status: "Paid" } }
+      { $set: { status: status } }
     );
 
     if (!updatedTransaction) {
