@@ -6,12 +6,15 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   height: 650px; /* Set a fixed height */
   overflow-y: auto; /* Enable vertical scrolling */
+  width: 100%; /* Use full width on smaller screens */
+  max-width: 1190px; /* Maximum width */
 }
 
 .transaction-management-container h1 {
   font-size: 24px;
   margin-bottom: 20px;
   color: #333;
+  text-align: center; /* Center text */
 }
 
 .transaction-search {
@@ -26,7 +29,7 @@
   border: 2px solid #ddd;
   border-radius: 4px;
   margin-right: 10px;
-  width: 300px;
+  width: 300px; /* Default width */
 }
 
 .transaction-search button {
@@ -48,7 +51,8 @@
   border-collapse: collapse;
 }
 
-.transaction-table th, .transaction-table td {
+.transaction-table th,
+.transaction-table td {
   border: 1px solid #ddd;
   padding: 12px;
   text-align: left;
@@ -90,4 +94,42 @@
 
 .action-button:hover {
   opacity: 0.9;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .transaction-search {
+    flex-direction: column; /* Stack search bar items */
+    align-items: flex-start; /* Align to the start */
+  }
+
+  .transaction-search input {
+    width: 100%; /* Full width */
+    margin-bottom: 10px; /* Add space below */
+  }
+
+  .transaction-search button {
+    width: 100%; /* Full width */
+  }
+
+  .transaction-table th, 
+  .transaction-table td {
+    padding: 8px; /* Reduce padding for smaller screens */
+    font-size: 12px; /* Adjust font size */
+  }
+
+  .transaction-management-container {
+    height: auto; /* Adjust height for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .transaction-management-container h1 {
+    font-size: 20px; /* Smaller font size */
+  }
+
+  .transaction-search input,
+  .transaction-search button {
+    font-size: 12px; /* Smaller font size */
+  }
 }

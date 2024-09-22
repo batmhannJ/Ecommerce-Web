@@ -1,3 +1,72 @@
+.offices {
+  padding: 10px;
+}
+
+.offices-content {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* 6 columns */
+ margin-top: 100px;
+}
+.offices-content img {
+  width: 90%; /* Adjust width to make images smaller */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: cover; /* Cover the space without stretching */
+  margin-top: 20px; /* Add margin above each image */
+  margin-bottom: 20px; /* Maintain space below */
+  margin-left: 32px; /* Add left margin */
+  max-width: 150px; /* Set a max width to control the size */
+  transition: transform 0.3s ease, border 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for scaling, border color, and shadow */
+  border: 2px solid transparent; /* Default border */
+  border-radius: 5px; /* Optional: Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Default shadow */
+}
+
+.offices-content img:hover {
+  transform: scale(1.05); /* Slightly enlarge image on hover */
+  border: .5px solid rgb(136, 84, 11); /* Change border color to orange on hover */
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1); /* Increased shadow on hover */
+}
+
+
+
+.offices h1 {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5 rem;
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  text-align: center;
+  z-index: 2;
+  margin-top: 20px;
+}
+
+.offices h1:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* Responsive Styles for h1 */
+@media (max-width: 992px) {
+  .offices h1 {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .offices h1 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 506px) {
+  .newsletter h1 {
+    font-size: 20px;
+  }
+}
+
+
 .newsletter {
   width: 100%;
   height: 70vh;
