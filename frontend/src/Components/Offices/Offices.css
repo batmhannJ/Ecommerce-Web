@@ -4,7 +4,7 @@
 
 .offices-content {
   display: grid;
-  grid-template-columns: repeat(6, 1fr); /* 6 columns */
+  grid-template-columns: repeat(5, 1fr); /* 6 columns */
   
 }
 
