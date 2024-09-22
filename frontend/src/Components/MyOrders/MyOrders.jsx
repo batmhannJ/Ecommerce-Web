@@ -12,7 +12,7 @@ const getUserIdFromToken = () => {
   return null;
 };
 
-const updateTransactionStatus = async (transactionId) => {
+const updateTransactionStatus = async (transactionId, newStatus) => {
   try {
     const response = await fetch(
       `http://localhost:4000/api/transactions/updateTransactionStatus/${transactionId}`,
@@ -21,6 +21,7 @@ const updateTransactionStatus = async (transactionId) => {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ status: newStatus }),
       }
     );
 
@@ -64,15 +65,14 @@ const MyOrders = () => {
         toast.info("The transaction has been cancelled.");
         break;
       default:
-        toast.error("Unknown status.");
     }
   };
 
-  if (params.toString() !== "" && status == "Paid") {
+  if (params.toString() !== "") {
     const orderId = params.get("orderId");
     if (orderId) {
       console.log("Order ID:", orderId);
-      updateTransactionStatus(orderId)
+      updateTransactionStatus(orderId, status)
         .then((result) => {
           console.log("Transaction status updated:", result);
         })
