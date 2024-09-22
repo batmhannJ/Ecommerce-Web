@@ -1,40 +1,48 @@
-.user-management-container {
-  margin: 20px 20px 20px;
+.seller-management-container {
+  margin: 20px;
   padding: 20px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   height: 650px; /* Set a fixed height */
-  width: 1180px;
   overflow-y: auto; /* Enable vertical scrolling */
+  width: 1185px;
 }
 
-.user-management-container h1 {
+.seller-management-container h1 {
   font-size: 24px;
-  margin: 30px 0;
+  margin-bottom: 20px;
   color: #333;
+  text-align: center; /* Center the heading */
 }
 
-.user-table {
+.seller-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
-.user-table th, .user-table td {
-  border: 2px solid #ddd;
+.seller-table th,
+.seller-table td {
+  border: 1px solid #ddd;
   padding: 12px;
   text-align: left;
 }
 
-.user-table th {
+.seller-table th {
   background-color: #f4f4f4;
+  font-weight: bold;
   color: #333;
-  font-weight: 600;
 }
 
-.user-table td {
+.seller-table td {
   color: #333;
+}
+
+.seller-table img {
+  width: 100px;
+  height: auto; /* Maintain aspect ratio */
+  border-radius: 4px; /* Optional: Rounded corners for images */
 }
 
 .action-button {
@@ -47,146 +55,38 @@
   font-weight: 600;
 }
 
-.action-button.edit {
-  background-color: #007bff;
-  color: #fff;
+.action-button.approve {
+  background-color: #28a745; /* Green for approve */
+  color: white;
 }
 
-.action-button.edit:hover {
-  background-color: #0056b3;
+.action-button.approve:hover {
+  background-color: #218838; /* Darker green on hover */
 }
 
 .action-button.delete {
-  background-color: #dc3545;
-  color: #fff;
+  background-color: #dc3545; /* Red for delete */
+  color: white;
 }
 
 .action-button.delete:hover {
-  background-color: #c82333;
-}
-
-.edit-form-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.edit-form {
-  background-color: #f9f9f9;
-  padding: 20px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-}
-
-.edit-form h2 {
-  margin-top: 0;
-  font-size: 20px;
-  color: #333;
-}
-
-.edit-form .form-group {
-  margin-bottom: 15px;
-}
-
-.edit-form .form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-}
-
-.edit-form .form-group input {
-  width: calc(100% - 16px);
-  padding: 10px;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #333;
-}
-
-.submit-button {
-  background-color: #007bff;
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.submit-button:hover {
-  background-color: #0056b3;
-}
-
-.close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  border: none;
-  background: #dc3545;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.close-button:hover {
-  background-color: #c82333;
+  background-color: #c82333; /* Darker red on hover */
 }
 
 /* Responsive design */
-@media (max-width: 1000px) {
-  .user-management-container {
-    margin: 15px 10px 15px;
-    padding: 15px;
-  }
-
-  .user-table td, .user-table th {
-    padding: 10px;
-    font-size: 12px;
-  }
-
-  .edit-form {
-    padding: 15px;
-  }
-
-  .edit-form .form-group input {
-    font-size: 12px;
-  }
-
-  .submit-button {
-    font-size: 14px;
-    padding: 8px 16px;
-  }
-}
-
 @media (max-width: 768px) {
-  .user-management-container {
-    margin: 10px 10px 10px;
-    padding: 10px;
+  .seller-management-container {
+    width: 100%; /* Full width on mobile */
+    margin: 10px; /* Adjust margins */
   }
 
-  .user-table {
-    font-size: 12px;
+  .seller-table th, .seller-table td {
+    font-size: 12px; /* Smaller text on mobile */
+    padding: 10px; /* Adjust padding */
   }
 
-  .edit-form .form-group input {
-    width: 100%;
-    font-size: 12px;
+  .action-button {
+    font-size: 12px; /* Smaller buttons on mobile */
+    padding: 6px 10px;
   }
 }

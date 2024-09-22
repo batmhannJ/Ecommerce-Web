@@ -105,12 +105,6 @@ function UserManagement() {
                   View
                 </button>
                 <button
-                  className="action-button edit"
-                  onClick={() => handleEditUser(index)}
-                >
-                  Edit
-                </button>
-                <button
                   className="action-button delete"
                   onClick={() => handleDeleteUser(user._id, index)}
                 >

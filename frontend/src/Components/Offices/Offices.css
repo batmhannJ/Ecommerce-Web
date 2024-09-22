@@ -4,16 +4,30 @@
 
 .offices-content {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 6 columns */
-  
+  grid-template-columns: repeat(6, 1fr); /* 6 columns */
+ margin-top: 100px;
 }
-
 .offices-content img {
-  width: 100%; /* Make images responsive */
+  width: 90%; /* Adjust width to make images smaller */
   height: auto; /* Maintain aspect ratio */
   object-fit: cover; /* Cover the space without stretching */
-  margin-top: 50px;
+  margin-top: 20px; /* Add margin above each image */
+  margin-bottom: 20px; /* Maintain space below */
+  margin-left: 32px; /* Add left margin */
+  max-width: 150px; /* Set a max width to control the size */
+  transition: transform 0.3s ease, border 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for scaling, border color, and shadow */
+  border: 2px solid transparent; /* Default border */
+  border-radius: 5px; /* Optional: Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Default shadow */
 }
+
+.offices-content img:hover {
+  transform: scale(1.05); /* Slightly enlarge image on hover */
+  border: .5px solid rgb(136, 84, 11); /* Change border color to orange on hover */
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1); /* Increased shadow on hover */
+}
+
+
 
 .offices h1 {
   position: absolute;
