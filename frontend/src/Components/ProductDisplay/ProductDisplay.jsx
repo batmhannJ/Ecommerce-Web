@@ -122,16 +122,12 @@ const ProductDisplay = (props) => {
       setQuantity(quantity + delta);
     }
   };
+
   return (
     <div className='productdisplay'>
       <div className="productdisplay-left">
         <img className='productdisplay-main-img' src={product.image} alt="Main Image" />
-        <div className="productdisplay-img-list">
-          <img src={product.image} alt="Small Image 1" />
-          <img src={product.image} alt="Small Image 2" />
-          <img src={product.image} alt="Small Image 3" />
-          <img src={product.image} alt="Small Image 4" />
-        </div>
+        {/* Remove the small images section */}
       </div>
       <div className="productdisplay-right-container">
         <div className="productdisplay-tabs">
@@ -153,11 +149,11 @@ const ProductDisplay = (props) => {
           <h4>{product.description}</h4>
         </div>
         <div className={`productdisplay-tab-content ${activeTab === 'sizes' ? 'active' : ''}`}>
-        <div className="productdisplay-right-prices">
-        <p>Price:</p>
+          <div className="productdisplay-right-prices">
+            <p>Price:</p>
             <div className="productdisplay-right-price-new">₱{adjustedPrice}</div>
           </div>
-        <div className="productdisplay-stock">
+          <div className="productdisplay-stock">
             <p>No. of Stock: {currentStock}</p>
           </div>
           <h2>Select Size</h2>
@@ -173,7 +169,6 @@ const ProductDisplay = (props) => {
             ))}
           </div>
 
-
           <div className="quantity-controls">
             <p>Quantity: </p>
             <button className="quantity-button" onClick={() => handleQuantityChange(-1)}> - </button>
@@ -182,14 +177,13 @@ const ProductDisplay = (props) => {
           </div>
 
           <button
-          onClick={handleAddToCart}
-          disabled={currentStock === 0 || !selectedSize}
-          className="productdisplay-button" // Add this class
-        >
-          {currentStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
-        </button>
+            onClick={handleAddToCart}
+            disabled={currentStock === 0 || !selectedSize}
+            className="productdisplay-button"
+          >
+            {currentStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+          </button>
         </div>
-
       </div>
     </div>
   );

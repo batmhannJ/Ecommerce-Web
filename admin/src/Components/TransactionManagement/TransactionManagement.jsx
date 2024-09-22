@@ -14,13 +14,15 @@ const TransactionManagement = () => {
   // Fetch transactions from the API
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/transactions");
+      const response = await axios.get(
+        "http://localhost:4000/api/transactions"
+      );
+      console.log(response.data);
       setTransactions(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching transactions:", error);
     }
   };
-
 
   // Handle delete transaction
   const handleDeleteTransaction = async (id, index) => {
@@ -70,7 +72,9 @@ const TransactionManagement = () => {
               <td>
                 <button
                   className="action-button delete"
-                  onClick={() => handleDeleteTransaction(transaction._id, index)}
+                  onClick={() =>
+                    handleDeleteTransaction(transaction._id, index)
+                  }
                 >
                   Delete
                 </button>

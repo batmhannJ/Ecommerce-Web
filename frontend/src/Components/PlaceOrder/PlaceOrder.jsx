@@ -12,6 +12,15 @@ const generateReferenceNumber = () => {
   return `REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
+const getUserIdFromToken = () => {
+  const authToken = localStorage.getItem("auth-token");
+  if (authToken) {
+    const payload = JSON.parse(atob(authToken.split(".")[1]));
+    return payload.user.id;
+  }
+  return null;
+};
+
 const MAIN_OFFICE_COORDINATES = {
   latitude: 14.628488,  // Sunnymede IT Center latitude
   longitude: 121.033420

@@ -123,6 +123,9 @@ const fetchUser = require("./middleware/auth");
 // Schema Creation for User Model
 const Users = require("./models/userModels");
 
+// Schema Creation for Transaction Model
+const Transaction = require("./models/transactionModel");
+
 // Creating PlaceOrder Endpoint
 app.use("/api/order", orderRouter);
 
