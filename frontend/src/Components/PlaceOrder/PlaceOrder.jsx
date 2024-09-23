@@ -329,7 +329,7 @@ export const PlaceOrder = () => {
               console.error("Error saving transaction:", error.response ? error.response.data : error.message);
             }
           };
-          
+          const userId = localStorage.getItem('userId'); 
           saveTransaction({
             transactionId: requestReferenceNumber,  // Pass the requestReferenceNumber here instead
             date: new Date(),
@@ -339,7 +339,8 @@ export const PlaceOrder = () => {
             quantity: totalQuantity,
             amount: totalAmount,
             address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
-            status: 'Paid'
+            status: 'Paid',
+            userId: userId // Include userId here
           });
 
           const updateStock = async () => {

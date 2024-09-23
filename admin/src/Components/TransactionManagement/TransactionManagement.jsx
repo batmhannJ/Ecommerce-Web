@@ -53,7 +53,6 @@ const TransactionManagement = () => {
             <th>Amount</th>
             <th>Address</th>
             <th>Transaction ID</th>
-            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -68,7 +67,6 @@ const TransactionManagement = () => {
               <td>{transaction.amount}</td>
               <td>{transaction.address}</td>
               <td>{transaction.transactionId}</td>
-              <td>{transaction.status}</td>
               <td>
                 <button
                   className="action-button delete"

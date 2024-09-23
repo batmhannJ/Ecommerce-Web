@@ -145,7 +145,6 @@ const MyOrders = () => {
               <th>Item</th>
               <th>Quantity</th>
               <th>Amount</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -157,7 +156,6 @@ const MyOrders = () => {
                   <td>{order.item}</td>
                   <td>{order.quantity}</td>
                   <td>{order.amount}</td>
-                  <td>{order.status}</td>
                 </tr>
               ))
             ) : (
