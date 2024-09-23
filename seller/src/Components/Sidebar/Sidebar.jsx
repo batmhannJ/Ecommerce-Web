@@ -8,21 +8,21 @@ import order_product_icon from '../../assets/order_product_icon.png'
 export const Sidebar = () => {
   return (
     <div className='sidebar'>
-      <Link to={'/addproduct'} style={{ textDecoration: "none" }}>
+      <Link to={'addproduct'} style={{ textDecoration: "none" }}>
       <div className="sidebar-item">
         <img src={add_product_icon} alt="" />
         <p>Add Product</p>
       </div>
       </Link>
       
-      <Link to={'/listproduct'} style={{ textDecoration: "none" }}>
+      <Link to={'listproduct'} style={{ textDecoration: "none" }}>
       <div className="sidebar-item">
         <img src={list_product_icon} alt="" />
         <p>Product List</p>
       </div>
       </Link>
 
-      <Link to={'/orderproduct'} style={{ textDecoration: "none" }}>
+      <Link to={'orderproduct'} style={{ textDecoration: "none" }}>
       <div className="sidebar-item">
         <img src={order_product_icon} alt="" />
         <p>Orders List</p>

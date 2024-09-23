@@ -52,7 +52,12 @@ app.use("/api", productRoute);
 
 // Database Connection
 mongoose
-  .connect(mongoURI)
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 30000,  // Increase timeout to 30 seconds
+    bufferCommands: false  // Disable buffering in case of connection issues
+  })
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
 

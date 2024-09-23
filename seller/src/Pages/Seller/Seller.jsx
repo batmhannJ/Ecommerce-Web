@@ -11,9 +11,9 @@ const Seller = () => {
     <div className="admin">
       <Sidebar />
       <Routes>
-        <Route path="/addproduct" element={<AddProduct />} />
-        <Route path="/listproduct" element={<ListProduct />} />
-        <Route path="/orderproduct" element={<Orders />} />
+        <Route path="addproduct" element={<AddProduct />} /> {/* Remove leading / */}
+        <Route path="listproduct" element={<ListProduct />} /> {/* Remove leading / */}
+        <Route path="orders" element={<Orders />} /> {/* Remove leading / */}
       </Routes>
     </div>
   );
