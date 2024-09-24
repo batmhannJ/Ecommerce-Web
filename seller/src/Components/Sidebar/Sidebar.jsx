@@ -22,7 +22,7 @@ export const Sidebar = () => {
       </div>
       </Link>
 
-      <Link to={'orderproduct'} style={{ textDecoration: "none" }}>
+      <Link to={'orders'} style={{ textDecoration: "none" }}>
       <div className="sidebar-item">
         <img src={order_product_icon} alt="" />
         <p>Orders List</p>

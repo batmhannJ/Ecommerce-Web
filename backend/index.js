@@ -628,6 +628,27 @@ app.patch('/api/edituser/address', async (req, res) => {
   }
 });
 
+// PATCH endpoint to update transaction status
+app.patch('/api/transactions/:transactionId', async (req, res) => {
+  const { transactionId } = req.params;
+  const { status } = req.body; // Destructure status from the request body
+
+  try {
+    const updatedTransaction = await Transaction.findOneAndUpdate(
+      { transactionId }, // Use transactionId to find the document
+      { status }, // Update the status field
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedTransaction) {
+      return res.status(404).send({ message: 'Transaction not found' });
+    }
+
+    res.send(updatedTransaction);
+  } catch (error) {
+    res.status(500).send({ message: 'Error updating transaction status', error });
+  }
+});
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);

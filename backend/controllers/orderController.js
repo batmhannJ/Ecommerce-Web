@@ -250,17 +250,19 @@ exports.getUserOrders = async (req, res) => {
 // Listing Orders for Admin Panel
 const listOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({}); // Fetch all orders for admin
+    const orders = await orderModel.find({})
+      .populate('userId', 'name address phone'); // Populate the user fields
 
     res.json({ 
       success: true, 
-      data: orders // Return the order data including the status and _id
+      data: orders // This will now include user details
     });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error fetching orders" });
   }
 };
+
 
 
 // API for Updating Order Status

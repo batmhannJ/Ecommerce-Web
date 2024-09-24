@@ -1,57 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import './Orders.css';
 import { toast } from "react-toastify";
-import parcel_icon from "../../assets/parcel_icon.png"
+import parcel_icon from "../../assets/parcel_icon.png";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
 
+  // Fetch all orders (transactions)
   const fetchAllOrders = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/orders');
+      const response = await fetch('http://localhost:4000/api/transactions'); // Fetch transaction data
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      if (data.success) {
-        setOrders(data.data);
-        console.log(data.data);
-      } else {
-        toast.error("Error fetching orders");
-      }
+      setOrders(Array.isArray(data) ? data : []); // Ensure data is an array
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error("Error fetching orders");
     }
   };
 
-  const statusHandler = async (event, orderId) => {
+  // Update the order status
+  const statusHandler = async (event, transactionId) => {
+    const newStatus = event.target.value;
     try {
-      const response = await fetch("http://localhost:4000/api/order/status", {
-        method: "POST",
+      const response = await fetch(`http://localhost:4000/api/transactions/${transactionId}`, {
+        method: 'PATCH', // Using PATCH to update
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          orderId,
-          status: event.target.value,
-        }),
+        body: JSON.stringify({ status: newStatus }), // Send new status
       });
-  
+
       if (!response.ok) {
-        throw new Error("Failed to update status");
+        throw new Error('Failed to update status');
       }
-  
-      const responseData = await response.json();
-  
-      if (responseData.success) {
-        await fetchAllOrders();
-      }
+
+      // Update local state to reflect the status change
+      setOrders(orders.map(order => 
+        order.transactionId === transactionId ? { ...order, status: newStatus } : order
+      ));
+
+      toast.success("Order status updated successfully!");
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.error('Error updating order status:', error);
+      toast.error("Error updating order status");
     }
   };
-  
 
   useEffect(() => {
     fetchAllOrders();
@@ -61,36 +57,44 @@ const Orders = () => {
     <div className='order add'>
       <h3>Order Page</h3>
       <div className="order-list">
-        {orders.map((order, index)=>(
-          <div key={index} className='order-item'>
-            <img src={parcel_icon} alt="" />
-            <div>
-              <p className='order-item-food'>
-              {order.items.map((item, index)=>{
-                if (index===order.items.length-1) {
-                  return item.name + " x " + item.quantity
-                }
-                else {
-                  return item.name + " x " + item.quantity +", "
-                }
-              })}
-              </p>
-              <p className="order-item-name">{order.address.firstName+" "+order.address.lastName}</p>
-              <div className="order-item-address">
-                <p>{order.address.street+","}</p>
-                <p>{order.address.city+", "+order.address.state+", "+order.address.country+", "+order.address.zipcode}</p>
+        {orders.length === 0 ? (
+          <p>No orders available</p>
+        ) : (
+          orders.map((order, index) => (
+            <div key={index} className='order-item'>
+              <img src={parcel_icon} alt="parcel icon" />
+              <div>
+                <p className='order-item-food'>
+                  {order.item} {/* Display the correct quantity */}
+                </p>
+
+                <p className="order-item-name">
+                  {order.name || 'Unknown User'}
+                </p>
+
+                <div className="order-item-address">
+                  <p>
+                    {order.address || 'Address Not Available'}
+                  </p>
+                </div>
+
+                <p className='order-item-phone'>
+                  {order.contact || 'No Phone Number'}
+                </p>
               </div>
-              <p className='order-item-phone'>{order.address.phone}</p>
+
+              <p>Quantity: {order.quantity} {/* Display the actual quantity of items ordered */}</p>
+              <p>₱{order.amount || 'Amount Not Available'}</p>
+
+              {/* Order status update dropdown */}
+              <select onChange={(event) => statusHandler(event, order.transactionId)} value={order.status}>
+                <option value="Cart Processing">Cart Processing</option>
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered">Delivered</option>
+              </select>
             </div>
-            <p>Items : {order.items.length}</p>
-            <p>₱{order.amount}</p>
-            <select onChange={(event)=>statusHandler(event, order._id)} value={order.status}>
-              <option value="Cart Processing">Cart Processing</option>
-              <option value="Out for Delivery">Out for Delivery</option>
-              <option value="Delivered">Delivered</option>
-            </select>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

@@ -13,10 +13,16 @@ exports.createOrderedList = async (req, res) => {
 
 exports.getOrderedList = async (req, res) => {
   try {
-    const orders = await Order.find();
-    res.json(orders);
+    const orders = await Order.find({})
+      .populate('buyer', 'firstName lastName contact address'); // Populate the buyer fields with necessary info
+
+    res.json({ 
+      success: true, 
+      data: orders // Include user details with orders
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log(error);
+    res.json({ success: false, message: "Error fetching orders" });
   }
 };
 
