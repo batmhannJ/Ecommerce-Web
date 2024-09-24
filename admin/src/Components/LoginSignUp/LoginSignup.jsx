@@ -22,26 +22,31 @@ const LoginSignup = () => {
   };
 
   const onSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  if (!validatePassword(formData.password)) {
+    setPasswordError('Password must be at least 8 characters long and include at least one capital letter.');
+    return;
+  } else {
+    setPasswordError('');
+  }
+  
+  try {
+    const responseData = await adminLogin(formData);
     
-    if (!validatePassword(formData.password)) {
-      setPasswordError('Password must be at least 8 characters long and include at least one capital letter.');
-      return;
-    } else {
-      setPasswordError('');
-    }
-    
-    try {
-      const responseData = await adminLogin(formData);
+    console.log('Login Successful:', responseData); // Log the response data
+    localStorage.setItem('admin_token', responseData.token);
+    console.log('Navigating to /admin/dashboard'); 
+    navigate('/admin/dashboard');
+    window.location.reload(); // Optional: Reload if necessary// Log navigation
+  } catch (error) {
+    console.error('Frontend Error:', error);
+    toast.error(error.response?.data?.errors || 'An error occurred. Please try again.');
+  }
+};
 
-      localStorage.setItem('admin_token', responseData.token);
-      navigate('/admin/dashboard');
-      window.location.reload()
-    } catch (error) {
-      console.error('Frontend Error:', error);
-      toast.error(error.response?.data?.errors || 'An error occurred. Please try again.');
-    }
-  };
+  
+  
 
   return (
     <div className="login-container">

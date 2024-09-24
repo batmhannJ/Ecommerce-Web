@@ -5,6 +5,7 @@ import Dashboard from './Components/Dashboard/Dashboard';
 import Admin from './Pages/Admin/Admin';
 import Navbar from './Components/Navbar/Navbar';
 import Verify from './Components/Verify';
+import AccountSettings from './Components/AdminProfile/AccountSettings';
 
 const App = () => {
   const isAuthenticated = !!localStorage.getItem('admin_token');
@@ -25,8 +26,10 @@ const App = () => {
           )
         }
       />
+
       <Route path="/verify" element={<Verify />} />
-      <Route path="*" element={<Navigate to="/login" />} />
+      <Route path="*" element={<Navigate to="/login" />} />      
+      <Route path="/admin/accountsettings" element={<AccountSettings />} />
     </Routes>
   );
 };

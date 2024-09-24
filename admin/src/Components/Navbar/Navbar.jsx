@@ -6,7 +6,7 @@ import navProfile from '../../assets/nav-profile.png';
 export const Navbar = () => {
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
   const profileMenuRef = useRef();
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   const toggleProfileMenu = () => {
     setProfileMenuVisible(!profileMenuVisible);
@@ -20,7 +20,7 @@ const handleLogout = () => {
   console.log('Logging out...'); // For debugging
   localStorage.removeItem('admin_token');
   console.log('Token removed from localStorage'); // For debugging
-  navigate('/login', { replace: true }); 
+  window.location.replace("/");
 };
 
 
@@ -52,7 +52,7 @@ const handleLogout = () => {
         />
         {profileMenuVisible && (
           <div ref={profileMenuRef} className="profile-menu">
-            <Link to="/admin/profile" onClick={closeProfileMenu}>
+            <Link to="/admin/accountsettings" onClick={closeProfileMenu}>
               <button>Profile</button>
             </Link>
             <button onClick={handleLogout}>Logout</button>
