@@ -16,11 +16,11 @@ const AccountSettings = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const getUserIdFromToken = () => {
-    const authToken = localStorage.getItem("auth-token");
+    const authToken = localStorage.getItem("admin_token"); // Adjusted to use 'admin_token'
     if (authToken) {
       try {
         const payload = JSON.parse(atob(authToken.split(".")[1]));
-        return payload.id; // Adjust according to your token's structure
+        return payload.id; // Ensure this is 'id' in your token's payload
       } catch (error) {
         console.error("Error decoding token:", error);
         return null;
@@ -28,24 +28,25 @@ const AccountSettings = () => {
     }
     return null;
   };
+  
 
   useEffect(() => {
     const userId = getUserIdFromToken();
     console.log("User ID from token:", userId); // Log the user ID for debugging
 
     const fetchUserData = async () => {
-      const authToken = localStorage.getItem("auth-token");
-      const userId = getUserIdFromToken(); // Ensure userId is retrieved here
-
+      const authToken = localStorage.getItem("admin_token"); // Adjusted to use 'admin_token'
+      const userId = getUserIdFromToken(); // Retrieve the userId from the token
+    
       if (!authToken || !userId) {
         console.error("No token or user ID found");
         return;
       }
-
+    
       try {
         const response = await axios.get(`http://localhost:4000/api/admin/${userId}`, {
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            Authorization: `Bearer ${authToken}`, // Adjusted to use the correct token
           },
         });
         const { name, phone, email } = response.data;

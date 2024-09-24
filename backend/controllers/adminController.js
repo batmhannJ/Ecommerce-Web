@@ -53,10 +53,9 @@ const login = async (req, res) => {
 
     // Generate a JWT token if login is successful
     const token = jwt.sign({ id: admin._id, role: admin.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log('Admin ID:', admin._id); // Display the admin ID
-
-    // Send response with token and admin ID
-    res.json({ success: true, token, adminId: admin._id }); // Send admin ID back to client
+    console.log({ success: true, token, adminId: admin._id });
+    res.json({ success: true, token, adminId: admin._id });
+     // Send admin ID back to client
   } catch (error) {
     console.error('Login Error:', error);
     res.status(500).json({ success: false, errors: 'An error occurred during login' });

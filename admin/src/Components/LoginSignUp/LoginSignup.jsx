@@ -22,29 +22,36 @@ const LoginSignup = () => {
   };
 
   const onSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!validatePassword(formData.password)) {
-    setPasswordError('Password must be at least 8 characters long and include at least one capital letter.');
-    return;
-  } else {
-    setPasswordError('');
-  }
-  
-  try {
-    const responseData = await adminLogin(formData);
+    e.preventDefault();
     
-    console.log('Login Successful:', responseData); // Log the response data
-    localStorage.setItem('admin_token', responseData.token);
-    console.log('Navigating to /admin/dashboard'); 
-    navigate('/admin/dashboard');
-    window.location.reload(); // Optional: Reload if necessary// Log navigation
-  } catch (error) {
-    console.error('Frontend Error:', error);
-    toast.error(error.response?.data?.errors || 'An error occurred. Please try again.');
-  }
-};
-
+    if (!validatePassword(formData.password)) {
+      setPasswordError('Password must be at least 8 characters long and include at least one capital letter.');
+      return;
+    } else {
+      setPasswordError('');
+    }
+    
+    try {
+      const responseData = await adminLogin(formData);
+      
+      console.log('Login Response:', responseData); // Log the response
+  
+      // Check if response contains both token and adminId
+      if (responseData.token && responseData.adminId) {
+        localStorage.setItem('admin_token', responseData.token);
+        localStorage.setItem('admin_userId', responseData.adminId); // Store adminId in localStorage
+        
+        console.log('Stored token and adminId');
+        navigate('/admin/dashboard');
+        window.location.reload();
+      } else {
+        console.error('No adminId or token found in response');
+      }
+    } catch (error) {
+      console.error('Frontend Error:', error);
+      toast.error(error.response?.data?.errors || 'An error occurred. Please try again.');
+    }
+  };
   
   
 
