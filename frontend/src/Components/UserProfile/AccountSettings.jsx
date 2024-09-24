@@ -9,47 +9,55 @@ const AccountSettings = () => {
     email: "",
   });
 
+  const [formErrors, setFormErrors] = useState({});
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
   const getUserIdFromToken = () => {
     const authToken = localStorage.getItem("auth-token");
     if (authToken) {
       const payload = JSON.parse(atob(authToken.split(".")[1]));
-      return payload.user.id;
+      return payload.user.id; // Ensure the structure matches your token
     }
     return null;
   };
 
-  const [formErrors, setFormErrors] = useState({});
-  const [formSubmitted, setFormSubmitted] = useState(false);
   useEffect(() => {
-    const authToken = localStorage.getItem("auth-token");
+    const fetchUserData = async () => {
+      const authToken = localStorage.getItem("auth-token");
+      const userId = getUserIdFromToken();
 
-    if (!authToken) {
-      console.error("No token found");
-      return;
-    }
+      if (!authToken || !userId) {
+        console.error("No token or user ID found");
+        return;
+      }
 
-    console.log("authToken", authToken);
-    fetch("http://localhost:4000/api/users", {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    })
-      .then((response) => {
+      try {
+        // Fetch user data for the currently logged-in user
+        const response = await fetch(`http://localhost:4000/api/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
-        return response.json();
-      })
-      .then((data) => {
+
+        const data = await response.json();
+        console.log("Fetched user data:", data); // Log fetched data
+
+        // Assuming the API returns user data with name, phone, email fields
         setFormData({
           name: data.name || "",
           phone: data.phone || "",
           email: data.email || "",
         });
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching user data:", error);
-      });
+      }
+    };
+
+    fetchUserData();
   }, []);
 
   const handleChange = (e) => {
@@ -66,12 +74,11 @@ const AccountSettings = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const userId = getUserIdFromToken();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
       setFormSubmitted(true);
+      const userId = getUserIdFromToken();
       try {
         const response = await axios.patch(
           `http://localhost:4000/api/edituser/${userId}`,
@@ -126,9 +133,7 @@ const AccountSettings = () => {
               aria-required="true"
             />
             {formErrors.phone && (
-              <span className="account-settings__error">
-                {formErrors.phone}
-              </span>
+              <span className="account-settings__error">{formErrors.phone}</span>
             )}
           </div>
 
@@ -137,7 +142,7 @@ const AccountSettings = () => {
               Email <span>*</span>
             </label>
             <input
-              type="text"
+              type="email" // Change to email type
               name="email"
               id="email"
               value={formData.email}
@@ -145,9 +150,7 @@ const AccountSettings = () => {
               aria-required="true"
             />
             {formErrors.email && (
-              <span className="account-settings__error">
-                {formErrors.email}
-              </span>
+              <span className="account-settings__error">{formErrors.email}</span>
             )}
           </div>
 

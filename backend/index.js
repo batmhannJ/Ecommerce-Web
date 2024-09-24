@@ -613,6 +613,22 @@ app.get("/api/transactions/salesGrowthRate", async (req, res) => {
   }
 });
 
+// Example Express route for fetching a user by ID
+app.get('/api/users/:userId', (req, res) => {
+  const userId = req.params.userId;
+
+  // Logic to find the user in the database by userId
+  Users.findById(userId)
+    .then(user => {
+      if (!user) {
+        return res.status(404).send({ message: "User not found" });
+      }
+      res.send(user);
+    })
+    .catch(err => res.status(500).send({ message: "Error fetching user" }));
+});
+
+
 app.patch('/api/edituser/address', async (req, res) => {
   try {
     const { userId, addressData } = req.body;
