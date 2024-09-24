@@ -5,7 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { regions, provincesByCode, cities, barangays } from 'select-philippines-address';
 
 const Address = () => {
-  const [userData, setUserData] = useState(null); // Define userData and setUserData
+  const [userData, setUserData] = useState(null); // User data to hold fetched address information
   const [formData, setFormData] = useState({
     street: "",
     barangay: "",
@@ -20,17 +20,12 @@ const Address = () => {
   const [provinces, setProvinces] = useState([]);
   const [citiesList, setCities] = useState([]);
   const [barangaysList, setBarangays] = useState([]);
-  const [restoreData, setRestoreData] = useState(""); // For restoring and updating the data
 
-  // Store selected names to display in restore data
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedBarangay, setSelectedBarangay] = useState("");
-
-    // Additional States for Validation and Submission Feedback
-    const [formErrors, setFormErrors] = useState({});
-    const [isLoading, setIsLoading] = useState(false);
+  // Additional States for Validation and Submission Feedback
+  const [formErrors, setFormErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState(null); // null, 'success', 'error'
+  const [submissionMessage, setSubmissionMessage] = useState("");
 
   // Fetch regions on component mount
   useEffect(() => {
@@ -42,23 +37,26 @@ const Address = () => {
     fetchRegions();
   }, []);
 
+  // Fetch user data when component mounts
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        const userId = localStorage.getItem('userId'); // Get userId from local storage
         const token = localStorage.getItem("authToken"); // Ensure you store and retrieve the token properly
-        const response = await axios.get("http://localhost:4000/api/users", {
+        const response = await axios.get(`http://localhost:4000/api/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         // Assuming the response contains the user data, set it in state
         setUserData(response.data);
+        // Set formData with user's address
+        setFormData(response.data.address); // Assuming user data contains an address field
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
     };
-  
+
     fetchUserData();
   }, []);
-  
 
   // Fetch provinces when region is selected
   useEffect(() => {
@@ -66,12 +64,6 @@ const Address = () => {
       if (formData.region) {
         const provincesData = await provincesByCode(formData.region);
         setProvinces(provincesData);
-
-        // Find the selected region name
-        const selectedRegionData = availableRegions.find(
-          (region) => region.region_code === formData.region
-        );
-        setSelectedRegion(selectedRegionData?.region_name || "");
       }
     };
 
@@ -84,12 +76,6 @@ const Address = () => {
       if (formData.province) {
         const citiesData = await cities(formData.province);
         setCities(citiesData);
-
-        // Find the selected province name
-        const selectedProvinceData = provinces.find(
-          (province) => province.province_code === formData.province
-        );
-        setSelectedProvince(selectedProvinceData?.province_name || "");
       }
     };
 
@@ -102,32 +88,11 @@ const Address = () => {
       if (formData.municipality) {
         const barangaysData = await barangays(formData.municipality);
         setBarangays(barangaysData);
-
-        // Find the selected city name
-        const selectedCityData = citiesList.find(
-          (city) => city.city_code === formData.municipality
-        );
-        setSelectedCity(selectedCityData?.city_name || "");
       }
     };
 
     fetchBarangays();
   }, [formData.municipality]);
-
-  // Find selected barangay name
-  useEffect(() => {
-    const selectedBarangayData = barangaysList.find(
-      (barangay) => barangay.brgy_code === formData.barangay
-    );
-    setSelectedBarangay(selectedBarangayData?.brgy_name || "");
-  }, [formData.barangay]);
-
-  // Update the restore data field based on current form values (actual names)
-  useEffect(() => {
-    setRestoreData(
-      `${formData.street}, ${selectedRegion}, ${selectedProvince}, ${selectedCity}, ${selectedBarangay}, ${formData.zip}`
-    );
-  }, [formData, selectedRegion, selectedProvince, selectedCity, selectedBarangay]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -136,7 +101,7 @@ const Address = () => {
 
   const validateForm = () => {
     const errors = {};
-  
+
     if (!formData.street.trim()) {
       errors.street = "Street is required.";
     }
@@ -157,22 +122,15 @@ const Address = () => {
     } else if (!/^\d{4}$/.test(formData.zip)) {
       errors.zip = "Zip Code must be 4 digits.";
     }
-  
-    // You can add more validation rules as needed
-  
-    // Update state with errors if you choose to display them
+
     setFormErrors(errors);
-  
     return Object.keys(errors).length === 0;
   };
-
-  const [submissionStatus, setSubmissionStatus] = useState(null); // null, 'success', 'error'
-  const [submissionMessage, setSubmissionMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      setIsLoading(true); // <-- Start loading
+      setIsLoading(true); // Start loading
       try {
         const userId = localStorage.getItem('userId');
         console.log('Updating user with ID:', userId);
@@ -180,83 +138,33 @@ const Address = () => {
           console.error('User ID is null or undefined');
           setSubmissionStatus('error');
           setSubmissionMessage('User ID is missing.');
-          setIsLoading(false); // <-- Stop loading if error
+          setIsLoading(false); // Stop loading if error
           return;
         }
-  
-        console.log("Form Data: ", formData); // <-- Debug form data
-  
+
+        console.log("Form Data: ", formData); // Debug form data
+
         const response = await axios.patch('http://localhost:4000/api/edituser/address', {
           userId,
           addressData: formData
         });
-  
+
         console.log('Address updated successfully:', response.data);
         setSubmissionStatus('success');
         setSubmissionMessage('Address updated successfully.');
       } catch (error) {
         console.error('Error updating address:', error);
-        console.log("Error data: ", error.response ? error.response.data : error); // <-- Debug error response
         setSubmissionStatus('error');
         setSubmissionMessage('Failed to update address.');
       } finally {
-        setIsLoading(false); // <-- Stop loading
+        setIsLoading(false); // Stop loading
       }
-    }
-  };
-  
-
-
-  const handleRestore = () => {
-    try {
-      const [street, regionName, provinceName, cityName, barangayName, zip] = restoreData.split(",").map(item => item.trim());
-      if (!street || !regionName || !provinceName || !cityName || !barangayName || !zip) {
-        throw new Error("Incomplete address data.");
-      }
-
-      const region = availableRegions.find((region) => region.region_name.toLowerCase() === regionName.toLowerCase())?.region_code || "";
-      const province = provinces.find((province) => province.province_name.toLowerCase() === provinceName.toLowerCase())?.province_code || "";
-      const municipality = citiesList.find((city) => city.city_name.toLowerCase() === cityName.toLowerCase())?.city_code || "";
-      const barangay = barangaysList.find((barangay) => barangay.brgy_name.toLowerCase() === barangayName.toLowerCase())?.brgy_code || "";
-
-      if (!region || !province || !municipality || !barangay) {
-        throw new Error("Invalid address components.");
-      }
-
-      setFormData({
-        street,
-        region,
-        province,
-        municipality,
-        barangay,
-        zip,
-        country: "Philippines"
-      });
-
-      setSubmissionStatus(null);
-      setSubmissionMessage("");
-      setFormErrors({});
-    } catch (error) {
-      console.error("Error restoring address:", error);
-      setSubmissionStatus("error");
-      setSubmissionMessage("Failed to restore address. Please check the format.");
     }
   };
 
   return (
     <div className="address-form">
       <h1>New Address</h1>
-
-      {/* Input box to show and restore previously selected/typed values */}
-      <div className="form-row">
-        <input
-          type="text"
-          placeholder="street, region, province, city, barangay, zip"
-          value={restoreData}
-          onChange={(e) => setRestoreData(e.target.value)}
-        />
-        <button type="button" onClick={handleRestore}>Restore</button>
-      </div>
 
       {/* Submission Status Message */}
       {submissionStatus && (
@@ -375,7 +283,7 @@ const Address = () => {
         {/* Submit Button */}
         <div className="form-row">
           <button type="submit" disabled={isLoading}>
-            {isLoading ? "Submitting..." : "Submit"}
+            {isLoading ? "Loading..." : "Update Address"}
           </button>
         </div>
       </form>
