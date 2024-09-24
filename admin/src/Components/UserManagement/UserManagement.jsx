@@ -88,6 +88,7 @@ function UserManagement() {
             <th>Id</th>
             <th>Name</th>
             <th>Email</th>
+            <th>Contact</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -97,6 +98,7 @@ function UserManagement() {
               <td>{user._id}</td>
               <td>{user.name}</td>
               <td>{user.email}</td>
+              <td>{user.phone}</td>
               <td>
                 <button
                   className="action-button view"

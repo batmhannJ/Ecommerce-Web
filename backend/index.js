@@ -261,28 +261,35 @@ app.post("/signup", async (req, res) => {
       .status(400)
       .json({ success: false, errors: "Existing User Found" });
   }
+
   let cart = {};
   for (let i = 0; i < 300; i++) {
     cart[i] = 0;
   }
+
   const user = new Users({
     name: req.body.username,
     email: req.body.email,
+    phone: req.body.phone,
     password: req.body.password,
     cartData: cart,
   });
 
-  await user.save();
+  // Debugging log
+  console.log("User data before saving:", user);
 
-  const data = {
-    user: {
-      id: user.id,
-    },
-  };
+  try {
+    await user.save();
+  } catch (error) {
+    console.error("Error saving user:", error);
+    return res.status(500).json({ success: false, errors: "Error saving user." });
+  }
 
+  const data = { user: { id: user.id } };
   const token = jwt.sign(data, "secret_ecom");
   res.json({ success: true, token });
 });
+
 
 // Creating Endpoint for User Login
 app.post("/login", async (req, res) => {
@@ -422,7 +429,7 @@ app.post("/send-otp", async (req, res) => {
 
 // Endpoint to verify OTP and sign up user
 app.post("/verify-otp", async (req, res) => {
-  const { email, otp, username, password } = req.body;
+  const { email, otp, username, phone, password } = req.body;
 
   // Check if the OTP is valid
   if (otpStore[email] !== otp) {
@@ -441,6 +448,7 @@ app.post("/verify-otp", async (req, res) => {
     name: username,
     email,
     password,
+    phone,
     cartData: cart,
   });
 

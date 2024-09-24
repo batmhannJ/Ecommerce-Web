@@ -27,6 +27,7 @@ const LoginSignup = () => {
     username:"",
     password:"",
     email:"",
+    phone: "", // Add phone to formData
     otp:"",
     newPassword: "",
     confirmPassword: "",
@@ -89,6 +90,7 @@ const LoginSignup = () => {
         body: JSON.stringify({
           email: formData.email,
           otp: formData.otp,
+          phone: formData.phone,
           username: formData.username,
           password: formData.password,
         }),
@@ -307,8 +309,17 @@ const LoginSignup = () => {
             <div className="loginsignup-fields">
               {state === "Sign Up" ? <input name='username' value={formData.username} onChange={changeHandler} type="text" placeholder='Your Name' /> : null}
               <input name='email' value={formData.email} onChange={changeHandler} type="email" placeholder='Email Address' />
-              <input name='password' value={formData.password} onChange={changeHandler} type="password" placeholder='Password' />
-
+               {/* Phone number input field */}
+               {state === "Sign Up" && (
+    <input
+      name='phone'
+      value={formData.phone}
+      onChange={changeHandler}
+      type="text"
+      placeholder='Phone Number'
+    />
+  )}
+  <input name='password' value={formData.password} onChange={changeHandler} type="password" placeholder='Password' />
               {otpSent && (
                 <input name='otp' value={formData.otp} onChange={changeHandler} type="text" placeholder='Enter OTP' />
               )}
