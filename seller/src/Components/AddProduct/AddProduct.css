@@ -1,3 +1,28 @@
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tag-box {
+  background-color: #f0f0f0;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.tag {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
 .add-product {
   box-sizing: border-box;
   width: 100%;
@@ -31,10 +56,9 @@
   border: 1px solid #c3c3c3;
   outline: none;
   color: #333;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 14px;
 
-  
   background-color: #f9f9f9;
 }
 
@@ -154,8 +178,7 @@
   margin-bottom: 10px;
 }
 
-
-@media(max-width: 800px) {
+@media (max-width: 800px) {
   .add-product {
     padding: 20px;
     margin: 10px;

@@ -26,15 +26,21 @@ export const AddProduct = () => {
   };
 
   useEffect(() => {
-    setProductDetails(prevDetails => ({
+    setProductDetails((prevDetails) => ({
       ...prevDetails,
       stock: computeTotalStock(),
     }));
-  }, [productDetails.s_stock, productDetails.m_stock, productDetails.l_stock, productDetails.xl_stock]);
+  }, [
+    productDetails.s_stock,
+    productDetails.m_stock,
+    productDetails.l_stock,
+    productDetails.xl_stock,
+  ]);
 
   const [errors, setErrors] = useState({
     old_price: "",
     new_price: "",
+    tags: "",
   });
 
   const imageHandler = (e) => {
@@ -49,7 +55,7 @@ export const AddProduct = () => {
       if (!/^\d*$/.test(value)) {
         return; // Only allow numeric input
       }
-      setProductDetails(prevDetails => ({
+      setProductDetails((prevDetails) => ({
         ...prevDetails,
         [name]: parseInt(value) || 0, // Update stock value or set to 0 if empty
       }));
@@ -65,12 +71,36 @@ export const AddProduct = () => {
           [name]: "",
         });
       }
-      setProductDetails(prevDetails => ({
+      setProductDetails((prevDetails) => ({
         ...prevDetails,
         [name]: value,
       }));
+    } else if (name === "tags") {
+      const tags = value
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag !== "");
+      if (tags.length > 5) {
+        setErrors({
+          ...errors,
+          tags: "Maximum 5 tags allowed",
+        });
+        setProductDetails((prevDetails) => ({
+          ...prevDetails,
+          [name]: value.substring(0, value.lastIndexOf(",")),
+        }));
+      } else {
+        setErrors({
+          ...errors,
+          tags: "",
+        });
+        setProductDetails((prevDetails) => ({
+          ...prevDetails,
+          [name]: value,
+        }));
+      }
     } else {
-      setProductDetails(prevDetails => ({
+      setProductDetails((prevDetails) => ({
         ...prevDetails,
         [name]: value,
       }));
@@ -108,7 +138,7 @@ export const AddProduct = () => {
   };
 
   const Add_Product = async () => {
-    if (errors.old_price || errors.new_price) {
+    if (errors.old_price || errors.new_price || errors.tags) {
       toast.error("Please fix the errors before submitting", {
         position: "top-left",
       });
@@ -116,7 +146,10 @@ export const AddProduct = () => {
     }
 
     // Validate that the offer price is not higher than the original price
-    if (parseFloat(productDetails.new_price) >= parseFloat(productDetails.old_price)) {
+    if (
+      parseFloat(productDetails.new_price) >=
+      parseFloat(productDetails.old_price)
+    ) {
       toast.error("Offer price must be lower than the original price", {
         position: "top-left",
       });
@@ -222,14 +255,46 @@ export const AddProduct = () => {
       <div className="addproduct-price">
         <div className="addproduct-itemfield">
           <div className="size-stock">
-          <p>Size and stock</p>
-          <label>Small: <input type="number" name="s_stock"  min="0" onChange={changeHandler}></input></label>
-          <label>Medium: <input type="number" name="m_stock"  min="0" onChange={changeHandler}></input></label>
-          <label>Large: <input type="number" name="l_stock" min="0" onChange={changeHandler}></input></label>
-          <label>XL: <input type="number" name="xl_stock" min="0" onChange={changeHandler}></input></label>
+            <p>Size and stock</p>
+            <label>
+              Small:{" "}
+              <input
+                type="number"
+                name="s_stock"
+                min="0"
+                onChange={changeHandler}
+              ></input>
+            </label>
+            <label>
+              Medium:{" "}
+              <input
+                type="number"
+                name="m_stock"
+                min="0"
+                onChange={changeHandler}
+              ></input>
+            </label>
+            <label>
+              Large:{" "}
+              <input
+                type="number"
+                name="l_stock"
+                min="0"
+                onChange={changeHandler}
+              ></input>
+            </label>
+            <label>
+              XL:{" "}
+              <input
+                type="number"
+                name="xl_stock"
+                min="0"
+                onChange={changeHandler}
+              ></input>
+            </label>
+          </div>
         </div>
-        </div>
-          <div className="addproduct-itemfield">
+        <div className="addproduct-itemfield">
           <p>Product Category</p>
           <select
             value={productDetails.category}
@@ -242,7 +307,28 @@ export const AddProduct = () => {
             <option value="food">Food</option>
           </select>
         </div>
-      
+      </div>
+
+      <div className="addproduct-price">
+        <div className="addproduct-itemfield">
+          <p>Product Tags (separate by commas, max 5)</p>
+          <input
+            type="text"
+            name="tags"
+            value={productDetails.tags}
+            placeholder="Type Here"
+            onChange={changeHandler}
+          />
+          {errors.tags && <span className="error-text">{errors.tags}</span>}
+          <div className="tags-container">
+            {productDetails.tags &&
+              productDetails.tags.split(",").map((tag, index) => (
+                <div key={index} className="tag-box">
+                  <span className="tag">{tag.trim()}</span>
+                </div>
+              ))}
+          </div>
+        </div>
       </div>
 
       <div className="addproduct-itemfield">

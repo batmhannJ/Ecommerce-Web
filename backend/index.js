@@ -199,6 +199,7 @@ app.post("/addproduct", async (req, res) => {
     xl_stock: req.body.xl_stock,
     stock: req.body.stock,
     description: req.body.description,
+    tags: req.body.tags,
   });
   await product.save();
   console.log(product);
@@ -218,6 +219,7 @@ app.post("/addproduct", async (req, res) => {
     xl_stock,
     stock,
     description,
+    tags,
   } = req.body;
 
   // Log received product data
@@ -233,6 +235,7 @@ app.post("/addproduct", async (req, res) => {
     xl_stock,
     stock,
     description,
+    tags,
   });
 });
 
@@ -282,14 +285,15 @@ app.post("/signup", async (req, res) => {
     await user.save();
   } catch (error) {
     console.error("Error saving user:", error);
-    return res.status(500).json({ success: false, errors: "Error saving user." });
+    return res
+      .status(500)
+      .json({ success: false, errors: "Error saving user." });
   }
 
   const data = { user: { id: user.id } };
   const token = jwt.sign(data, "secret_ecom");
   res.json({ success: true, token });
 });
-
 
 // Creating Endpoint for User Login
 app.post("/login", async (req, res) => {
@@ -312,7 +316,6 @@ app.post("/login", async (req, res) => {
     res.json({ success: false, errors: "Error: Wrong Email Address" });
   }
 });
-
 
 // Creating Endpoint for NewCollection Data
 app.get("/newcollections", async (req, res) => {
@@ -614,46 +617,51 @@ app.get("/api/transactions/salesGrowthRate", async (req, res) => {
 });
 
 // Example Express route for fetching a user by ID
-app.get('/api/users/:userId', (req, res) => {
+app.get("/api/users/:userId", (req, res) => {
   const userId = req.params.userId;
 
   // Logic to find the user in the database by userId
   Users.findById(userId)
-    .then(user => {
+    .then((user) => {
       if (!user) {
         return res.status(404).send({ message: "User not found" });
       }
       res.send(user);
     })
-    .catch(err => res.status(500).send({ message: "Error fetching user" }));
+    .catch((err) => res.status(500).send({ message: "Error fetching user" }));
 });
 
-
-app.patch('/api/edituser/address', async (req, res) => {
+app.patch("/api/edituser/address", async (req, res) => {
   try {
     const { userId, addressData } = req.body;
-    
+
     // Check if userId and addressData exist
     if (!userId || !addressData) {
-      return res.status(400).json({ error: 'Missing userId or addressData' });
+      return res.status(400).json({ error: "Missing userId or addressData" });
     }
 
     // Perform the update in your database
-    const updatedUser = await Users.findByIdAndUpdate(userId, { address: addressData }, { new: true });
-    
+    const updatedUser = await Users.findByIdAndUpdate(
+      userId,
+      { address: addressData },
+      { new: true }
+    );
+
     if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json({ message: 'User updated successfully', data: updatedUser });
+    res
+      .status(200)
+      .json({ message: "User updated successfully", data: updatedUser });
   } catch (error) {
     console.error(error); // Log the actual error in your server
-    res.status(500).json({ error: 'Failed to update user' });
+    res.status(500).json({ error: "Failed to update user" });
   }
 });
 
 // PATCH endpoint to update transaction status
-app.patch('/api/transactions/:transactionId', async (req, res) => {
+app.patch("/api/transactions/:transactionId", async (req, res) => {
   const { transactionId } = req.params;
   const { status } = req.body; // Destructure status from the request body
 
@@ -665,12 +673,14 @@ app.patch('/api/transactions/:transactionId', async (req, res) => {
     );
 
     if (!updatedTransaction) {
-      return res.status(404).send({ message: 'Transaction not found' });
+      return res.status(404).send({ message: "Transaction not found" });
     }
 
     res.send(updatedTransaction);
   } catch (error) {
-    res.status(500).send({ message: 'Error updating transaction status', error });
+    res
+      .status(500)
+      .send({ message: "Error updating transaction status", error });
   }
 });
 
@@ -678,5 +688,5 @@ app.patch('/api/transactions/:transactionId', async (req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);
 app.use("/api/seller", sellerRouter);
-app.use('/api', sellerRouter);
+app.use("/api", sellerRouter);
 app.use("/api", userRoutes);
