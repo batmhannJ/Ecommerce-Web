@@ -678,4 +678,5 @@ app.patch('/api/transactions/:transactionId', async (req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);
 app.use("/api/seller", sellerRouter);
+app.use('/api', sellerRouter);
 app.use("/api", userRoutes);

@@ -7,23 +7,35 @@
   --background-opacity: 0.9;
 }
 
+.admin-layout {
+  display: flex;
+  flex-direction: row; /* Align Navbar and Sidebar horizontally */
+  width: 100%;
+}
+
+.sidebar {
+  width: 250px; /* Adjust the width of the sidebar as needed */
+ /* Example background color for sidebar */
+}
+
+.navbar {
+  width: 100%;
+}
+
 .account-settings {
+  display: flex;
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding: 20px;
   box-sizing: border-box;
   margin-bottom: 40px; /* Added space below */
 }
 
 .account-settings-container {
-  width: 50%;
-  max-width: 600px;
-  background: white;
-  border-radius: 10px;
-  padding: 30px 40px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  padding: 20px;
+
 }
 
 .account-settings__heading {
