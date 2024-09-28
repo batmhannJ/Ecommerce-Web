@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import "./App.css";
+import 'react-toastify/dist/ReactToastify.css';
 import Navbar from "./Components/Navbar/Navbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Shop from "./Pages/Shop";
@@ -19,7 +20,6 @@ import UserProfile from "./Pages/User/UserProfile";
 import UserSideBar from "./Components/UserProfile/UserSideBar";
 import AccountSettings from "./Components/UserProfile/AccountSettings";
 import Offices from "./Components/Offices/Offices"; // Add this import
-// Import the functions from the package
 import { regions, provincesByCode, cities, barangays } from "select-philippines-address";
 
 function App() {

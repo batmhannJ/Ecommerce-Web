@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const ProductSchema = new mongoose.Schema({
   id: {
@@ -13,7 +13,7 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  description:{
+  description: {
     type: String,
     required: false,
   },
@@ -31,7 +31,7 @@ const ProductSchema = new mongoose.Schema({
   },
   s_stock: {
     type: Number,
-    default: 0,  // Provide a default value
+    default: 0, // Provide a default value
   },
   m_stock: {
     type: Number,
@@ -55,20 +55,23 @@ const ProductSchema = new mongoose.Schema({
   },
   available: {
     type: Boolean,
-    default: true
+    default: true,
+  },
+  tags: {
+    type: [{ type: String }],
+    validate: [(val) => val.length <= 5, "{PATH} exceeds the limit of 5 tags"],
   },
 });
 
-ProductSchema.virtual('totalStock').get(function() {
+ProductSchema.virtual("totalStock").get(function () {
   return this.s_stock + this.m_stock + this.l_stock + this.xl_stock;
 });
 
-ProductSchema.pre('save', function(next) {
+ProductSchema.pre("save", function (next) {
   this.stock = this.totalStock;
   next();
 });
 
-
-const Product = mongoose.model('Product', ProductSchema);
+const Product = mongoose.model("Product", ProductSchema);
 
 module.exports = Product;

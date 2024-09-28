@@ -282,9 +282,13 @@ const Address = () => {
 
         {/* Submit Button */}
         <div className="form-row">
-          <button type="submit" disabled={isLoading}>
+          <div 
+            className={`submit-button ${isLoading ? 'loading' : ''}`} 
+            onClick={handleSubmit} 
+            disabled={isLoading}
+          >
             {isLoading ? "Loading..." : "Update Address"}
-          </button>
+          </div>
         </div>
       </form>
     </div>

@@ -1,7 +1,7 @@
 // routes/sellerRoute.js
 const express = require('express');
 const router = express.Router();
-const { signup, login, getPendingSellers } = require('../controllers/sellerController');
+const { signup, login, getPendingSellers, updateSeller } = require('../controllers/sellerController');
 const multer = require('multer');
 const path = require('path');
 const { check } = require('express-validator');
@@ -125,5 +125,25 @@ const signupValidation = [
       res.status(500).json({ success: false, errors: ['Server Error'] });
     }
   });
+
+  router.get('/approved/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+      const seller = await Seller.findOne({ _id: id, isApproved: true });
+  
+      if (!seller) {
+        return res.status(404).json({ success: false, message: 'Seller not found or not approved' });
+      }
+  
+      res.status(200).json(seller);
+    } catch (error) {
+      console.error('Error fetching approved seller:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  });
+  
+  router.patch('/editseller/:id', updateSeller);
+
+  
 
 module.exports = router;

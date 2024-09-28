@@ -15,10 +15,12 @@ export const Navbar = () => {
   const closeProfileMenu = () => {
     setProfileMenuVisible(false);
   };
+
   const handleLogout = () => {
+    console.log('Logging out...'); // For debugging
     localStorage.removeItem('admin_token');
-    navigate('/login', { replace: true }); 
-    window.location.reload();
+    console.log('Token removed from localStorage'); // For debugging
+    window.location.replace("/");
   };
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export const Navbar = () => {
         />
         {profileMenuVisible && (
           <div ref={profileMenuRef} className="profile-menu">
-            <Link to="/profile" onClick={closeProfileMenu}>
+            <Link to="/seller/saccountsettings" onClick={closeProfileMenu}>
               <button>Profile</button>
             </Link>
             <button onClick={handleLogout}>Logout</button>

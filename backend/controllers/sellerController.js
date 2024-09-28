@@ -82,8 +82,6 @@ const login = async (req, res) => {
   }
 };
 
-
-
 const getPendingSellers = async (req, res) => {
   try {
     // Fetch all sellers where 'isApproved' is false
@@ -95,5 +93,39 @@ const getPendingSellers = async (req, res) => {
   }
 };
 
+const updateSeller = async (req, res) => {
+  console.log("Received request to update seller with data:", req.body); // Log incoming data
+  console.log("Seller ID:", req.params.id); // Log the seller ID
 
-module.exports = { signup, login, getPendingSellers };
+  const { name, email, phone, password } = req.body;
+  try {
+    const updateFields = { name, email, phone };
+
+    // Hash password if present
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      updateFields.password = hashedPassword;
+    }
+
+    const updatedSeller = await Seller.findByIdAndUpdate(
+      req.params.id,
+      updateFields,
+      { new: true }
+    );
+
+    if (!updatedSeller) {
+      return res.status(404).json({ message: 'Seller not found' });
+    }
+
+    console.log("Seller updated successfully:", updatedSeller); // Log updated seller
+    res.json(updatedSeller);
+  } catch (error) {
+    console.error("Error updating seller:", error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+
+module.exports = { signup, login, getPendingSellers, updateSeller };
