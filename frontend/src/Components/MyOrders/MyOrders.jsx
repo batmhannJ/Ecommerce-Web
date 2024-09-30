@@ -70,7 +70,7 @@ const MyOrders = () => {
 
   if (params.toString() !== "") {
     const orderId = params.get("orderId");
-    if (orderId) {
+    if (orderId && status === "success") {
       console.log("Order ID:", orderId);
       updateTransactionStatus(orderId, status)
         .then((result) => {
@@ -80,7 +80,6 @@ const MyOrders = () => {
           console.error("Failed to update transaction status:", error);
         });
     } else {
-      console.log("No orderId parameter found");
     }
   } else {
     console.log("No parameters in the URL");
@@ -96,8 +95,11 @@ const MyOrders = () => {
         console.log("Response Status:", response.status);
         console.log("Response Data:", response.data);
         const fetchedOrders = Array.isArray(response.data) ? response.data : [];
-        setOrders(fetchedOrders);
-        setFilteredOrders(fetchedOrders);
+        const filteredOrders = fetchedOrders.filter(
+          (order) => order.status !== "pending"
+        );
+        setOrders(filteredOrders);
+        setFilteredOrders(filteredOrders);
       } catch (error) {
         if (error.response) {
           console.error("Error Response Data:", error.response.data);
@@ -125,8 +127,10 @@ const MyOrders = () => {
     setSearchTerm(value);
 
     // Filter orders based on search term
-    const filtered = orders.filter((order) =>
-      order.item.toLowerCase().includes(value.toLowerCase())
+    const filtered = orders.filter(
+      (order) =>
+        order.item.toLowerCase().includes(value.toLowerCase()) &&
+        order.status !== "pending"
     );
     setFilteredOrders(filtered);
   };
@@ -156,6 +160,7 @@ const MyOrders = () => {
                   <td>{order.item}</td>
                   <td>{order.quantity}</td>
                   <td>{order.amount}</td>
+                  <td>{order.status}</td>
                 </tr>
               ))
             ) : (

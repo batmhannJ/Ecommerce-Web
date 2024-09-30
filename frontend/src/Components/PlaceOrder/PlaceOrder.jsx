@@ -2,9 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../../Context/ShopContext";
 import "./PlaceOrder.css";
 import { toast } from "react-toastify";
-import { useNavigate, useLocation } from "react-router-dom";  // useLocation for URL
+import { useNavigate, useLocation } from "react-router-dom"; // useLocation for URL
 import axios from "axios";
-import { regions, provincesByCode, cities, barangays } from 'select-philippines-address';
+import {
+  regions,
+  provincesByCode,
+  cities,
+  barangays,
+} from "select-philippines-address";
 //import { v4 as uuidv4 } from "uuid";
 
 const generateReferenceNumber = () => {
@@ -22,8 +27,8 @@ const getUserIdFromToken = () => {
 };
 
 const MAIN_OFFICE_COORDINATES = {
-  latitude: 14.628488,  // Sunnymede IT Center latitude
-  longitude: 121.033420
+  latitude: 14.628488, // Sunnymede IT Center latitude
+  longitude: 121.03342,
 };
 
 export const PlaceOrder = () => {
@@ -32,7 +37,7 @@ export const PlaceOrder = () => {
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [transactionId, setTransactionId] = useState(null);
   const [data, setData] = useState({
     firstName: "",
@@ -50,160 +55,172 @@ export const PlaceOrder = () => {
   });
 
   const [deliveryFee, setDeliveryFee] = useState(0);
-  
 
-   // Fetch user data on component mount
-     // Fetch user data on component mount
-     useEffect(() => {
-      const fetchUserData = async () => {
-        try {
-          const response = await axios.get("http://localhost:4000/api/users", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const allUsersData = response.data;
-          const loggedInUserId = localStorage.getItem("userId");
-    
-          const loggedInUser = allUsersData.find(user => user._id === loggedInUserId);
-    
-          if (loggedInUser) {
-            // Extracting address details
-            const { barangay, municipality, province, region, street, zip, country } = loggedInUser.address;
-    
-            // Get names from the imported data
-            const barangayName = await barangays(municipality); 
-            const cityData = await cities(province); // Replace with province_code or id
-            //const regionsData = await regions();
-            const provincesData = await provincesByCode(region); 
-                    // Debugging Logs
-        console.log('Province Data:', provincesData);  // See the structure of the provinceData array
-        console.log('Province Code:', province);
-            
-                    // Assuming these functions return arrays, map the correct names
-        const selectedBarangay = barangayName.find(b => b.brgy_code === barangay)?.brgy_name || "";
-        const selectedCity = cityData.find(c => c.city_code === municipality)?.city_name || "";
-        const selectedProvince = provincesData.find(p => p.province_code === province)?.province_name || "";
-        
-        console.log('Selected Province:', selectedProvince); 
-
-    
-            setData({
-              firstName: loggedInUser.name.split(" ")[0] || "",
-              lastName: loggedInUser.name.split(" ")[1] || "",
-              email: loggedInUser.email || "",
-              street: street || "",
-              barangay: selectedBarangay || "",
-              city: selectedCity || "",
-              state: selectedProvince || "",
-              zipcode: zip || "",
-              country: country || "Philippines",
-              phone: loggedInUser.phone || "",
-            });
-            
-          } else {
-            console.error("Logged-in user not found.");
-            toast.error("Error fetching logged-in user's data.");
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          toast.error("Error fetching user data.");
-        }
-      };
-    
-      const fetchProvinceData = async () => {
-        try {
-          const regionCode = 'some-region-code'; // Replace with the actual region code
-          const provincesData = await provincesByCode(regionCode);
-          setData(prevData => ({ ...prevData, provinces: provincesData }));
-          console.log('Provinces Data:', provincesData);
-        } catch (error) {
-          console.error('Error fetching province data:', error);
-        }
-      };
-  
-      if (token) {
-        fetchUserData(); // Call to fetch user data
-        fetchProvinceData(); // Fetch province data here
-      } else {
-        toast.error("Please log in to proceed.");
-        navigate("/login");
-      }
-    }, [token, navigate]);
-
-    const fetchCoordinates = async (address) => {
-      const apiKey = process.env.REACT_APP_POSITION_STACK_API_KEY; // Set this in your .env file
-      console.log("Position Stack API Key:", apiKey);
-      const url = `http://api.positionstack.com/v1/forward?access_key=48ceab57881e0d4b21c7d7c68d31d792&query=${address}`;
-  
+  // Fetch user data on component mount
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
       try {
-        const response = await axios.get(url);
-        return {
-          latitude: response.data.data[0].latitude,
-          longitude: response.data.data[0].longitude,
-        };
+        const response = await axios.get("http://localhost:4000/api/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const allUsersData = response.data;
+        const loggedInUserId = localStorage.getItem("userId");
+
+        const loggedInUser = allUsersData.find(
+          (user) => user._id === loggedInUserId
+        );
+
+        if (loggedInUser) {
+          // Extracting address details
+          const {
+            barangay,
+            municipality,
+            province,
+            region,
+            street,
+            zip,
+            country,
+          } = loggedInUser.address;
+
+          // Get names from the imported data
+          const barangayName = await barangays(municipality);
+          const cityData = await cities(province); // Replace with province_code or id
+          //const regionsData = await regions();
+          const provincesData = await provincesByCode(region);
+          // Debugging Logs
+          console.log("Province Data:", provincesData); // See the structure of the provinceData array
+          console.log("Province Code:", province);
+
+          // Assuming these functions return arrays, map the correct names
+          const selectedBarangay =
+            barangayName.find((b) => b.brgy_code === barangay)?.brgy_name || "";
+          const selectedCity =
+            cityData.find((c) => c.city_code === municipality)?.city_name || "";
+          const selectedProvince =
+            provincesData.find((p) => p.province_code === province)
+              ?.province_name || "";
+
+          console.log("Selected Province:", selectedProvince);
+
+          setData({
+            firstName: loggedInUser.name.split(" ")[0] || "",
+            lastName: loggedInUser.name.split(" ")[1] || "",
+            email: loggedInUser.email || "",
+            street: street || "",
+            barangay: selectedBarangay || "",
+            city: selectedCity || "",
+            state: selectedProvince || "",
+            zipcode: zip || "",
+            country: country || "Philippines",
+            phone: loggedInUser.phone || "",
+          });
+        } else {
+          console.error("Logged-in user not found.");
+          toast.error("Error fetching logged-in user's data.");
+        }
       } catch (error) {
-        console.error("Error fetching coordinates:", error);
-        toast.error("Error fetching coordinates.");
-        return null;
+        console.error("Error fetching user data:", error);
+        toast.error("Error fetching user data.");
       }
     };
 
-    const calculateDeliveryFee = async () => {
-      const customerAddress = `${data.street}, ${data.city}`;
-      const coordinates = await fetchCoordinates(customerAddress);
-    
-      if (coordinates) {
-        const distanceKm = getDistanceFromLatLonInKm(
-          MAIN_OFFICE_COORDINATES.latitude,
-          MAIN_OFFICE_COORDINATES.longitude,
-          coordinates.latitude,
-          coordinates.longitude
-        );
-    
-        // Convert distance to miles
-        const distanceMiles = distanceKm * 0.621371;
-    
-        // Determine region (Example: Assuming you know how to identify NCR)
-        const isSameRegion = data.state === "Metro Manila" || data.region === "NCR";
-    
-        // Adjust base fee and fee per mile depending on the region
-        let baseFee = isSameRegion ? 20 : 40; // Lower base fee within NCR
-        let feePerMile = isSameRegion ? 2 : 3; // Lower fee per mile within NCR
-    
-        let totalFee = baseFee + feePerMile * Math.ceil(distanceMiles);
-    
-        // Capping the delivery fee to avoid extreme values
-        const maxDeliveryFee = isSameRegion ? 100 : 200; // Lower cap for same region
-        totalFee = totalFee > maxDeliveryFee ? maxDeliveryFee : totalFee;
-    
-        setDeliveryFee(totalFee);
+    const fetchProvinceData = async () => {
+      try {
+        const regionCode = "some-region-code"; // Replace with the actual region code
+        const provincesData = await provincesByCode(regionCode);
+        setData((prevData) => ({ ...prevData, provinces: provincesData }));
+        console.log("Provinces Data:", provincesData);
+      } catch (error) {
+        console.error("Error fetching province data:", error);
       }
     };
-    
-  
-    const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
-      const R = 6371; // Radius of the Earth in km
-      const dLat = degreesToRadians(lat2 - lat1);
-      const dLon = degreesToRadians(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c; // Distance in km
-    };
-  
-    const degreesToRadians = (degrees) => {
-      return degrees * (Math.PI / 180);
-    };
-  
-    useEffect(() => {
-      if (data.street && data.city) {
-        calculateDeliveryFee();
-      }
-    }, [data.street, data.city]);
-    
+
+    if (token) {
+      fetchUserData(); // Call to fetch user data
+      fetchProvinceData(); // Fetch province data here
+    } else {
+      toast.error("Please log in to proceed.");
+      navigate("/login");
+    }
+  }, [token, navigate]);
+
+  const fetchCoordinates = async (address) => {
+    const apiKey = process.env.REACT_APP_POSITION_STACK_API_KEY; // Set this in your .env file
+    console.log("Position Stack API Key:", apiKey);
+    const url = `http://api.positionstack.com/v1/forward?access_key=48ceab57881e0d4b21c7d7c68d31d792&query=${address}`;
+
+    try {
+      const response = await axios.get(url);
+      return {
+        latitude: response.data.data[0].latitude,
+        longitude: response.data.data[0].longitude,
+      };
+    } catch (error) {
+      console.error("Error fetching coordinates:", error);
+      toast.error("Error fetching coordinates.");
+      return null;
+    }
+  };
+
+  const calculateDeliveryFee = async () => {
+    const customerAddress = `${data.street}, ${data.city}`;
+    const coordinates = await fetchCoordinates(customerAddress);
+
+    if (coordinates) {
+      const distanceKm = getDistanceFromLatLonInKm(
+        MAIN_OFFICE_COORDINATES.latitude,
+        MAIN_OFFICE_COORDINATES.longitude,
+        coordinates.latitude,
+        coordinates.longitude
+      );
+
+      // Convert distance to miles
+      const distanceMiles = distanceKm * 0.621371;
+
+      // Determine region (Example: Assuming you know how to identify NCR)
+      const isSameRegion =
+        data.state === "Metro Manila" || data.region === "NCR";
+
+      // Adjust base fee and fee per mile depending on the region
+      let baseFee = isSameRegion ? 20 : 40; // Lower base fee within NCR
+      let feePerMile = isSameRegion ? 2 : 3; // Lower fee per mile within NCR
+
+      let totalFee = baseFee + feePerMile * Math.ceil(distanceMiles);
+
+      // Capping the delivery fee to avoid extreme values
+      const maxDeliveryFee = isSameRegion ? 100 : 200; // Lower cap for same region
+      totalFee = totalFee > maxDeliveryFee ? maxDeliveryFee : totalFee;
+
+      setDeliveryFee(totalFee);
+    }
+  };
+
+  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = degreesToRadians(lat2 - lat1);
+    const dLon = degreesToRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(degreesToRadians(lat1)) *
+        Math.cos(degreesToRadians(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
+  };
+
+  const degreesToRadians = (degrees) => {
+    return degrees * (Math.PI / 180);
+  };
+
+  useEffect(() => {
+    if (data.street && data.city) {
+      calculateDeliveryFee();
+    }
+  }, [data.street, data.city]);
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -228,23 +245,25 @@ export const PlaceOrder = () => {
       const requestReferenceNumber = generateReferenceNumber(); // This is your transaction ID
       console.log("Generated Transaction ID:", requestReferenceNumber);
       const cartDetails = Object.keys(cartItems)
-      .filter(key => {
-        const [itemId, size] = key.split("_");
-        return all_product.some(product => product.id === parseInt(itemId));
-      })
-      .map(key => {
-        const [itemId, size] = key.split("_");
-        const product = all_product.find(product => product.id === parseInt(itemId));
-        return {
-          id: product.id,
-          name: product.name,
-          price: cartItems[key].price,
-          quantity: cartItems[key].quantity,
-          size: size
-        };
-      });
+        .filter((key) => {
+          const [itemId, size] = key.split("_");
+          return all_product.some((product) => product.id === parseInt(itemId));
+        })
+        .map((key) => {
+          const [itemId, size] = key.split("_");
+          const product = all_product.find(
+            (product) => product.id === parseInt(itemId)
+          );
+          return {
+            id: product.id,
+            name: product.name,
+            price: cartItems[key].price,
+            quantity: cartItems[key].quantity,
+            size: size,
+          };
+        });
 
-    console.log("Cart Details:", cartDetails); // Ensure this logs correctly
+      console.log("Cart Details:", cartDetails); // Ensure this logs correctly
 
       const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
 
@@ -294,14 +313,14 @@ export const PlaceOrder = () => {
             totalAmount: {
               value: deliveryFee,
             },
-          }
+          },
         ],
         redirectUrl: {
-          success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
-          failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
-          cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}`,
+          success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=success`,
+          failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=failed`,
+          cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=canceled`,
         },
-      requestReferenceNumber,
+        requestReferenceNumber,
       };
 
       try {
@@ -315,51 +334,66 @@ export const PlaceOrder = () => {
           window.location.href = response.data.redirectUrl;
 
           // Reuse the existing cartDetails array before making the PayMaya request
-          const totalQuantity = cartDetails.reduce((sum, item) => sum + item.quantity, 0);
-          const totalAmount = cartDetails.reduce((sum, item) => sum + item.price * item.quantity, 0);
-          const itemNames = cartDetails.map(item => item.name).join(', ');
+          const totalQuantity = cartDetails.reduce(
+            (sum, item) => sum + item.quantity,
+            0
+          );
+          const totalAmount = cartDetails.reduce(
+            (sum, item) => sum + item.price * item.quantity,
+            0
+          );
+          const itemNames = cartDetails.map((item) => item.name).join(", ");
 
-          
           const saveTransaction = async (transactionDetails) => {
-            console.log("Saving Transaction Details:", transactionDetails); 
+            console.log("Saving Transaction Details:", transactionDetails);
             try {
-              await axios.post('http://localhost:4000/api/transactions', transactionDetails);
+              await axios.post(
+                "http://localhost:4000/api/transactions",
+                transactionDetails
+              );
               console.log("Transaction saved:", transactionDetails);
             } catch (error) {
-              console.error("Error saving transaction:", error.response ? error.response.data : error.message);
+              console.error(
+                "Error saving transaction:",
+                error.response ? error.response.data : error.message
+              );
             }
           };
-          const userId = localStorage.getItem('userId'); 
+          const userId = localStorage.getItem("userId");
           saveTransaction({
-            transactionId: requestReferenceNumber,  // Pass the requestReferenceNumber here instead
+            transactionId: requestReferenceNumber, // Pass the requestReferenceNumber here instead
             date: new Date(),
             name: `${data.firstName} ${data.lastName}`,
-            contact: data.phone,  // Adjusted contact format
-            item: itemNames,      // Concatenated item names
+            contact: data.phone, // Adjusted contact format
+            item: itemNames, // Concatenated item names
             quantity: totalQuantity,
             amount: totalAmount,
             address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
-            status: 'Paid',
-            userId: userId // Include userId here
+            status: "pending",
+            userId: userId, // Include userId here
           });
 
           const updateStock = async () => {
             try {
-              const stockUpdates = cartDetails.map(item => ({
-                id: item.id.toString(), 
+              const stockUpdates = cartDetails.map((item) => ({
+                id: item.id.toString(),
                 size: item.size,
-                quantity: item.quantity
+                quantity: item.quantity,
               }));
-              await axios.post('http://localhost:4000/api/updateStock', { updates: stockUpdates });
+              await axios.post("http://localhost:4000/api/updateStock", {
+                updates: stockUpdates,
+              });
               console.log("Stock updated successfully");
             } catch (error) {
-              console.error("Error updating stock:", error.response ? error.response.data : error.message);
+              console.error(
+                "Error updating stock:",
+                error.response ? error.response.data : error.message
+              );
               toast.error("Failed to update stock");
             }
           };
-  
+
           updateStock();
-          
         } else {
           console.error("Checkout Response Error:", response.data);
           toast.error("Checkout failed, please try again.");
@@ -387,15 +421,14 @@ export const PlaceOrder = () => {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search); // Get the query parameters from the URL
-    const id = searchParams.get("orderId");  // Extract the 'orderId' parameter from the URL
+    const id = searchParams.get("orderId"); // Extract the 'orderId' parameter from the URL
     if (id) {
-      console.log("Transaction ID from URL:", id);  // Ensure this logs correctly
+      console.log("Transaction ID from URL:", id); // Ensure this logs correctly
       setTransactionId(id); // Set the extracted id in state
     } else {
       console.error("No Transaction ID found in URL");
     }
   }, [location]);
-  
 
   return (
     <form
@@ -478,7 +511,7 @@ export const PlaceOrder = () => {
           />
         </div>
         <div className="multi-fields">
-        <input
+          <input
             required
             name="zipcode"
             onChange={onChangeHandler}
@@ -486,14 +519,14 @@ export const PlaceOrder = () => {
             type="text"
             placeholder="Zip Code"
           />
-        <input
-          required
-          name="phone"
-          onChange={onChangeHandler}
-          value={data.phone}
-          type="text"
-          placeholder="Phone"
-        />
+          <input
+            required
+            name="phone"
+            onChange={onChangeHandler}
+            value={data.phone}
+            type="text"
+            placeholder="Phone"
+          />
         </div>
       </div>
       <div className="place-order-right">
@@ -513,7 +546,10 @@ export const PlaceOrder = () => {
             <div className="cartitems-total-item">
               <h3>Total</h3>
               <h3>
-                ₱{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + deliveryFee}
+                ₱
+                {getTotalCartAmount() === 0
+                  ? 0
+                  : getTotalCartAmount() + deliveryFee}
               </h3>
             </div>
           </div>
