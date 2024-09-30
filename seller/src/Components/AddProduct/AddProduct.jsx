@@ -205,6 +205,7 @@ export const AddProduct = () => {
   return (
     <div className="add-product">
       <div className="addproduct-itemfield">
+        <h3>Add Product</h3>
         <p>Product Title</p>
         <input
           value={productDetails.name}

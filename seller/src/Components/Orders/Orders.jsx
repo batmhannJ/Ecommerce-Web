@@ -54,6 +54,7 @@ const Orders = () => {
   }, []);
 
   return (
+    <div class="container">
     <div className='order add'>
       <h3>Order Page</h3>
       <div className="order-list">
@@ -95,6 +96,7 @@ const Orders = () => {
             </div>
           ))
         )}
+        </div>
       </div>
     </div>
   );

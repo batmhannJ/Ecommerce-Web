@@ -23,10 +23,16 @@
   color: #333;
 }
 
+.add-product h3 {
+  margin: 20px 0;
+  font-size: 21px;
+  color: #505050;
+}
+
 .add-product {
   box-sizing: border-box;
   width: 100%;
-  max-width: 800px;
+  max-width: 1010px;
   padding: 30px 50px;
   margin: 20px auto;
   border-radius: 6px;
