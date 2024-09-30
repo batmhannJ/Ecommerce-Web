@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { adminLogin } from '../../services/api';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import './LoginSignup.css'; // Import your CSS file
@@ -11,6 +12,15 @@ const LoginSignup = () => {
   });
   const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
+
+
+    // New state variable to handle password visibility
+   const [showPassword, setShowPassword] = useState(false);
+
+   const togglePasswordVisibility = () => {
+    console.log("Toggling password visibility");
+    setShowPassword((prev) => !prev);
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -65,14 +75,29 @@ const LoginSignup = () => {
             <input type="email" name="email" value={formData.email} onChange={handleChange} required />
           </div>
           <div>
+          <div className="password-container" style={{ position: 'relative' }}>
             <label>Password:</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               value={formData.password}
               onChange={handleChange}
               required
             />
+            <span
+                    className="eye-icon"
+                    onClick={togglePasswordVisibility}
+                    style={{
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        right: '10px',
+                        top: '60%',
+                        transform: 'translateY(-50%)',
+                    }}
+                >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Toggle eye icon */}
+                </span>
+            </div>
             {passwordError && <p className="password-error">{passwordError}</p>}
           </div>
           <button type="submit">Login</button>
