@@ -12,10 +12,14 @@ const SearchBar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      const filteredProducts = all_product.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const filteredProducts = all_product.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.tags.some((tag) =>
+            tag.toLowerCase().includes(searchTerm.toLowerCase())
+          )
       );
-      console.log('Filtered Products:', filteredProducts); // Add this to debug
+      console.log("Filtered Products:", filteredProducts); // Add this to debug
       if (filteredProducts.length > 0) {
         navigate("/search-results", { state: { filteredProducts } });
       } else {
@@ -25,7 +29,7 @@ const SearchBar = () => {
       }
     }
   };
-  
+
   return (
     <div className="search-bar">
       <form onSubmit={handleSearch} style={{ width: "100%", display: "flex" }}>
