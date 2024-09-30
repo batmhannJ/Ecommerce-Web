@@ -18,6 +18,7 @@ const userRoutes = require("./routes/userRoute");
 const transactionRoutes = require("./routes/transactionRoute");
 const productRoute = require("./routes/productRoute");
 const { signup } = require("./controllers/sellerController");
+const { ObjectId } = require('mongodb');
 
 require("dotenv").config();
 
@@ -683,6 +684,53 @@ app.patch("/api/transactions/:transactionId", async (req, res) => {
       .send({ message: "Error updating transaction status", error });
   }
 });
+
+app.post('/editproduct', async (req, res) => {
+  const { _id, name, old_price, new_price, category, s_stock, m_stock, l_stock, xl_stock, stock } = req.body;
+
+  console.log('Received ID:', _id); // Debugging log
+
+  // Suriin kung valid ang ObjectId
+  if (!mongoose.Types.ObjectId.isValid(_id)) {
+    return res.status(400).json({ success: false, message: 'Invalid product ID' });
+  }
+
+  try {
+    // Gumamit ng 'new' keyword para lumikha ng ObjectId
+    const objectId = new mongoose.Types.ObjectId(_id); // Gumamit ng _id dito
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      objectId,
+      {
+        name,
+        old_price,
+        new_price,
+        category,
+        s_stock,
+        m_stock,
+        l_stock,
+        xl_stock,
+        stock
+      },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Product updated successfully',
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error('Error updating product:', error); // Log the exact error
+    res.status(500).json({ success: false, message: 'Error updating product', error: error.message });
+  }
+});
+
+
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
