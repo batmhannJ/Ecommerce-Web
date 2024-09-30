@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
 import ReCAPTCHA from "react-google-recaptcha";
 import "./CSS/LoginSignup.css";
@@ -41,6 +42,20 @@ const LoginSignup = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
+   // New state variable to handle password visibility
+   const [showPassword, setShowPassword] = useState(false);
+   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+   const togglePasswordVisibility = () => {
+    console.log("Toggling password visibility");
+    setShowPassword((prev) => !prev);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    console.log("Toggling password visibility");
+    setShowConfirmPassword((prev) => !prev);
+  };
+  
   const changeHandler = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -283,20 +298,51 @@ const LoginSignup = () => {
                   type="text"
                   placeholder="Enter OTP"
                 />
+            <div className="password-container" style={{ position: 'relative' }}>
                 <input
-                  name="newPassword"
-                  value={resetPasswordForm.newPassword}
-                  onChange={handleResetPasswordFormChange}
-                  //type={showPassword ? "text" : "password"}
-                  placeholder="New Password"
+                   name="newPassword"
+                   value={resetPasswordForm.newPassword}
+                   onChange={handleResetPasswordFormChange}
+                   //type={showPassword ? "text" : "password"}
+                   placeholder="New Password"
                 />
+                <span
+                    className="eye-icon"
+                    onClick={togglePasswordVisibility}
+                    style={{
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                    }}
+                >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Toggle eye icon */}
+                </span>
+            </div>
+                 {/* Confirm Password Input */}
+            <div className="password-container" style={{ position: 'relative' }}>
                 <input
-                  name="confirmPassword"
-                  value={resetPasswordForm.confirmPassword}
-                  onChange={handleResetPasswordFormChange}
-                  //type={showPassword ? "text" : "password"}
-                  placeholder="Confirm Password"
+                     name="confirmPassword"
+                     value={resetPasswordForm.confirmPassword}
+                     onChange={handleResetPasswordFormChange}
+                     //type={showPassword ? "text" : "password"}
+                     placeholder="Confirm Password"
                 />
+                <span
+                    className="eye-icon"
+                    onClick={toggleConfirmPasswordVisibility}
+                    style={{
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                    }}
+                >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+            </div>
                 <button onClick={verifyOtpAndResetPassword}>Reset Password</button>
               </>
             )}
@@ -319,17 +365,43 @@ const LoginSignup = () => {
       placeholder='Phone Number'
     />
   )}
-  <input name='password' value={formData.password} onChange={changeHandler} type="password" placeholder='Password' />
-              {otpSent && (
+                     <div className="password-container" style={{ position: "relative" }}>
+                        <input
+                            name="password"
+                            value={formData.password}
+                            onChange={changeHandler}
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Password"
+                        />
+                        <span
+                            className="eye-icon"
+                            onClick={togglePasswordVisibility}
+                            style={{
+                                cursor: "pointer",
+                                position: "absolute",
+                                right: "10px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                            }}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+
+                    {otpSent && (
                 <input name='otp' value={formData.otp} onChange={changeHandler} type="text" placeholder='Enter OTP' />
               )}
             </div>
             {state === "Login" && (
               <>
-                <ReCAPTCHA
-                  sitekey="6LcCKEcqAAAAAF8ervh2kGqovSNLl1B9L02UZBhD"
-                  onChange={onRecaptchaChange}
-                />
+                <div className="recaptcha-container">
+                  <div className="recaptcha-description">Please verify you are human</div>
+                  <ReCAPTCHA
+                    sitekey="6LcCKEcqAAAAAF8ervh2kGqovSNLl1B9L02UZBhD"
+                    onChange={onRecaptchaChange}
+                  />
+                </div>
+
                 <p className="forgot-password" onClick={() => setForgotPasswordMode(true)}>
                   Forgot Password?
                 </p>

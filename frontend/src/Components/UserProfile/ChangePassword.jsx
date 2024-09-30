@@ -83,44 +83,37 @@ const ChangePassword = () => {
 
         <form className="change-password__form" onSubmit={handleSaveChanges}>
           <div className="change-password__form-group">
-            <label htmlFor="oldpass">
-              Old Password <span>*</span>
-            </label>
             <input
               type="password"
               id="oldpass"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
+              placeholder="Old Password"  // Placeholder instead of label
               aria-required="true"
             />
           </div>
 
           <div className="change-password__form-group">
-            <label htmlFor="newpass">
-              New Password <span>*</span>
-            </label>
             <input
               type="password"
               id="newpass"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New Password"  // Placeholder instead of label
               aria-required="true"
             />
           </div>
 
           <div className="change-password__form-group">
-            <label htmlFor="confirmpass">
-              Confirm Password <span>*</span>
-            </label>
             <input
               type="password"
               id="confirmpass"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm Password"  // Placeholder instead of label
               aria-required="true"
             />
           </div>
-
           <button className="change-password__button" type="submit">
             Save Changes
           </button>

@@ -1,4 +1,4 @@
-.account-settings {
+.address .container {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -10,12 +10,20 @@
 }
 
 .address-form {
-  max-width: 600px;
+  max-width: 550px;
+  width: 100%; /* Allow full width for smaller screens */
   margin: 0 auto;
   padding: 30px;
   background: white;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+  text-align: center; /* Center the text horizontally */
+  font-size: 32px; /* Adjust the font size as needed */
+  color: #000000; /* Replace with your desired color */
+  margin-bottom: 10px;
 }
 
 .form-row {
@@ -30,7 +38,7 @@
   color: #BAC195; /* Replace with your primary color */
 }
 
-.form-row select, 
+.form-row select,
 .form-row input {
   width: 100%;
   padding: 12px;
@@ -41,7 +49,7 @@
   transition: border-color 0.3s;
 }
 
-.form-row select:focus, 
+.form-row select:focus,
 .form-row input:focus {
   border-color: #BAC195; /* Replace with your primary color */
   outline: none;
@@ -114,22 +122,60 @@
   color: #5c5c5c; /* Replace with your input text color */
 }
 
+/* Media Queries for Responsiveness */
 @media (max-width: 992px) {
   .address-form {
-    padding: 20px;
+      padding: 20px;
   }
 
-  button {
-    font-size: 16px;
+  .submit-button {
+      font-size: 16px; /* Adjust font size for buttons */
   }
 }
 
 @media (max-width: 768px) {
   .account-settings {
-    padding: 0 10px;
+      padding: 0 10px;
   }
 
   .address-form {
-    width: 90%;
+      width: 90%; /* Ensure form is responsive and fits smaller screens */
+      padding: 15px; /* Reduce padding for smaller screens */
+  }
+
+  .form-row label {
+      font-size: 14px; /* Adjust label font size for smaller screens */
+  }
+
+  .form-row select,
+  .form-row input {
+      font-size: 14px; /* Adjust input font size for smaller screens */
+  }
+
+  .submit-button {
+      font-size: 16px; /* Smaller button text for mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .address-form {
+      padding: 10px; /* Further reduce padding on extra small screens */
+  }
+
+  .form-row {
+      margin-bottom: 15px; /* Reduce margin between rows */
+  }
+
+  .form-row label {
+      font-size: 12px; /* Smaller label font size */
+  }
+
+  .form-row select,
+  .form-row input {
+      font-size: 12px; /* Smaller input font size */
+  }
+
+  .submit-button {
+      font-size: 14px; /* Smaller button text for mobile */
   }
 }
