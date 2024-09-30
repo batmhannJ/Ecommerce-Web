@@ -18,7 +18,12 @@ const TransactionManagement = () => {
         "http://localhost:4000/api/transactions"
       );
       console.log(response.data);
-      setTransactions(Array.isArray(response.data) ? response.data : []);
+      const filteredTransactions = Array.isArray(response.data)
+        ? response.data.filter(
+            (transaction) => transaction.status !== "pending"
+          )
+        : [];
+      setTransactions(filteredTransactions);
     } catch (error) {
       console.error("Error fetching transactions:", error);
     }
@@ -57,28 +62,30 @@ const TransactionManagement = () => {
           </tr>
         </thead>
         <tbody>
-          {transactions.map((transaction, index) => (
-            <tr key={transaction._id}>
-              <td>{transaction.date}</td>
-              <td>{transaction.name}</td>
-              <td>{transaction.contact}</td>
-              <td>{transaction.item}</td>
-              <td>{transaction.quantity}</td>
-              <td>{transaction.amount}</td>
-              <td>{transaction.address}</td>
-              <td>{transaction.transactionId}</td>
-              <td>
-                <button
-                  className="action-button delete"
-                  onClick={() =>
-                    handleDeleteTransaction(transaction._id, index)
-                  }
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
+          {transactions
+            .filter((transaction) => transaction.status !== "pending")
+            .map((transaction, index) => (
+              <tr key={transaction._id}>
+                <td>{transaction.date}</td>
+                <td>{transaction.name}</td>
+                <td>{transaction.contact}</td>
+                <td>{transaction.item}</td>
+                <td>{transaction.quantity}</td>
+                <td>{transaction.amount}</td>
+                <td>{transaction.address}</td>
+                <td>{transaction.transactionId}</td>
+                <td>
+                  <button
+                    className="action-button delete"
+                    onClick={() =>
+                      handleDeleteTransaction(transaction._id, index)
+                    }
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

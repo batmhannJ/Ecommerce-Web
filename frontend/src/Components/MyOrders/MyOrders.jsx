@@ -72,7 +72,7 @@ const MyOrders = () => {
     const orderId = params.get("orderId");
     if (orderId && status === "success") {
       console.log("Order ID:", orderId);
-      updateTransactionStatus(orderId, status)
+      updateTransactionStatus(orderId, "Paid")
         .then((result) => {
           console.log("Transaction status updated:", result);
         })
@@ -149,6 +149,7 @@ const MyOrders = () => {
               <th>Item</th>
               <th>Quantity</th>
               <th>Amount</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
