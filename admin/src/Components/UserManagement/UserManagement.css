@@ -41,31 +41,35 @@
 
 .action-button {
   border: none;
-  padding: 8px 12px;
+  padding: 8px 12px; /* Increased padding for better click area */
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 14px; /* Slightly larger font size */
   cursor: pointer;
   margin-right: 8px;
   font-weight: 600;
+  transition: background-color 0.3s, transform 0.2s; /* Added transition for hover effect */
 }
 
-.action-button.edit {
-  background-color: #007bff;
+.action-button.view {
+  background-color: #007bff; /* Blue color for View button */
   color: #fff;
 }
 
-.action-button.edit:hover {
-  background-color: #0056b3;
+.action-button.view:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  transform: scale(1.05); /* Slightly enlarge on hover */
 }
 
 .action-button.delete {
-  background-color: #dc3545;
+  background-color: #dc3545; /* Red color for Delete button */
   color: #fff;
 }
 
 .action-button.delete:hover {
-  background-color: #c82333;
+  background-color: #c82333; /* Darker red on hover */
+  transform: scale(1.05); /* Slightly enlarge on hover */
 }
+
 
 .edit-form-overlay {
   position: fixed;
