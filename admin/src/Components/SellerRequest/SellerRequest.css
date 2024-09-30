@@ -1,12 +1,13 @@
 .seller-management-container {
-  margin: 20px;
+  margin-top: 20px;
   padding: 20px;
+  width: 1000px;
+  height: 670px; /* Set the desired height */
+  overflow-y: auto; /* Allow vertical scrolling */
+  border-radius: 10px; /* Optional: Round the corners */
   background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  height: 650px; /* Set a fixed height */
-  overflow-y: auto; /* Enable vertical scrolling */
-  width: 1185px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Add shadow effect */
+  margin-left: 100px;
 }
 
 .seller-management-container h1 {

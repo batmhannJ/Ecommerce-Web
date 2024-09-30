@@ -3,14 +3,18 @@
 }
 
 .order h3 {
-  margin: 20px 0;
-  font-size: 21px;
-  color: #505050;
+  margin: 22px 0;
+  font-size: 24px; /* Increased font size */
+  color: #333333; /* Darker color for better contrast */
+  font-weight: bold; /* Bold font weight */
+  padding: 10px; /* Added padding */
+  text-align: center; /* Center align the text */
 }
+
 
 .order {
   margin-top: 20px;
-  padding: 45px;
+  padding: 20px;
   width: 1000px;
   height: 670px; /* Set the desired height */
   overflow-y: auto; /* Allow vertical scrolling */
