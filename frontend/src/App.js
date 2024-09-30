@@ -21,7 +21,8 @@ import UserSideBar from "./Components/UserProfile/UserSideBar";
 import AccountSettings from "./Components/UserProfile/AccountSettings";
 import Offices from "./Components/Offices/Offices"; // Add this import
 import { regions, provincesByCode, cities, barangays } from "select-philippines-address";
-
+import SearchBar from './Components/SearchBar/SearchBar';
+import SearchResults from './Components/SearchBar/SearchResults';
 function App() {
 
   // Fetch regions, provinces, cities, and barangays
@@ -95,6 +96,8 @@ function App() {
         <Route path="usersidebar" element={<UserSideBar />} />
         <Route path="accountsettings" element={<AccountSettings />} />
         <Route path="/offices" element={<Offices />} /> {/* Add this route */}
+        <Route path="/" element={<SearchBar />} />
+        <Route path="/search-results" element={<SearchResults />} />
       </Routes>
       <Footer />
     </BrowserRouter>

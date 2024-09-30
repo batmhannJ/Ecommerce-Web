@@ -12,11 +12,12 @@ const SearchBar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      const foundProduct = all_product.find((product) =>
+      const filteredProducts = all_product.filter((product) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      if (foundProduct) {
-        navigate(`/product/${foundProduct.id}`);
+      console.log('Filtered Products:', filteredProducts); // Add this to debug
+      if (filteredProducts.length > 0) {
+        navigate("/search-results", { state: { filteredProducts } });
       } else {
         toast.info("No products found", {
           position: "bottom-left",
@@ -24,7 +25,7 @@ const SearchBar = () => {
       }
     }
   };
-
+  
   return (
     <div className="search-bar">
       <form onSubmit={handleSearch} style={{ width: "100%", display: "flex" }}>

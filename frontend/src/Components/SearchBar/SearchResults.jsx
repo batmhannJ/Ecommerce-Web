@@ -1,9 +1,10 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import Item from './Item/Item';
+import Item from '../Item/Item';
 
 const SearchResults = () => {
   const location = useLocation();
+  console.log('Location State:', location.state); // Add this to debug
   const { filteredProducts } = location.state || { filteredProducts: [] };
 
   return (
