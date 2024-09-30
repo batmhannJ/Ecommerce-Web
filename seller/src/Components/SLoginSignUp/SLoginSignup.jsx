@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { sellerSignup, sellerLogin } from '../../services/api';
+import { sellerSignup, sellerLogin, requestPasswordReset, verifyOtp, resetPassword } from '../../services/api';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import './SLoginSignup.css'; // Import your CSS file
+import axios from 'axios';
+
 
 const SLoginSignup = () => {
   const [formData, setFormData] = useState({
@@ -15,14 +17,19 @@ const SLoginSignup = () => {
   const [passwordError, setPasswordError] = useState('');
   const [isLogin, setIsLogin] = useState(false); // To toggle between login and sign up
   const navigate = useNavigate();
+  const [forgotPassword, setForgotPassword] = useState(false); // State for forgot password
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [otpSent, setOtpSent] = useState(false); // State to handle OTP sent
 
-     // New state variable to handle password visibility
-     const [showPassword, setShowPassword] = useState(false);
+  // New state variable to handle password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
-     const togglePasswordVisibility = () => {
-      console.log("Toggling password visibility");
-      setShowPassword((prev) => !prev);
-    };
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -37,71 +44,58 @@ const SLoginSignup = () => {
     const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
     return passwordRegex.test(password);
   };
-  
-  console.log(formData);  // Before sending the request
 
   const handleSignup = async (e) => {
     e.preventDefault();
-  
     const { name, email, password, idPicture } = formData;
-  
+
     if (!name || !email || !password || !idPicture) {
       toast.error("Please fill out all fields.");
       return;
     }
-  
+
     const signupData = new FormData();
     signupData.append('name', name);
     signupData.append('email', email);
     signupData.append('password', password);
     signupData.append('idPicture', idPicture);
-  
+
     try {
       const result = await sellerSignup(signupData);
       toast.success('Sign up successful! Waiting for admin approval.');
       navigate('/login');
     } catch (error) {
-      console.error('Sign up error:', error.response); // More detailed logging
+      console.error('Sign up error:', error.response);
       toast.error(error.response?.data?.errors || 'Sign up failed. Please try again.');
     }
   };
-  
-  
 
-  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
-  
     const loginData = {
       email: formData.email,
       password: formData.password,
     };
-  
+
     try {
-      const responseData = await sellerLogin(loginData); // Axios call
-      console.log('Response Data:', responseData);
-  
+      const responseData = await sellerLogin(loginData);
       if (!responseData.data.success) {
         toast.error(responseData.data.message || 'Login failed. Please try again.');
         return;
       }
-  
-      // Extract seller from the response
+
       const seller = responseData.data.seller;
-  
       if (!seller) {
         toast.error('Seller account not found.');
         return;
       }
-  
-      // Check if the seller is approved
+
       if (!seller.isApproved) {
         toast.error('Your account is pending approval from the admin.');
         return;
       }
-  
-      // Proceed if seller is approved
-      localStorage.setItem('admin_token', responseData.data.token); // Store token
+
+      localStorage.setItem('admin_token', responseData.data.token);
       toast.success('Login successful! Redirecting to the dashboard...');
       navigate('/seller/addproduct');
       window.location.reload(); // Optional: Reload if necessary
@@ -110,37 +104,111 @@ const SLoginSignup = () => {
       toast.error(error.response?.data?.message || 'Login failed. Please try again.');
     }
   };
-  
-  
 
-
-  const onSubmit = async (e) => {
+  const handleForgotPassword = async (e) => {
     e.preventDefault();
-
-    if (!validatePassword(formData.password)) {
-      setPasswordError('Password must be at least 8 characters long and include at least one capital letter.');
-      return;
-    } else {
-      setPasswordError('');
-    }
+    console.log("Sending OTP for email:", email);
 
     try {
-      const responseData = await sellerLogin(formData);
-      localStorage.setItem('admin_token', responseData.token);
-      navigate('/seller/addproduct');
-      window.location.reload();
+      const result = await requestPasswordReset(email);
+      setOtpSent(true); // Set OTP sent state to true
+      toast.success(result.message || 'OTP sent successfully.');
     } catch (error) {
-      console.error('Frontend Error:', error);
-      toast.error(error.response?.data?.errors || 'An error occurred. Please try again.');
+      console.error("Error sending OTP:", error);
+      setMessage(error.response?.data?.errors || 'Error sending OTP');
+      toast.error(setMessage); // Notify the user of the error
     }
   };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    console.log('Verifying OTP with data:', { email, otp, newPassword });
+  
+    try {
+      const response = await axios.post('http://localhost:4000/api/seller/verify-otp-seller', {
+        email,
+        otp,
+        newPassword,
+      });
+  
+      console.log('Server response:', response.data); // Log server response
+  
+      if (response.data.success) {
+        toast.success(response.data.message);
+        navigate('/login');
+      } else {
+        toast.error(response.data.errors || 'Verification failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      console.log('Error response:', error.response?.data); // Log error response
+      toast.error(error.response?.data?.errors || 'Error verifying OTP');
+    }
+  };
+  
+  
+const handleResetPassword = async (e) => {
+  e.preventDefault(); // Prevent default form submission
+  if (!newPassword || !otp) {
+      toast.error("Please enter both OTP and new password.");
+      return;
+  }
+
+  try {
+      const result = await resetPassword(email, otp, newPassword);
+      if (result.success) {
+          toast.success(result.message); // Display success message
+          navigate('/login'); // Redirect to login on success
+      } else {
+          toast.error(result.errors || 'Error resetting password');
+      }
+  } catch (error) {
+      toast.error(error.response?.data?.errors || 'Error resetting password');
+  }
+};
+
 
   return (
     <div className="login-container">
       <div className="login-box">
         <h1>{isLogin ? 'Seller Login' : 'Sign up as Seller'}</h1>
 
-        {isLogin ? (
+        {forgotPassword ? ( // Conditional rendering for forgot password form
+          <>
+            <form onSubmit={handleForgotPassword}>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <button type="submit">Send OTP</button>
+            </form>
+
+            {otpSent && ( // Show OTP input box only if OTP is sent
+              <form onSubmit={handleVerifyOtp}>
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+                <button type="submit">Reset Password</button>
+              </form>
+            )}
+
+            <p>Remembered your password? <span className="link" onClick={() => { setForgotPassword(false); setIsLogin(true); }}>Click here to <b>Login</b></span></p>
+          </>
+        ) : isLogin ? (
           <form onSubmit={handleLogin}>
             <div>
               <label>Email:</label>
@@ -153,30 +221,31 @@ const SLoginSignup = () => {
               />
             </div>
             <div>
-            <div className="password-container" style={{ position: 'relative' }}>
-              <label>Password:</label>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <span
-                    className="eye-icon"
-                    onClick={togglePasswordVisibility}
-                    style={{
-                        cursor: 'pointer',
-                        position: 'absolute',
-                        right: '10px',
-                        top: '60%',
-                        transform: 'translateY(-50%)',
-                    }}
+              <div className="password-container" style={{ position: 'relative' }}>
+                <label>Password:</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <span
+                  className="eye-icon"
+                  onClick={togglePasswordVisibility}
+                  style={{
+                    cursor: 'pointer',
+                    position: 'absolute',
+                    right: '10px',
+                    top: '60%',
+                    transform: 'translateY(-50%)',
+                  }}
                 >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Toggle eye icon */}
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
-            </div>
+              </div>
               {passwordError && <p className="password-error">{passwordError}</p>}
+              <p><span className="link" onClick={() => setForgotPassword(true)}>Forgot Password?</span></p>
             </div>
             <button type="submit">Login</button>
             <p>Not registered? <span className="link" onClick={() => setIsLogin(false)}>Sign up as a <b>Seller</b></span></p>
@@ -204,43 +273,41 @@ const SLoginSignup = () => {
               />
             </div>
             <div>
-            <div className="password-container" style={{ position: 'relative' }}>
-              <label>Password:</label>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-                          <span
-                    className="eye-icon"
-                    onClick={togglePasswordVisibility}
-                    style={{
-                        cursor: 'pointer',
-                        position: 'absolute',
-                        right: '10px',
-                        top: '60%',
-                        transform: 'translateY(-50%)',
-                    }}
+              <div className="password-container" style={{ position: 'relative' }}>
+                <label>Password:</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <span
+                  className="eye-icon"
+                  onClick={togglePasswordVisibility}
+                  style={{
+                    cursor: 'pointer',
+                    position: 'absolute',
+                    right: '10px',
+                    top: '60%',
+                    transform: 'translateY(-50%)',
+                  }}
                 >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Toggle eye icon */}
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </span>
-            </div>
+              </div>
               {passwordError && <p className="password-error">{passwordError}</p>}
             </div>
             <div>
-              <label>Upload ID (For Verification):</label>
+              <label>ID Picture (optional):</label>
               <input
                 type="file"
                 name="idPicture"
-                accept="image/*"
                 onChange={handleChange}
-                required
               />
             </div>
             <button type="submit">Sign up</button>
-            <p>Already a seller? <span className="link" onClick={() => setIsLogin(true)}>Click here to <b>Login</b></span></p>
+            <p>Already registered? <span className="link" onClick={() => setIsLogin(true)}>Log in as a <b>Seller</b></span></p>
           </form>
         )}
       </div>

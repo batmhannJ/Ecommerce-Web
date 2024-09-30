@@ -123,6 +123,7 @@ const fetchUser = require("./middleware/auth");
 
 // Schema Creation for User Model
 const Users = require("./models/userModels");
+const Seller = require("./models/sellerModels");
 
 // Schema Creation for Transaction Model
 const Transaction = require("./models/transactionModel");
@@ -730,6 +731,97 @@ app.post('/editproduct', async (req, res) => {
   }
 });
 
+
+//----------------RESET PASSWORD FOR SELLER--------------------//
+app.post("/api/seller/forgot-password-seller", async (req, res) => {
+  console.log("Forgot Password route hit");
+  const { email } = req.body;
+
+  // Check if email exists in your database
+  try {
+    const user = await Seller.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, errors: "Seller not found." });
+    }
+
+    // Generate OTP
+    const otp = generateOTP(); // Function to generate OTP
+
+    // Log the generated OTP
+    console.log("Generated OTP for email:", email, "is:", otp); 
+
+    user.otp = otp; // Save OTP to user record
+    await user.save();
+
+    // Send OTP to the user's email
+    await sendEmail(user.email, `Your OTP: ${otp}`);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "OTP sent successfully." });
+  } catch (error) {
+    console.error("Error processing forgot password request:", error);
+    res.status(500).json({ success: false, errors: "Internal server error." });
+  }
+});
+
+app.post("/api/seller/verify-otp-seller", async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  // Check if the OTP is valid
+  if (otpStore[email] !== otp) {
+    return res.status(400).json({ success: false, errors: "Invalid OTP" });
+  }
+
+  // Clear OTP after successful verification
+  delete otpStore[email];
+
+  // Update user password
+  try {
+    const user = await Seller.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, errors: "User not found" });
+    }
+    user.password = newPassword; // Consider hashing the password before saving
+    await user.save();
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res
+      .status(500)
+      .json({ success: false, errors: "Failed to update password" });
+  }
+});
+
+app.post("/api/seller/reset-password-seller", async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    const user = await Seller.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, errors: "Seller not found." });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ success: false, errors: "Invalid OTP." });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword; // Save the hashed password
+    user.otp = null; // Clear OTP after successful reset
+
+    await user.save();
+
+    return res.status(200).json({ success: true, message: "Password updated successfully." });
+    navi
+  } catch (error) {
+    console.error("Error processing reset password request:", error);
+    res.status(500).json({ success: false, errors: "Internal server error." });
+  }
+});
 
 
 // Admin Routes
