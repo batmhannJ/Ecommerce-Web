@@ -9,6 +9,7 @@ const authMiddleware = require('../middleware/auth');
 const Seller = require('../models/sellerModels'); // Import the Seller model
 const bcrypt = require('bcrypt'); // Add this line
 const jwt = require('jsonwebtoken'); // Import jsonwebtoken here
+const otpStore = {}; // Store OTPs temporarily
 
 const generateAuthToken = (seller) => {
     const token = jwt.sign({ id: seller._id }, 'admin_token', { expiresIn: '1h' }); // Replace 'your_jwt_secret' with your secret key
@@ -141,6 +142,48 @@ const signupValidation = [
       res.status(500).json({ success: false, message: 'Server error' });
     }
   });
+
+  router.post('/api/seller/request-password-reset', async (req, res) => {
+    const { email } = req.body;
+    const otp = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
+    otpStore[email] = otp; // Store OTP in memory (you may want to use a better method, like Redis)
+  
+    console.log(`OTP for ${email}: ${otp}`); // Log OTP for debugging
+  
+    // Simulate sending OTP (in a real app, you'd send this via email or SMS)
+    res.json({ success: true, message: 'OTP sent successfully' });
+  });
+  
+  // Endpoint to verify OTP and reset password
+  router.post('/verify-otp-seller', async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+  
+    try {
+      // Find the seller by email
+      const seller = await Seller.findOne({ email });
+      if (!seller) {
+        return res.status(404).json({ message: 'Seller not found' });
+      }
+  
+      // Check if the OTP matches
+      if (seller.otp !== otp) {
+        return res.status(400).json({ message: 'Invalid OTP' });
+      }
+  
+      // Hash the new password before saving
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+      // Update the seller's password and clear the OTP
+      seller.password = hashedPassword;
+      seller.otp = null; // Clear OTP after verification
+      await seller.save();
+  
+      return res.json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
   
   router.patch('/editseller/:id', updateSeller);
 
