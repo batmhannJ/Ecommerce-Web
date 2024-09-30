@@ -5,22 +5,24 @@
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
-  margin-bottom: 40px; /* Added space below */
+  margin-bottom: 40px;
 }
 
 .account-settings-container {
-  width: 50%;
-  max-width: 600px;
+  max-width: 550px;
+  margin: 0 auto; /* Center the container */
+  padding: 30px;
   background: white;
   border-radius: 10px;
-  padding: 30px 40px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  width: 100%; /* Ensure it takes full width on small screens */
 }
 
 .account-settings__heading {
   margin-bottom: 20px;
-  font-size: 20px;
+  font-size: 30px;
   text-align: center;
+  color: #030303; /* Use primary color */
 }
 
 .account-settings__form {
@@ -35,97 +37,111 @@
 }
 
 .account-settings__form-group label {
-  font-size: 1.0rem;
-  font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #000000; /* Use primary color */
 }
 
 .account-settings__form-group input {
+  width: 100%; /* Make input take full width on all screens */
+  max-width: 490px; /* Set a maximum width for larger screens */
   height: 50px;
-  padding: 10px;
-  border: 1px solid var(--input-border-color);
+  padding: 12px; /* Increase padding for consistency */
+  border: 1px solid #c9c9c9; /* Use input border color */
   border-radius: 5px;
   font-size: 16px;
-  color: var(--input-text-color);
+  color: #5c5c5c; /* Use input text color */
+  transition: border-color 0.3s;
 }
 
 .account-settings__form-group input:focus {
-  border-color: var(--primary-color);
+  border-color: #BAC195; /* Use primary color on focus */
+  outline: none; /* Remove default outline */
 }
 
 .account-settings__error {
-  color: var(--error-color);
+  color: #FF0000; /* Use error color */
   font-size: 0.9rem;
   margin-top: 5px;
 }
 
 .account-settings__button {
   width: 100%;
-  height: 50px;
-  background: var(--primary-color);
+  padding: 12px;
+  background-color: #BAC195; /* Use primary color */
   color: white;
   border: none;
-  font-size: 18px;
-  font-weight: 200;
-  cursor: pointer;
   border-radius: 5px;
-  margin-top: 20px;
+  font-size: 18px;
+  text-align: center;
+  cursor: pointer;
   transition: background 0.3s, transform 0.2s;
+  display: flex; /* Center loading text */
+  justify-content: center;
+  align-items: center;
 }
 
 .account-settings__button:hover {
-  background: var(--hover-color);
+  background-color: #747b50; /* Use hover color */
 }
 
-.account-settings__button:active {
-  transform: scale(0.95);
+.account-settings__button.loading {
+  opacity: 0.7; /* Slightly fade the button when loading */
+  pointer-events: none; /* Prevent interaction */
 }
 
-.account-settings__success {
-  color: var(--primary-color);
-  margin-bottom: 20px;
-  text-align: center;
-}
-
+/* Responsive Adjustments */
 @media (max-width: 992px) {
   .account-settings-container {
-    padding: 20px 30px;
+    padding: 20px; /* Reduce padding on smaller screens */
   }
 
   .account-settings__heading {
-    font-size: 24px;
+    font-size: 24px; /* Smaller heading on smaller screens */
   }
 
   .account-settings__form-group input {
-    height: 45px;
+    height: 45px; /* Adjust input height */
   }
 
   .account-settings__button {
-    height: 45px;
-    font-size: 16px;
+    height: 45px; /* Adjust button height */
+    font-size: 16px; /* Adjust button font size */
   }
 }
 
 @media (max-width: 768px) {
   .account-settings {
-    padding: 0 20px;
+    padding: 0 10px; /* Adjust padding on small screens */
   }
 
   .account-settings-container {
-    width: 95%;
-    padding: 20px;
+    width: 90%; /* Use more width on smaller screens */
   }
 
   .account-settings__heading {
-    font-size: 22px;
+    font-size: 20px; /* Further reduce heading size for mobile */
   }
 
   .account-settings__form-group input {
-    height: 40px;
+    font-size: 14px; /* Adjust font size for input */
   }
 
   .account-settings__button {
-    height: 40px;
-    font-size: 14px;
+    font-size: 14px; /* Adjust button font size for mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .account-settings__heading {
+    font-size: 18px; /* Further reduce heading size for very small screens */
+  }
+
+  .account-settings__form-group input {
+    font-size: 12px; /* Adjust font size for input */
+  }
+
+  .account-settings__button {
+    font-size: 12px; /* Adjust button font size for very small screens */
   }
 }
