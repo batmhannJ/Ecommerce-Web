@@ -237,7 +237,7 @@ const generatePDF = async () => {
   // Title
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  const title = "Sales Report";
+  const title = "Tienda Sales Report";
   const titleWidth = doc.getTextWidth(title);
   const titleX = (pageWidth - titleWidth) / 2; // Centering the title
   doc.text(title, titleX, margin);
@@ -442,7 +442,7 @@ const generatePDF = async () => {
             <Bar data={salesByProduct} />
         </div>
                       {/* Export Button */}
-      <button onClick={generatePDF}>Export to PDF</button>
+      <button className="action-button view" onClick={generatePDF}>Export to PDF</button>
         </div>
 
 
