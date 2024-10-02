@@ -10,6 +10,8 @@ export const Dashboard = () => {
     mostProducedProduct: '',
   });
 
+  
+
   const [salesByCategoryData, setSalesByCategoryData] = useState([]);
   const [salesByProductData, setSalesByProductData] = useState([]);
   const [salesGrowthRateData, setSalesGrowthRateData] = useState([]);
@@ -207,10 +209,120 @@ export const Dashboard = () => {
     ],
   };
 
+// Function to export dashboard as PDF
+const generatePDF = async () => {
+  const jsPDF = (await import("jspdf")).default;
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", putOnlyUsedFonts: true });
+
+  // Constants for margins
+  const margin = 25.4; // 1 inch in mm
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const contentWidth = pageWidth - 2 * margin;
+
+  // Title
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  const title = "Sales Report";
+  const titleWidth = doc.getTextWidth(title);
+  const titleX = (pageWidth - titleWidth) / 2; // Centering the title
+  doc.text(title, titleX, margin); // Use margin for Y-coordinate
+
+  // Add a line below the title
+  doc.line(margin, margin + 5, pageWidth - margin, margin + 5);
+
+
+  // Initial Y-coordinate for text entries
+  let currentY = margin + 15;
+
+
+  // Total Revenue
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Total Revenue: ", margin, currentY); // Label
+  doc.setFont("helvetica", "normal");
+  // Combine the label and value into one string
+  doc.text(`\u20B1${totalRevenue}`, margin + 30, currentY);
+  currentY -= 10; // Small increment for spacing
+
+  // Average Order Value  
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Average Order Value", margin, margin + 35);
+  doc.setFont("helvetica", "normal");
+  doc.text(`₱${salesData.avgOrderValue.toFixed(2)}`, margin, margin + 45);
+
+  // Most Produced Product
+  doc.setFontSize(12); // Change to smaller size
+  doc.setFont("helvetica", "bold");
+  doc.text("Most Produced Product", margin, margin + 55);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${salesData.mostProducedProduct || 'N/A'}`, margin, margin + 65);
+
+  // Add a line
+  doc.line(margin, margin + 70, pageWidth - margin, margin + 70);
+
+  // Sales by Category
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Sales by Category:", margin, margin + 75);
+  let categoryY = margin + 85;
+  salesByCategoryData.forEach((item) => {
+    doc.setFont("helvetica", "normal");
+    doc.text(`${item.category}: ₱${item.totalSales}`, margin, categoryY);
+    categoryY += 10;
+  });
+
+  // Add a line
+  doc.line(margin, categoryY, pageWidth - margin, categoryY);
+  categoryY += 5;
+
+  // Sales by Product
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Sales by Product:", margin, categoryY);
+  categoryY += 10;
+  salesByProductData.forEach((item) => {
+    doc.setFont("helvetica", "normal");
+    doc.text(`${item.product}: ₱${item.totalSales}`, margin, categoryY);
+    categoryY += 10;
+  });
+
+  // Add a line
+  doc.line(margin, categoryY, pageWidth - margin, categoryY);
+  categoryY += 5;
+
+  // Sales Growth Rate
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Sales Growth Rate", margin, categoryY);
+  categoryY += 10;
+
+  // Add a line
+  doc.line(10, categoryY, 200, categoryY);
+  categoryY += 5;
+
+  // Top Purchases Product
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text("Top Purchases Product:", 10, categoryY);
+  categoryY += 10;
+  topPurchasesProductData.forEach((item) => {
+    doc.setFont("helvetica", "normal");
+    doc.text(`${item.product}: ${item.totalPurchases}`, 10, categoryY);
+    categoryY += 10;
+  });
+
+  // Save the PDF
+  doc.save("dashboard_metrics.pdf");
+};
+
+
+
   return (
     <div class="dashboard-container">
     <div className='dashboard'>
-        <h1>Dashboard</h1>
+        <h1 id="yourElement">Dashboard</h1>
 
         <div className='dashboard-metrics'>
             {/* Revenue */}
@@ -255,6 +367,8 @@ export const Dashboard = () => {
             <h3>Sales by Product</h3>
             <Bar data={salesByProduct} />
         </div>
+                      {/* Export Button */}
+      <button onClick={generatePDF}>Export to PDF</button>
         </div>
 
 
