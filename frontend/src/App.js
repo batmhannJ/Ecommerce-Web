@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import "./App.css";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./Components/Navbar/Navbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Shop from "./Pages/Shop";
@@ -20,11 +20,16 @@ import UserProfile from "./Pages/User/UserProfile";
 import UserSideBar from "./Components/UserProfile/UserSideBar";
 import AccountSettings from "./Components/UserProfile/AccountSettings";
 import Offices from "./Components/Offices/Offices"; // Add this import
-import { regions, provincesByCode, cities, barangays } from "select-philippines-address";
-import SearchBar from './Components/SearchBar/SearchBar';
-import SearchResults from './Components/SearchBar/SearchResults';
+import {
+  regions,
+  provincesByCode,
+  cities,
+  barangays,
+} from "select-philippines-address";
+import SearchBar from "./Components/SearchBar/SearchBar";
+import SearchResults from "./Components/SearchBar/SearchResults";
+import SearchTags from "./Components/SearchTags/SearchTags";
 function App() {
-
   // Fetch regions, provinces, cities, and barangays
   const fetchAddressDetails = async () => {
     try {
@@ -55,7 +60,6 @@ function App() {
       // Fetch barangays by city code
       const barangayList = await barangays(cityCode);
       console.log("Barangays:", barangayList);
-
     } catch (error) {
       console.error("Error fetching address details:", error);
     }
@@ -69,6 +73,7 @@ function App() {
   return (
     <BrowserRouter>
       <Navbar />
+      <SearchTags />
       <Routes>
         <Route path="/" element={<Shop />} />
         <Route path="/about" element={<About />} />

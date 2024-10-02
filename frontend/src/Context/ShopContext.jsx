@@ -28,7 +28,9 @@ const ShopContextProvider = (props) => {
     const token = localStorage.getItem("auth-token");
     if (token) {
       try {
-        const response = await axios.get('/api/user', { headers: { Authorization: `Bearer ${token}` } });
+        const response = await axios.get("/api/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setUser(response.data);
         return response.data; // Return user data
       } catch (error) {
@@ -38,7 +40,6 @@ const ShopContextProvider = (props) => {
     }
     return null; // If no token, return null
   };
-
 
   useEffect(() => {
     fetch("http://localhost:4000/allproducts")
@@ -198,11 +199,10 @@ const ShopContextProvider = (props) => {
     removeFromCart,
     updateQuantity,
     prepareOrderItems,
-    calculateDeliveryFee, 
+    calculateDeliveryFee,
     getUserDetails,
     users,
   };
-  
 
   return (
     <ShopContext.Provider value={contextValue}>
