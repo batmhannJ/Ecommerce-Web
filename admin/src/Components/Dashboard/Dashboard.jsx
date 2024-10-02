@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
+import html2canvas from 'html2canvas';
 
 export const Dashboard = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -209,10 +210,23 @@ export const Dashboard = () => {
     ],
   };
 
+  const getSalesChange = (currentSales, previousSales) => {
+    if (previousSales === null) return 'N/A'; // No previous day to compare
+    const difference = currentSales - previousSales;
+    return difference >= 0 ? `Increase of ${difference}` : `Decrease of ${Math.abs(difference)}`;
+  };
+
 // Function to export dashboard as PDF
 const generatePDF = async () => {
   const jsPDF = (await import("jspdf")).default;
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", putOnlyUsedFonts: true });
+
+  const fontUrl = "https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap";
+
+  // Load the font from Google Fonts (optional)
+  doc.addFileToVFS("Roboto-Regular.ttf", fontUrl);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  doc.setFont("Roboto");
 
   // Constants for margins
   const margin = 25.4; // 1 inch in mm
@@ -226,7 +240,7 @@ const generatePDF = async () => {
   const title = "Sales Report";
   const titleWidth = doc.getTextWidth(title);
   const titleX = (pageWidth - titleWidth) / 2; // Centering the title
-  doc.text(title, titleX, margin); // Use margin for Y-coordinate
+  doc.text(title, titleX, margin);
 
   // Add a line below the title
   doc.line(margin, margin + 5, pageWidth - margin, margin + 5);
@@ -235,82 +249,142 @@ const generatePDF = async () => {
   // Initial Y-coordinate for text entries
   let currentY = margin + 15;
 
+  // Function to check and add a new page if needed
+  const checkPageOverflow = () => {
+    if (currentY > pageHeight - margin) {
+      doc.addPage();
+      currentY = margin;
+    }
+  };
+
+  // "As of" Date
+  const currentDate = new Date();
+  const formattedDate = `${currentDate.getMonth() + 1}/${currentDate.getDate()}/${currentDate.getFullYear()}`;
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text(`As of: ${formattedDate}`, doc.internal.pageSize.getWidth() - margin - 32, currentY);
+  currentY += 10;
+  checkPageOverflow();
 
   // Total Revenue
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Total Revenue: ", margin, currentY); // Label
+  doc.text("Total Revenue: ", margin, currentY);
   doc.setFont("helvetica", "normal");
-  // Combine the label and value into one string
-  doc.text(`\u20B1${totalRevenue}`, margin + 30, currentY);
-  currentY -= 10; // Small increment for spacing
+  doc.text(`${totalRevenue}.00`, margin + 30, currentY);
+  currentY += 10; // Move down by 10mm after this entry
+  checkPageOverflow();
 
-  // Average Order Value  
+  // Average Order Value
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Average Order Value", margin, margin + 35);
+  doc.text("Average Order Value: ", margin, currentY);
   doc.setFont("helvetica", "normal");
-  doc.text(`₱${salesData.avgOrderValue.toFixed(2)}`, margin, margin + 45);
+  doc.text(`${salesData.avgOrderValue.toFixed(2)}`, margin + 44, currentY);
+  currentY += 10;
+  checkPageOverflow();
 
   // Most Produced Product
-  doc.setFontSize(12); // Change to smaller size
+  doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Most Produced Product", margin, margin + 55);
+  doc.text("Most Produced Product: ", margin, currentY);
   doc.setFont("helvetica", "normal");
-  doc.text(`${salesData.mostProducedProduct || 'N/A'}`, margin, margin + 65);
+  doc.text(`${salesData.mostProducedProduct || 'N/A'}`, margin + 50, currentY);
+  currentY += 10;
+  checkPageOverflow();
 
   // Add a line
-  doc.line(margin, margin + 70, pageWidth - margin, margin + 70);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+  currentY += 5;
+  checkPageOverflow();
 
   // Sales by Category
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Sales by Category:", margin, margin + 75);
-  let categoryY = margin + 85;
+  doc.text("Sales by Category:", margin, currentY);
+  currentY += 10;
   salesByCategoryData.forEach((item) => {
     doc.setFont("helvetica", "normal");
-    doc.text(`${item.category}: ₱${item.totalSales}`, margin, categoryY);
-    categoryY += 10;
+    doc.text(`    ${item.category}: ${item.totalSales}.00`, margin, currentY);
+    currentY += 10;
+    checkPageOverflow();
   });
 
   // Add a line
-  doc.line(margin, categoryY, pageWidth - margin, categoryY);
-  categoryY += 5;
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+  currentY += 5;
+  checkPageOverflow();
 
   // Sales by Product
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Sales by Product:", margin, categoryY);
-  categoryY += 10;
+  doc.text("Sales by Product:", margin, currentY);
+  currentY += 10;
   salesByProductData.forEach((item) => {
     doc.setFont("helvetica", "normal");
-    doc.text(`${item.product}: ₱${item.totalSales}`, margin, categoryY);
-    categoryY += 10;
+    doc.text(`    ${item.product}: ${item.totalSales}.00`, margin, currentY);
+    currentY += 10;
+    checkPageOverflow();
   });
 
   // Add a line
-  doc.line(margin, categoryY, pageWidth - margin, categoryY);
-  categoryY += 5;
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+  currentY += 5;
+  checkPageOverflow();
 
   // Sales Growth Rate
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Sales Growth Rate", margin, categoryY);
-  categoryY += 10;
+  doc.text("Sales Growth Rate", margin, currentY);
+  currentY += 10;
 
-  // Add a line
-  doc.line(10, categoryY, 200, categoryY);
-  categoryY += 5;
-
-  // Top Purchases Product
-  doc.setFontSize(16);
+  // Table headers
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("Top Purchases Product:", 10, categoryY);
-  categoryY += 10;
-  topPurchasesProductData.forEach((item) => {
+  const headers = ["Date", "Sales", "Change"];
+  const columnWidths = [40, 40, 80]; // Set width for each column
+  const rowHeight = 8;
+
+  // Draw the table headers
+  headers.forEach((header, index) => {
+    doc.text(header, margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0), currentY);
+  });
+  currentY += rowHeight;
+
+  // Add a line after headers
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+  currentY += 5;
+
+  // Variables to keep track of previous sales for calculating change
+  let previousSales = null;
+
+  // Iterate over sales growth rate data and generate rows
+  salesGrowthRateData.forEach((item, index) => {
+    const { date, totalSales } = item;
+    const salesChange = getSalesChange(totalSales, previousSales);
+
     doc.setFont("helvetica", "normal");
-    doc.text(`${item.product}: ${item.totalPurchases}`, 10, categoryY);
-    categoryY += 10;
+
+    // Add the date
+    doc.text(date, margin, currentY);
+
+    // Add the sales for the day
+    doc.text(`${totalSales}`, margin + columnWidths[0], currentY);
+
+    // Add the increase/decrease compared to the previous day
+    doc.text(salesChange, margin + columnWidths[0] + columnWidths[1], currentY);
+
+    // Update the previous sales value for the next row
+    previousSales = totalSales;
+
+    // Move to the next row
+    currentY += rowHeight;
+
+    // Check if we need to add a new page
+    if (currentY > pageHeight - margin) {
+      doc.addPage();
+      currentY = margin; // Reset Y coordinate for the new page
+    }
   });
 
   // Save the PDF
