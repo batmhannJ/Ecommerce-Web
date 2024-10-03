@@ -15,8 +15,8 @@ const SearchTags = () => {
     if (selectedTags.includes(tag)) {
       setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else {
-      setSelectedTags([...selectedTags, tag]);
-      handleSearchTag(tag); // Call handleSearchTag when a tag is clicked
+      setSelectedTags([tag]);
+      handleSearchTag(tag);
     }
   };
 

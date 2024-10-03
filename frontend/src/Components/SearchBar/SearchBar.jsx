@@ -8,7 +8,7 @@ const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { all_product } = useContext(ShopContext);
-
+  console.log(all_product);
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
@@ -19,7 +19,6 @@ const SearchBar = () => {
             tag.toLowerCase().includes(searchTerm.toLowerCase())
           )
       );
-      console.log("Filtered Products:", filteredProducts); // Add this to debug
       if (filteredProducts.length > 0) {
         navigate("/search-results", { state: { filteredProducts } });
       } else {
