@@ -1,12 +1,12 @@
 // SearchTags.js
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../../Context/ShopContext";
 import { toast } from "react-toastify";
 import "./SearchTags.css";
 
 const SearchTags = () => {
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]); // Initialize an empty array for selected tags
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { all_product } = useContext(ShopContext);
@@ -15,17 +15,23 @@ const SearchTags = () => {
     if (selectedTags.includes(tag)) {
       setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else {
-      setSelectedTags([tag]);
-      handleSearchTag(tag);
+      setSelectedTags([...selectedTags, tag]);
     }
   };
 
-  const handleSearchTag = (tag) => {
-    const filteredProducts = all_product.filter(
-      (product) =>
-        product.name.toLowerCase().includes(tag.toLowerCase()) ||
-        product.tags.some((t) => t.toLowerCase().includes(tag.toLowerCase()))
-    );
+  useEffect(() => {
+    handleSearchTag();
+  }, [selectedTags]);
+
+  const handleSearchTag = () => {
+    const filteredProducts = all_product.filter((product) => {
+      return selectedTags.every((tag) => {
+        return (
+          product.name.toLowerCase().includes(tag.toLowerCase()) ||
+          product.tags.some((t) => t.toLowerCase().includes(tag.toLowerCase()))
+        );
+      });
+    });
     if (filteredProducts.length > 0) {
       navigate("/search-results", { state: { filteredProducts } });
     } else {
@@ -33,13 +39,6 @@ const SearchTags = () => {
         position: "bottom-left",
       });
     }
-  };
-
-  const handleFilter = () => {
-    const filteredProducts = all_product.filter((product) =>
-      selectedTags.some((tag) => product.tags.includes(tag))
-    );
-    navigate("/search-results", { state: { filteredProducts } });
   };
 
   const handleSearch = (e) => {
