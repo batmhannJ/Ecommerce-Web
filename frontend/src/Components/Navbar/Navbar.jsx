@@ -7,6 +7,7 @@ import cart_icon from "../Assets/cart_icon.png";
 import menu_icon from "../Assets/menu_icon.png";
 import profile_icon from "../Assets/profile_icon.png";
 import navbar_icon from "../Assets/navbar_icon.png";
+import SearchTags from "../SearchTags/SearchTags";
 
 const Navbar = () => {
   const [menu, setMenu] = useState("shop");
@@ -136,6 +137,7 @@ const Navbar = () => {
           </div>
         )}
       </div>
+      <SearchTags />
     </div>
   );
 };
