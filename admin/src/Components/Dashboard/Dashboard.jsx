@@ -271,7 +271,7 @@ const generatePDF = async () => {
   doc.setFont("helvetica", "bold");
   doc.text("Total Revenue: ", margin, currentY);
   doc.setFont("helvetica", "normal");
-  doc.text(`${totalRevenue}.00`, margin + 30, currentY);
+  doc.text(`₱${totalRevenue}.00`, margin + 30, currentY);
   currentY += 10; // Move down by 10mm after this entry
   checkPageOverflow();
 

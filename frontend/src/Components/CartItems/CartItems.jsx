@@ -8,7 +8,7 @@ import axios from "axios";
 
 const MAIN_OFFICE_COORDINATES = {
   latitude: 14.628488,
-  longitude: 121.033420
+  longitude: 121.033420,
 };
 
 export const CartItems = () => {
@@ -16,36 +16,52 @@ export const CartItems = () => {
     getTotalCartAmount,
     all_product,
     cartItems,
+    setCartItems, // Assuming there's a setCartItems function in context
     removeFromCart,
     updateQuantity,
   } = useContext(ShopContext);
   const navigate = useNavigate();
   const [deliveryFee, setDeliveryFee] = useState(0);
-  const [data, setData] = useState({ street: '', city: '' }); 
+  const [data, setData] = useState({ street: '', city: '' });
 
-  /*useEffect(() => {
-    const fetchUserDetails = async () => {
+  // Fetch cart from database on component mount
+  useEffect(() => {
+    const fetchCartFromDatabase = async () => {
       const userId = localStorage.getItem("userId");
-      if (!userId) {
-        toast.error("No user logged in.");
-        return;
-      }
-    
+      if (!userId) return;
+
       try {
-        const response = await axios.get(`http://localhost:4000/api/users/${userId}`);
-        if (response.data) {
-          setData({ street: response.data.address.street, city: response.data.address.city });
+        const response = await axios.get(`http://localhost:4000/api/cart/${userId}`);
+        if (response.data && response.data.cartItems) {
+          setCartItems(response.data.cartItems);  // Update local state with saved cart items
         }
       } catch (error) {
-        console.error("Error fetching user details:", error);
-        toast.error(`Error fetching user details: ${error.response?.data?.message || error.message}`);
+        console.error("Error fetching cart:", error);
       }
     };
-    
-  
-    fetchUserDetails();
-  // }, []); // No dependencies to fetch once on mount*/
-  
+
+    fetchCartFromDatabase();
+  }, [setCartItems]);
+
+// Function to save cart to the database
+const saveCartToDatabase = async () => {
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
+    console.error('No user ID found in local storage. Cannot save cart.');
+    return;
+  }
+
+  try {
+    await axios.post('http://localhost:4000/api/cart', {
+      userId,
+      cartItems
+    });
+    console.log("Cart saved to database successfully.");
+  } catch (error) {
+    console.error("Error saving cart to database:", error);
+  }
+};
+
 
   const fetchCoordinates = async (address) => {
     const apiKey = process.env.REACT_APP_POSITION_STACK_API_KEY;
@@ -83,7 +99,7 @@ export const CartItems = () => {
       const baseFee = 40;
       const feePerKm = 5;
 
-      let totalFee = baseFee + (feePerKm * Math.ceil(distance));
+      let totalFee = baseFee + feePerKm * Math.ceil(distance);
       const maxDeliveryFee = 200;
       totalFee = totalFee > maxDeliveryFee ? maxDeliveryFee : totalFee;
 
@@ -115,117 +131,135 @@ export const CartItems = () => {
     }
   }, [data.street, data.city]);
 
-  const handleQuantityChange = (id, delta) => {
-    const currentQuantity = cartItems[id]?.quantity || 0;
-    if (currentQuantity + delta >= 0) {
-      updateQuantity(id, currentQuantity + delta);
-    }
-  };
+  const handleQuantityChange = (key, delta) => {
+    const currentQuantity = cartItems[key]?.quantity || 0;
 
-  const handleProceedToCheckout = () => {
+    if (currentQuantity + delta > 0) {
+        updateQuantity(key, currentQuantity + delta);
+        saveCartToDatabase(); // Save updated cart to database
+    } else {
+        // Remove from cart if quantity becomes zero
+        removeFromCart(key);
+        saveCartToDatabase(); // Save after removing
+    }
+};
+
+
+  const handleProceedToCheckout = async () => {
     const token = localStorage.getItem("auth-token");
+    const userId = localStorage.getItem("userId");
     if (token) {
-      navigate("/order");
+      try {
+        await axios.delete(`http://localhost:4000/api/cart/${userId}`); // Clear cart after checkout
+        toast.success("Checkout successful!");
+        navigate("/order");
+      } catch (error) {
+        console.error("Error clearing cart after checkout:", error);
+      }
     } else {
       toast.error(
         "You are not logged in. Please log in to proceed to checkout.",
-        {
-          position: "top-left",
-        }
+        { position: "top-left" }
       );
       navigate("/login");
     }
   };
 
-  return (
-    <div className="cartitems">
-      <div className="cartitems-format-main">
-        <p>Products</p>
-        <p>Title</p>
-        <p>Price</p>
-        <p>Size</p>
-        <p>Quantity</p>
-        <p>Total</p>
-        <p>Remove</p>
-      </div>
-      <hr />
-      {all_product && all_product.length > 0 ? (
-        all_product.map((product) => {
-          return Object.keys(cartItems).map((key) => {
-            const [itemId, size] = key.split("_");
-            if (parseInt(itemId) === product.id && cartItems[key].quantity > 0) {
-              return (
-                <div key={key}>
-                  <div className="cartitems-format cartitems-format-main">
-                    <img
-                      src={product.image || remove_icon}
-                      alt="Product Image"
-                      className="cartitem-product-icon"
-                    />
-                    <p>{product.name}</p>
-                    <p>₱{cartItems[key].price}</p>
-                    <p>{size}</p>
-                    <div className="cartitems-quantity-controls">
-                      <button
-                        className="cartitems-quantity-button"
-                        onClick={() => handleQuantityChange(key, -1)}
-                      >
-                        -
-                      </button>
-                      <button className="cartitems-quantity-button">
-                        {cartItems[key].quantity}
-                      </button>
-                      <button
-                        className="cartitems-quantity-button"
-                        onClick={() => handleQuantityChange(key, 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <p>₱{cartItems[key].price * cartItems[key].quantity}</p>
-                    <img
-                      className="cartitems-remove-icon"
-                      src={remove_icon}
-                      onClick={() => removeFromCart(key)}
-                      alt="Remove"
-                    />
-                  </div>
-                  <hr />
-                </div>
-              );
-            }
-            return null;
-          });
-        })
-      ) : (
-        <p>No products in the cart</p>
-      )}
-      <div className="cartitems-down">
-        <div className="cartitems-total">
-          <h1>Cart Totals</h1>
-          <div>
-            <div className="cartitems-total-item">
-              <p>Subtotal</p>
-              <p>₱{getTotalCartAmount()}</p>
-            </div>
-            <hr />
-            {/* 
-<div className="cartitems-total-item">
-  <p>Delivery Fee</p>
-  <p>₱{deliveryFee}</p>
-</div>
+    // Group items by productId and size
+    const groupedCartItems = Object.values(cartItems).reduce((acc, item) => {
+      const product = all_product.find(prod => prod.id === item.productId);
+      if (product && item.quantity > 0) {
+          const sizeKey = `${item.productId}_${item.selectedSize}`; // This assumes `selectedSize` is defined
+          if (!acc[sizeKey]) {
+              acc[sizeKey] = { product, size: item.selectedSize, quantity: 0, adjustedPrice: item.adjustedPrice };
+          }
+          acc[sizeKey].quantity += item.quantity; // Sum quantities for same product and size
+      }
+      return acc;
+  }, {});
+  
+    // Convert grouped object to array for rendering
+    const groupedItemsArray = Object.values(groupedCartItems);
 
-            <hr />*/}
-            <div className="cartitems-total-item">
-              <h3>Total</h3>
-              <h3>₱{getTotalCartAmount() + deliveryFee}</h3>
+    return (
+      <div className="cartitems">
+        <div className="cartitems-format-main">
+          <p>Products</p>
+          <p>Title</p>
+          <p>Price</p>
+          <p>Size</p>
+          <p>Quantity</p>
+          <p>Total</p>
+          <p>Remove</p>
+        </div>
+        <hr />
+        {groupedItemsArray.length > 0 ? (
+          groupedItemsArray.map((groupedItem, index) => (
+            <div key={`${groupedItem.product.id}_${groupedItem.size}`}>
+              <div className="cartitems-format cartitems-format-main">
+                <img
+                  src={groupedItem.product.image || remove_icon}
+                  alt="Product"
+                  className="cartitem-product-icon"
+                />
+                <p>{groupedItem.product.name}</p>
+                <p>₱{groupedItem.adjustedPrice}</p>
+                <p>{groupedItem.size}</p>
+                <div className="cartitems-quantity-controls">
+                  <button
+                    className="cartitems-quantity-button"
+                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.selectedSize, -1)}
+                  >
+                    -
+                  </button>
+                  <button className="cartitems-quantity-button">
+                    {groupedItem.quantity}
+                  </button>
+                  <button
+                    className="cartitems-quantity-button"
+                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.selectedSize, 1)}
+                  >
+                    +
+                  </button>
+                </div>
+                <p>₱{groupedItem.adjustedPrice * groupedItem.quantity}</p>
+                <img
+                  className="cartitems-remove-icon"
+                  src={remove_icon}
+                  onClick={async () => {
+                    const selectedSize = groupedItem.size; // Use groupedItem.size instead of selectedSize
+                    console.log(`Key to remove: ${groupedItem.product.id}_${selectedSize}`); // Log the key to debug
+                    await removeFromCart(groupedItem.product.id, selectedSize); // Ensure you're passing both parameters
+                    await saveCartToDatabase();
+                }}
+                  alt="Remove"
+                />
+              </div>
+              <hr />
             </div>
+          ))
+        ) : (
+          <p>No products in the cart</p>
+        )}
+        <div className="cartitems-down">
+          <div className="cartitems-total">
+            <h1>Cart Totals</h1>
+            <div>
+              <div className="cartitems-total-item">
+                <p>Subtotal</p>
+                <p>₱{getTotalCartAmount()}</p>
+              </div>
+              <hr />
+              <div className="cartitems-total-item">
+                <h3>Total</h3>
+                <h3>₱{getTotalCartAmount() + deliveryFee}</h3>
+              </div>
+            </div>
+            <button onClick={handleProceedToCheckout}>PROCEED TO CHECKOUT</button>
           </div>
-          <button onClick={handleProceedToCheckout}>PROCEED TO CHECKOUT</button>
         </div>
       </div>
-    </div>
-  );  
-};
+    );
+  };
 
 export default CartItems;

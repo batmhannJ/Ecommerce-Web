@@ -16,6 +16,25 @@ const ShopContextProvider = (props) => {
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [users, setUser] = useState(null);
 
+  const saveCartToDatabase = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      console.error('No user ID found in local storage. Cannot save cart.');
+      return;
+    }
+  
+    try {
+      await axios.post('http://localhost:4000/api/cart', {
+        userId,
+        cartItems // Ensure this reflects the updated cart items
+      });
+      console.log("Cart saved to database successfully.");
+    } catch (error) {
+      console.error("Error saving cart to database:", error);
+    }
+  };
+  
+
   const calculateDeliveryFee = (distance) => {
     // Example logic for delivery fee
     const baseFee = 50; // Base delivery fee
@@ -40,6 +59,17 @@ const ShopContextProvider = (props) => {
     }
     return null; // If no token, return null
   };
+
+  // Fetch cart for the specific user
+  useEffect(() => {
+    const authToken = localStorage.getItem("auth-token");
+    const storedUserId = localStorage.getItem('userId');
+
+    if (authToken && storedUserId) {
+      setUserId(storedUserId); // Set the userId in state
+      fetchCartItems(storedUserId);
+    }
+  }, []);
 
   useEffect(() => {
     fetch("http://localhost:4000/allproducts")
@@ -95,85 +125,129 @@ const ShopContextProvider = (props) => {
     return orderItems;
   };
 
-  const addToCart = (itemId, size, price, quantity) => {
-    const cartKey = `${itemId}_${size}`; // Use itemId and size as key
-    setCartItems((prev) => ({
-      ...prev,
-      [cartKey]: {
-        quantity: (prev[cartKey]?.quantity || 0) + quantity,
-        size: size,
-        price: price,
-      },
-    }));
-    const authToken = localStorage.getItem("auth-token");
-    if (authToken) {
-      fetch("http://localhost:4000/addtocart", {
-        method: "POST",
+  // Function to fetch cart items for a specific user
+  const fetchCartItems = async (userId) => {
+    try {
+      const response = await axios.get(`http://localhost:4000/api/cart/${userId}`, {
         headers: {
-          Accept: "application/json",
-          Authorization: `${authToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ itemId, size, price, quantity }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log(data);
-        })
-        .catch((error) => {
-          console.error("There was a problem with the fetch operation:", error);
+          Authorization: `Bearer ${localStorage.getItem("auth-token")}`
+        }
+      });
+      setCartItems(response.data.cartItems); // Assuming the API returns cartItems in response
+    } catch (error) {
+      console.error("Error fetching cart items:", error);
+    }
+  };
+
+
+  const addToCart = async (productId, selectedSize, adjustedPrice, quantity) => {
+    const userId = localStorage.getItem('userId'); // Make sure userId exists
+    if (!userId) {
+      console.error('No user ID found in local storage. Cannot add to cart.');
+      return;
+    }
+  
+    // First, get the existing cart
+    try {
+      const response = await axios.get(`http://localhost:4000/api/cart/${userId}`);
+      const existingCart = response.data.cartItems;
+  
+      // Check if the product with the selected size already exists
+      const existingItemIndex = existingCart.findIndex(item => 
+        item.productId === productId && item.size === selectedSize
+      );
+  
+      if (existingItemIndex !== -1) {
+        // Item exists, update the quantity
+        existingCart[existingItemIndex].quantity += quantity;
+      } else {
+        // Item doesn't exist, add new item
+        existingCart.push({
+          productId,
+          selectedSize: selectedSize, // Adjusted this line
+          adjustedPrice: adjustedPrice,
+          quantity
         });
+      }
+  
+      // Send the updated cart back to the server
+      await axios.post('http://localhost:4000/api/cart', {
+        userId,
+        cartItems: existingCart
+      });
+      console.log("Cart updated successfully in frontend"); // Debugging
+  
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.warn('Cart not found, creating a new one.');
+        // Create a new cart if it doesn't exist
+        await axios.post('http://localhost:4000/api/cart', {
+          userId,
+          cartItems: [{
+            productId,
+            selectedSize: selectedSize,
+            adjustedPrice: adjustedPrice,
+            quantity
+          }]
+        });
+      } else {
+        console.error("Error fetching/updating cart in frontend:", error);
+      }
     }
   };
+  
+  
 
-  const updateQuantity = (id, quantity) => {
-    setCartItems((prevCartItems) => ({
-      ...prevCartItems,
-      [id]: {
-        ...prevCartItems[id],
-        quantity: quantity,
-      },
-    }));
-  };
-
-  const removeFromCart = (itemId) => {
-    setCartItems((prev) => {
-      const newQuantity = (prev[itemId]?.quantity || 0) - 1;
-      return {
-        ...prev,
-        [itemId]: {
-          quantity: newQuantity > 0 ? newQuantity : 0,
-          size: prev[itemId]?.size || "",
-          price: prev[itemId]?.price || 0,
-        },
-      };
+  const updateQuantity = (key, newQuantity) => {
+    setCartItems(prevItems => {
+      const updatedItems = [...prevItems];
+      updatedItems[key].quantity = newQuantity;
+      return updatedItems;
     });
-    const authToken = localStorage.getItem("auth-token");
-    if (authToken) {
-      fetch("http://localhost:4000/removefromcart", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          Authorization: `${authToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ itemId }),
-      })
-        .then((response) => response.json())
-        .then((data) => console.log(data));
-    }
   };
+  
+  const removeFromCart = async (productId, selectedSize) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        console.error('No user ID found. Cannot remove item.');
+        return;
+    }
 
+    const key = `${productId}_${selectedSize}`;
+    console.log("Cart Items:", cartItems);
+    console.log("Key to remove:", key);
+
+    // Find the index of the item to remove based on productId and selectedSize
+    const itemIndex = cartItems.findIndex(item => item.productId === parseInt(productId) && item.selectedSize === selectedSize);
+
+    if (itemIndex === -1) {
+        console.error('Item not found in cart.');
+        return; // Exit if the item is not found
+    }
+
+    // Remove item from local state
+    setCartItems(prevItems => {
+        const updatedItems = [...prevItems]; // Create a shallow copy of the previous items
+        updatedItems.splice(itemIndex, 1); // Remove the item by index
+        return updatedItems; // Return the updated items
+    });
+
+    // Remove item from the database
+    try {
+        await axios.delete(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`);
+        console.log("Item removed from database successfully.");
+    } catch (error) {
+        console.error("Error removing item from database:", error);
+    }
+};
+
+  
+  
   const getTotalCartAmount = () => {
     let totalAmount = 0;
     for (const item in cartItems) {
       if (cartItems[item].quantity > 0) {
-        totalAmount += cartItems[item].price * cartItems[item].quantity;
+        totalAmount += cartItems[item].adjustedPrice * cartItems[item].quantity;
       }
     }
     return totalAmount;
@@ -189,6 +263,8 @@ const ShopContextProvider = (props) => {
     return totalItem;
   };
 
+  const [userId, setUserId] = useState(localStorage.getItem('userId')); // Initialize from localStorage
+
   const contextValue = {
     getTotalCartAmount,
     getTotalCartItems,
@@ -202,6 +278,10 @@ const ShopContextProvider = (props) => {
     calculateDeliveryFee,
     getUserDetails,
     users,
+    userId,
+    setUserId,
+    setCartItems,
+    saveCartToDatabase
   };
 
   return (

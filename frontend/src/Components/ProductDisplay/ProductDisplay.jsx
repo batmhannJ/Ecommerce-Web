@@ -73,7 +73,16 @@ const ProductDisplay = (props) => {
 
   const handleAddToCart = async () => {
     const authToken = localStorage.getItem('auth-token');
-
+  
+    // Log the current state values
+    console.log('Current State:', {
+      productId: product.id,
+      selectedSize: selectedSize,
+      adjustedPrice: adjustedPrice,
+      quantity: quantity,
+      currentStock: currentStock
+    });
+  
     if (authToken) {
       if (!selectedSize) {
         toast.info('Please select a size before adding to cart.', {
@@ -87,16 +96,13 @@ const ProductDisplay = (props) => {
         });
         return;
       }
-      try {
-        await addToCart(product.id, selectedSize, adjustedPrice, quantity); 
+    
+        // First, add the product to the cart context
+        await addToCart(product.id, selectedSize, adjustedPrice, quantity);
         toast.success('Product added to cart!', {
           position: "top-left"
         });
-      } catch (error) {
-        toast.error('An error occurred. Please try again.', {
-          position: "top-left"
-        });
-      }
+  
     } else {
       toast.error('You are not logged in. Please log in to add to cart.', {
         position: "top-left"
@@ -104,7 +110,7 @@ const ProductDisplay = (props) => {
       navigate('/login');
     }
   };
-
+  
   const handleTabClick = (tab) => {
     setActiveTab(tab);
   };

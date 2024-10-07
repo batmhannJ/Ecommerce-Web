@@ -17,6 +17,7 @@ const sellerRouter = require("./routes/sellerRoute");
 const userRoutes = require("./routes/userRoute");
 const transactionRoutes = require("./routes/transactionRoute");
 const productRoute = require("./routes/productRoute");
+const cartRoute = require("./routes/cartRoute");
 const { signup } = require("./controllers/sellerController");
 const { ObjectId } = require('mongodb');
 
@@ -50,6 +51,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/transactions", transactionRoutes);
 app.use("/api", productRoute);
+app.use("/api/cart", cartRoute);
 
 // Database Connection
 mongoose
@@ -124,6 +126,7 @@ const fetchUser = require("./middleware/auth");
 // Schema Creation for User Model
 const Users = require("./models/userModels");
 const Seller = require("./models/sellerModels");
+const Cart = require('./models/cartModel'); 
 
 // Schema Creation for Transaction Model
 const Transaction = require("./models/transactionModel");
@@ -820,6 +823,107 @@ app.post("/api/seller/reset-password-seller", async (req, res) => {
   } catch (error) {
     console.error("Error processing reset password request:", error);
     res.status(500).json({ success: false, errors: "Internal server error." });
+  }
+});
+app.post('/cart', async (req, res) => {
+  const { userId, cartItems } = req.body;
+
+  // Create an array of cart items based on incoming request
+  const itemsToAdd = cartItems.map(item => ({
+    productId: item.productId,
+    size: item.size,
+    price: item.price,
+    quantity: item.quantity
+  }));
+
+  // Check if a cart exists for the user, if not create one
+  let cart = await Cart.findOne({ userId });
+
+  if (!cart) {
+    cart = new Cart({ userId, cartItems: itemsToAdd });
+  } else {
+    // Add new items to the existing cart
+    itemsToAdd.forEach(newItem => {
+      const existingItemIndex = cart.cartItems.findIndex(existingItem => 
+        existingItem.productId === newItem.productId && existingItem.size === newItem.size
+      );
+
+      if (existingItemIndex > -1) {
+        // If the item already exists, update the quantity
+        cart.cartItems[existingItemIndex].quantity += newItem.quantity;
+      } else {
+        // If it doesn't exist, add the new item
+        cart.cartItems.push(newItem);
+      }
+    });
+  }
+
+  try {
+    await cart.save();
+    res.status(200).json({ message: 'Cart updated successfully' });
+  } catch (error) {
+    console.error('Error saving cart:', error);
+    res.status(500).json({ message: 'Error saving cart', error });
+  }
+});
+
+app.get('/api/cart/:userId', async (req, res) => {
+  const { userId } = req.params;
+  console.log("Fetching cart for user:", userId);  // Log the userId being used
+  try {
+      const cart = await Cart.findOne({ userId });
+      if (!cart) {
+          return res.status(404).json({ message: "No cart found for this user" });
+      }
+      res.status(200).json(cart);
+  } catch (err) {
+      console.error("Error fetching cart:", err);  // Log error details
+      res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// DELETE item from the cart
+app.delete('/api/cart/:userId/:productId', async (req, res) => {
+  const { userId, productId } = req.params;
+  const selectedSize = req.query.selectedSize;
+
+  console.log(`DELETE request received for user: ${userId}, productId: ${productId}, selectedSize: ${selectedSize}`);
+
+  // Find the user's cart
+  const cart = await Cart.findOne({ userId });
+  if (!cart) {
+      console.log('Cart not found for user:', userId);
+      return res.status(404).json({ message: 'Cart not found' });
+  }
+
+  console.log('Current cart items:', cart.cartItems);
+
+  // Find the index of the item to be removed
+  const itemIndex = cart.cartItems.findIndex(
+      item => item.productId === parseInt(productId) && item.selectedSize === selectedSize
+  );
+
+  console.log(`Item index for productId ${productId} and selectedSize ${selectedSize}:`, itemIndex);
+
+  // If item not found, return 404
+  if (itemIndex === -1) {
+      console.log('Item not found in the cart:', { productId, selectedSize });
+      return res.status(404).json({ message: 'Item not found in the cart' });
+  }
+
+  // Remove the item
+  console.log('Removing item:', cart.cartItems[itemIndex]);
+  cart.cartItems.splice(itemIndex, 1);
+  console.log('Cart items after removal:', cart.cartItems);
+
+  // Save the updated cart to the database
+  try {
+      await cart.save(); // Ensure this line is present to persist changes
+      console.log('Cart saved successfully:', cart.cartItems);
+      res.status(200).json({ message: 'Item removed from database successfully' });
+  } catch (error) {
+      console.error('Error saving cart:', error);
+      res.status(500).json({ message: 'Error saving updated cart' });
   }
 });
 
