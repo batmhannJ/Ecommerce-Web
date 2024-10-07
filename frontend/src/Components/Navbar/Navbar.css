@@ -5,6 +5,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   align-items: center;
   background-color: #fff;
+  flex-wrap: wrap;
 }
 
 .nav-logo {
@@ -81,7 +82,7 @@
 
 .nav-login-cart button:hover {
   background-color: #778c62;
-  color: #f3f3f3
+  color: #f3f3f3;
 }
 
 .nav-login-cart button:active {
@@ -154,6 +155,13 @@
 .profile-menu button:active {
   transform: scale(0.95);
 }
+
+.search-tags {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Media Queries */
 
 @media (max-width: 1280px) {
   .navbar {

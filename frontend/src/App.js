@@ -28,7 +28,7 @@ import {
 } from "select-philippines-address";
 import SearchBar from "./Components/SearchBar/SearchBar";
 import SearchResults from "./Components/SearchBar/SearchResults";
-import SearchTags from "./Components/SearchTags/SearchTags";
+
 function App() {
   // Fetch regions, provinces, cities, and barangays
   const fetchAddressDetails = async () => {
@@ -73,7 +73,7 @@ function App() {
   return (
     <BrowserRouter>
       <Navbar />
-      <SearchTags />
+
       <Routes>
         <Route path="/" element={<Shop />} />
         <Route path="/about" element={<About />} />

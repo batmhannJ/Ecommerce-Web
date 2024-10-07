@@ -34,10 +34,6 @@ const SearchTags = () => {
     });
     if (filteredProducts.length > 0) {
       navigate("/search-results", { state: { filteredProducts } });
-    } else {
-      toast.info("No products found", {
-        position: "bottom-left",
-      });
     }
   };
 
@@ -66,22 +62,24 @@ const SearchTags = () => {
 
   return (
     <div className="search-tags">
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={handleSearch}
-        placeholder="Search tags..."
-      />
-      <div className="tag-list">
-        {displayedTags.map((tag, index) => (
-          <button
-            key={index}
-            className={selectedTags.includes(tag) ? "selected" : ""}
-            onClick={() => handleTagClick(tag)}
-          >
-            {tag}
-          </button>
-        ))}
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearch}
+          placeholder="Search tags..."
+        />
+        <div className="tag-list">
+          {displayedTags.map((tag, index) => (
+            <button
+              key={index}
+              className={selectedTags.includes(tag) ? "selected" : ""}
+              onClick={() => handleTagClick(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

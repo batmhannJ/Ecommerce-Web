@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../../Context/ShopContext";
 import { toast } from "react-toastify";
@@ -8,37 +8,35 @@ const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { all_product } = useContext(ShopContext);
-  console.log(all_product);
-  const handleSearch = (e) => {
-    e.preventDefault();
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  useEffect(() => {
     if (searchTerm.trim()) {
-      const filteredProducts = all_product.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.tags.some((tag) =>
-            tag.toLowerCase().includes(searchTerm.toLowerCase())
-          )
+      const filtered = all_product.filter((product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      if (filteredProducts.length > 0) {
-        navigate("/search-results", { state: { filteredProducts } });
-      } else {
-        toast.info("No products found", {
-          position: "bottom-left",
-        });
-      }
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts([]);
     }
-  };
+  }, [searchTerm, all_product]);
+
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      navigate("/search-results", { state: { filteredProducts } });
+    } else if (searchTerm.trim()) {
+    }
+  }, [filteredProducts, navigate, searchTerm]);
 
   return (
     <div className="search-bar">
-      <form onSubmit={handleSearch} style={{ width: "100%", display: "flex" }}>
+      <form style={{ width: "100%", display: "flex" }}>
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search for products..."
         />
-        <button type="submit">Search</button>
       </form>
     </div>
   );
