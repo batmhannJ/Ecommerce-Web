@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import "./SearchTags.css";
 
 const SearchTags = () => {
-  const [selectedTags, setSelectedTags] = useState([]); // Initialize an empty array for selected tags
+  const [selectedTags, setSelectedTags] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { all_product } = useContext(ShopContext);
@@ -63,12 +63,12 @@ const SearchTags = () => {
   return (
     <div className="search-tags">
       <div style={{ display: "flex", alignItems: "center" }}>
-        <input
+        {/* <input
           type="text"
           value={searchTerm}
           onChange={handleSearch}
           placeholder="Search tags..."
-        />
+        /> */}
         <div className="tag-list">
           {displayedTags.map((tag, index) => (
             <button
