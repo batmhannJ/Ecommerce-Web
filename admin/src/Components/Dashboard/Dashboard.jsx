@@ -421,7 +421,10 @@ const generatePDF = async () => {
                 <p>{salesData.mostProducedProduct || 'N/A'}</p>
             </div>
         </div>
-
+        <div className="export-button-container">
+              {/* Export Button */}
+              <button className="action-button view" onClick={generatePDF}>Export to PDF</button>
+            </div>
                 <div className='chart-container'>
             {/* Sales Growth Rate Graph */}
             <div className='chart1'>
@@ -434,15 +437,13 @@ const generatePDF = async () => {
                 <h3>Sales by Category</h3>
                 <Pie data={salesByCategory} />
             </div>
+            
         </div>
-
         {/* Sales by Product Graph */}
         <div className='chart2'>
             <h3>Sales by Product</h3>
             <Bar data={salesByProduct} />
         </div>
-                      {/* Export Button */}
-      <button className="action-button view" onClick={generatePDF}>Export to PDF</button>
         </div>
 
 

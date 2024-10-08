@@ -1,6 +1,3 @@
-import 'core/constant/enum/product_size.dart';
-import 'model/product.dart';
-import 'model/review.dart';
 
 String placeholderFood = "assets/images/placeholder_food.png";
 String placeholderCrafts = "assets/images/placeholder_crafts.jpg";

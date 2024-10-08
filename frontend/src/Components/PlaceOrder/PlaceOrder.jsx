@@ -375,7 +375,7 @@ export const PlaceOrder = () => {
 
           const updateStock = async () => {
             try {
-              const stockUpdates = cartDetails.map((item) => ({
+              const stockUpdates = cartDetails.map(item => ({
                 id: item.id.toString(),
                 size: item.size,
                 quantity: item.quantity,

@@ -1,5 +1,4 @@
 import 'model/product.dart';
-import 'model/review.dart';
 import 'core/constant/paths.dart';
 
 /*
