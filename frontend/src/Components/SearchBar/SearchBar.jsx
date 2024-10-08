@@ -12,8 +12,12 @@ const SearchBar = () => {
 
   useEffect(() => {
     if (searchTerm.trim()) {
-      const filtered = all_product.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = all_product.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.tags.some((tag) =>
+            tag.toLowerCase().includes(searchTerm.toLowerCase())
+          )
       );
       setFilteredProducts(filtered);
     } else {
@@ -37,6 +41,7 @@ const SearchBar = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search for products..."
         />
+        <button type="submit">Search</button>
       </form>
     </div>
   );
