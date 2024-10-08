@@ -241,7 +241,10 @@ const ShopContextProvider = (props) => {
     }
 };
 
-  
+const clearCart = () => {
+  setCartItems({}); // Assuming you're using an object to store cart items by productId
+};
+
   
   const getTotalCartAmount = () => {
     let totalAmount = 0;
@@ -281,7 +284,8 @@ const ShopContextProvider = (props) => {
     userId,
     setUserId,
     setCartItems,
-    saveCartToDatabase
+    saveCartToDatabase,
+    clearCart
   };
 
   return (

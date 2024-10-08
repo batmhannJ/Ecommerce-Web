@@ -32,11 +32,12 @@ const MAIN_OFFICE_COORDINATES = {
 };
 
 export const PlaceOrder = () => {
-  const { getTotalCartAmount, all_product, cartItems } =
+  const { getTotalCartAmount, all_product, cartItems, clearCart } =
     useContext(ShopContext);
   const token = localStorage.getItem("auth-token");
   const navigate = useNavigate();
   const location = useLocation();
+  const { itemDetails } = location.state || {};
 
   const [transactionId, setTransactionId] = useState(null);
   const [data, setData] = useState({
@@ -244,26 +245,16 @@ export const PlaceOrder = () => {
     if (token) {
       const requestReferenceNumber = generateReferenceNumber(); // This is your transaction ID
       console.log("Generated Transaction ID:", requestReferenceNumber);
-      const cartDetails = Object.keys(cartItems)
-        .filter((key) => {
-          const [itemId, size] = key.split("_");
-          return all_product.some((product) => product.id === parseInt(itemId));
-        })
-        .map((key) => {
-          const [itemId, size] = key.split("_");
-          const product = all_product.find(
-            (product) => product.id === parseInt(itemId)
-          );
-          return {
-            id: product.id,
-            name: product.name,
-            price: cartItems[key].price,
-            quantity: cartItems[key].quantity,
-            size: size,
-          };
-        });
+      const cartDetails = itemDetails.map((item) => ({
+        id: item.id, // Now this will be defined
+        name: item.name,
+        price: item.price || item.adjustedPrice, // Use either the product's price or the adjustedPrice
+        quantity: item.quantity,
+        size: item.size,
+      }));
+      
 
-      console.log("Cart Details:", cartDetails); // Ensure this logs correctly
+      console.log("Cart Details:", itemDetails); // Ensure this logs correctly
 
       const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
 
@@ -394,6 +385,8 @@ export const PlaceOrder = () => {
           };
 
           updateStock();
+          await axios.delete(`http://localhost:4000/api/cart/${userId}`); // Clear cart after checkout
+          toast.success("Checkout successful!");
         } else {
           console.error("Checkout Response Error:", response.data);
           toast.error("Checkout failed, please try again.");
@@ -422,9 +415,16 @@ export const PlaceOrder = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search); // Get the query parameters from the URL
     const id = searchParams.get("orderId"); // Extract the 'orderId' parameter from the URL
-    if (id) {
-      console.log("Transaction ID from URL:", id); // Ensure this logs correctly
+    const status = searchParams.get("status"); // Extract the 'status' parameter from the URL
+    if (id && status === "success") {
+      console.log("Payment successful. Clearing cart...");
       setTransactionId(id); // Set the extracted id in state
+      clearCart(); // Clear the cart after successful payment
+      toast.success("Order placed successfully!");
+    } else if (status === "failed") {
+      toast.error("Payment failed. Please try again.");
+    } else if (status === "canceled") {
+      toast.info("Payment was canceled.");
     } else {
       console.error("No Transaction ID found in URL");
     }

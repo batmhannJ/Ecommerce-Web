@@ -145,28 +145,49 @@ const saveCartToDatabase = async () => {
 };
 
 
-  const handleProceedToCheckout = async () => {
-    const token = localStorage.getItem("auth-token");
-    const userId = localStorage.getItem("userId");
-    if (token) {
-      try {
-        await axios.delete(`http://localhost:4000/api/cart/${userId}`); // Clear cart after checkout
-        toast.success("Checkout successful!");
-        navigate("/order");
-      } catch (error) {
-        console.error("Error clearing cart after checkout:", error);
-      }
-    } else {
-      toast.error(
-        "You are not logged in. Please log in to proceed to checkout.",
-        { position: "top-left" }
-      );
-      navigate("/login");
+const handleProceedToCheckout = async () => {
+  if (Object.keys(cartItems).length === 0) {
+    toast.error("Your cart is empty. Please add items before checking out.");
+    return;
+  }
+
+  const token = localStorage.getItem("auth-token");
+  const userId = localStorage.getItem("userId");
+
+  if (token) {
+    try {
+      const itemDetails = Object.values(cartItems).map(item => {
+        const product = all_product.find(prod => prod.id === item.productId);
+        return product ? { 
+          id: product.id, // Add the product ID here
+          name: product.name, 
+          size: item.selectedSize, 
+          quantity: item.quantity, 
+          adjustedPrice: item.adjustedPrice, // Assuming adjustedPrice is stored in cartItems
+          price: product.price // Add the original price (if applicable)
+        } : null;
+      }).filter(detail => detail !== null);
+      
+      // Pass itemDetails, deliveryFee, and data to the order page
+      navigate("/order", { 
+        state: { 
+          itemDetails, // Send all item details
+          deliveryFee,
+          address: `${data.street}, ${data.city}` // Include address information
+        }
+      });
+    } catch (error) {
+      console.error("Error preparing data for checkout:", error);
     }
-  };
+  } else {
+    toast.error("You are not logged in. Please log in to proceed to checkout.", { position: "top-left" });
+    navigate("/login");
+  }
+};
+
 
     // Group items by productId and size
-    const groupedCartItems = Object.values(cartItems).reduce((acc, item) => {
+  const groupedCartItems = Object.values(cartItems).reduce((acc, item) => {
       const product = all_product.find(prod => prod.id === item.productId);
       if (product && item.quantity > 0) {
           const sizeKey = `${item.productId}_${item.selectedSize}`; // This assumes `selectedSize` is defined
