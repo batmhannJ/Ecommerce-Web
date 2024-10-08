@@ -137,7 +137,7 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      {/* <SearchTags /> */}
+      <SearchTags />
     </div>
   );
 };
