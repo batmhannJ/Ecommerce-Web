@@ -271,7 +271,7 @@ const generatePDF = async () => {
   doc.setFont("helvetica", "bold");
   doc.text("Total Revenue: ", margin, currentY);
   doc.setFont("helvetica", "normal");
-  doc.text(`₱${totalRevenue}.00`, margin + 30, currentY);
+  doc.text(`PHP ${totalRevenue}.00`, margin + 30, currentY);
   currentY += 10; // Move down by 10mm after this entry
   checkPageOverflow();
 
@@ -280,7 +280,7 @@ const generatePDF = async () => {
   doc.setFont("helvetica", "bold");
   doc.text("Average Order Value: ", margin, currentY);
   doc.setFont("helvetica", "normal");
-  doc.text(`${salesData.avgOrderValue.toFixed(2)}`, margin + 44, currentY);
+  doc.text(`PHP ${salesData.avgOrderValue.toFixed(2)}`, margin + 44, currentY);
   currentY += 10;
   checkPageOverflow();
 
@@ -305,7 +305,7 @@ const generatePDF = async () => {
   currentY += 10;
   salesByCategoryData.forEach((item) => {
     doc.setFont("helvetica", "normal");
-    doc.text(`    ${item.category}: ${item.totalSales}.00`, margin, currentY);
+    doc.text(`    ${item.category}: PHP ${item.totalSales}.00`, margin, currentY);
     currentY += 10;
     checkPageOverflow();
   });
@@ -322,7 +322,7 @@ const generatePDF = async () => {
   currentY += 10;
   salesByProductData.forEach((item) => {
     doc.setFont("helvetica", "normal");
-    doc.text(`    ${item.product}: ${item.totalSales}.00`, margin, currentY);
+    doc.text(`    ${item.product}: PHP ${item.totalSales}.00`, margin, currentY);
     currentY += 10;
     checkPageOverflow();
   });
@@ -369,7 +369,7 @@ const generatePDF = async () => {
     doc.text(date, margin, currentY);
 
     // Add the sales for the day
-    doc.text(`${totalSales}`, margin + columnWidths[0], currentY);
+    doc.text(`PHP ${totalSales}`, margin + columnWidths[0], currentY);
 
     // Add the increase/decrease compared to the previous day
     doc.text(salesChange, margin + columnWidths[0] + columnWidths[1], currentY);

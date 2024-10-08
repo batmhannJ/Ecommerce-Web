@@ -688,36 +688,38 @@ app.patch("/api/transactions/:transactionId", async (req, res) => {
       .send({ message: "Error updating transaction status", error });
   }
 });
-
-app.post('/editproduct', async (req, res) => {
+app.post('/editproduct', upload.single('image'), async (req, res) => {
   const { _id, name, old_price, new_price, category, s_stock, m_stock, l_stock, xl_stock, stock } = req.body;
 
-  console.log('Received ID:', _id); // Debugging log
+  console.log('Received ID:', _id);
+  console.log('Received Image File:', req.file); // This should log the file details
 
-  // Suriin kung valid ang ObjectId
+  // Validate ObjectId
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(400).json({ success: false, message: 'Invalid product ID' });
   }
 
   try {
-    // Gumamit ng 'new' keyword para lumikha ng ObjectId
-    const objectId = new mongoose.Types.ObjectId(_id); // Gumamit ng _id dito
+    const objectId = new mongoose.Types.ObjectId(_id);
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      objectId,
-      {
-        name,
-        old_price,
-        new_price,
-        category,
-        s_stock,
-        m_stock,
-        l_stock,
-        xl_stock,
-        stock
-      },
-      { new: true }
-    );
+    const updateData = {
+      name,
+      old_price,
+      new_price,
+      category,
+      s_stock,
+      m_stock,
+      l_stock,
+      xl_stock,
+      stock,
+    };
+
+    // If an image file is provided, add its filename or URL to the updateData
+    if (req.file) {
+      updateData.image = req.file.filename;  // Or store URL based on your storage solution
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(objectId, updateData, { new: true });
 
     if (!updatedProduct) {
       return res.status(404).json({ success: false, message: 'Product not found' });
@@ -729,12 +731,10 @@ app.post('/editproduct', async (req, res) => {
       product: updatedProduct,
     });
   } catch (error) {
-    console.error('Error updating product:', error); // Log the exact error
+    console.error('Error updating product:', error);
     res.status(500).json({ success: false, message: 'Error updating product', error: error.message });
   }
 });
-
-
 //----------------RESET PASSWORD FOR SELLER--------------------//
 app.post("/api/seller/forgot-password-seller", async (req, res) => {
   console.log("Forgot Password route hit");

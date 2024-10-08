@@ -6,15 +6,25 @@ export const ListProduct = () => {
   const [allproducts, setAllProducts] = useState([]);
   const [editProduct, setEditProduct] = useState(null);
   const [formData, setFormData] = useState({
-    name: '', old_price: '', new_price: '', category: '', s_stock: '', m_stock: '', l_stock: '', xl_stock: '', stock: ''
+    name: '', old_price: '', new_price: '', category: '', s_stock: '', m_stock: '', l_stock: '', xl_stock: '', stock: '', image: null
   });
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
 
   const fetchInfo = async () => {
     const res = await fetch('http://localhost:4000/allproducts');
     const data = await res.json();
-    setAllProducts(data);
+    console.log('Fetched data:', data); // Check what is returned
+
+    // Append a timestamp query to force image refresh
+  const updatedProducts = data.map(product => ({
+    ...product,
+    image: product.image ? `http://localhost:4000/images/${product.image}?${new Date().getTime()}` : null // Correctly prepend the base URL
+  }));
+  console.log('Fetched products with updated images:', updatedProducts); // Log the updated products
+
+    setAllProducts(updatedProducts);
   };
+  
 
   useEffect(() => {
     fetchInfo();
@@ -46,7 +56,8 @@ export const ListProduct = () => {
       s_stock: product.s_stock || '',
       m_stock: product.m_stock || '',
       l_stock: product.l_stock || '',
-      xl_stock: product.xl_stock || ''
+      xl_stock: product.xl_stock || '',
+      image: product.image || null
     });
     setIsModalOpen(true);
   };
@@ -62,27 +73,29 @@ export const ListProduct = () => {
       (parseInt(formData.m_stock) || 0) +
       (parseInt(formData.l_stock) || 0) +
       (parseInt(formData.xl_stock) || 0);
-
+  
+    const formDataToSend = new FormData();
+    formDataToSend.append('_id', editProduct._id);
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('old_price', formData.old_price);
+    formDataToSend.append('new_price', formData.new_price);
+    formDataToSend.append('category', formData.category);
+    formDataToSend.append('s_stock', formData.s_stock);
+    formDataToSend.append('m_stock', formData.m_stock);
+    formDataToSend.append('l_stock', formData.l_stock);
+    formDataToSend.append('xl_stock', formData.xl_stock);
+    formDataToSend.append('stock', computedStock);
+  
+    // Assuming formData.image is a file input (HTML input type="file")
+    if (formData.image) {
+      formDataToSend.append('image', formData.image);
+    }
+  
     const response = await fetch('http://localhost:4000/editproduct', {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        _id: editProduct._id,
-        name: formData.name,
-        old_price: formData.old_price,
-        new_price: formData.new_price,
-        category: formData.category,
-        s_stock: formData.s_stock,
-        m_stock: formData.m_stock,
-        l_stock: formData.l_stock,
-        xl_stock: formData.xl_stock,
-        stock: computedStock,
-      }),
+      body: formDataToSend, // No need for 'Content-Type', fetch will handle it automatically
     });
-
+  
     const data = await response.json();
     console.log('Response from server:', data);
   
@@ -101,6 +114,12 @@ export const ListProduct = () => {
     }
   };
 
+const handleFileChange = (e) => {
+  const file = e.target.files[0];
+  console.log('Selected file:', file); // Check if the file is selected
+  setFormData({ ...formData, image: file });
+};
+
   return (
     <div className='list-product'>
       <h3>All Products List</h3>
@@ -118,7 +137,7 @@ export const ListProduct = () => {
         {allproducts.map((product) => (
           <React.Fragment key={product.id}>
             <div className="listproduct-format-main listproduct-format">
-              <img src={product.image} alt="" className="listproduct-product-icon" />
+              <img src={product.image} alt={product.name} className="listproduct-product-icon" />
               <p>{product.name}</p>
               <p>₱{product.old_price}</p>
               <p>₱{product.new_price}</p>
@@ -194,6 +213,10 @@ export const ListProduct = () => {
               onChange={(e) => setFormData({ ...formData, xl_stock: e.target.value })}
               placeholder="XL Stock"
             />
+
+            {/* Image input field */}
+            <input type="file" name="image" onChange={handleFileChange} />
+
             <button onClick={updateProduct}>Update</button>
             <button onClick={() => {
                 setEditProduct(null);
