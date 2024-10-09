@@ -38,7 +38,8 @@
   font-weight: 700;
   text-align: center;
   z-index: 2;
-  margin-top: 20px;
+  margin-top: 70px;
+  margin-bottom: -10px;
 }
 
 .offices h1:hover {

@@ -71,26 +71,30 @@ const ShopContextProvider = (props) => {
     }
   }, []);
 
-  useEffect(() => {
-    fetch("http://localhost:4000/allproducts")
-      .then((response) => response.json())
-      .then((data) => setAll_Product(data));
+useEffect(() => {
+  const fetchProducts = async () => {
+    const products = await fetchAllProducts();
+    setAll_Product(products);
+  };
 
-    const authToken = localStorage.getItem("auth-token");
-    if (authToken) {
-      fetch("http://localhost:4000/getcart", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          Authorization: `${authToken}`,
-          "Content-Type": "application/json",
-        },
-        body: "",
-      })
-        .then((response) => response.json())
-        .then((data) => setCartItems(data));
-    }
-  }, []);
+  fetchProducts();
+
+  const authToken = localStorage.getItem("auth-token");
+  if (authToken) {
+    fetch("http://localhost:4000/getcart", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `${authToken}`,
+        "Content-Type": "application/json",
+      },
+      body: "",
+    })
+      .then((response) => response.json())
+      .then((data) => setCartItems(data));
+  }
+}, []);
+
 
   const fetchAllProducts = async () => {
     try {
@@ -99,12 +103,30 @@ const ShopContextProvider = (props) => {
         throw new Error("Failed to fetch products");
       }
       const allProducts = await response.json();
-      return allProducts;
+  
+      // Construct the full image URL for each product
+      const updatedProducts = allProducts.map(product => {
+        // Determine which image to display: edited or main
+        const mainImage = product.image ? `http://localhost:4000/images/${product.image}` : null;
+        const editedImage = product.editedImage ? `http://localhost:4000/images/${product.editedImage}` : null; // Assuming editedImage is stored in the product object
+  
+        // Choose the edited image if it exists; otherwise, use the main image
+        const imageToDisplay = editedImage || mainImage;
+  
+        return {
+          ...product,
+          image: imageToDisplay // Set the selected image
+        };
+      });
+  
+      return updatedProducts;
     } catch (error) {
       console.error("Error fetching products:", error);
       return [];
     }
   };
+  
+  
 
   const prepareOrderItems = async (cartItems) => {
     const allProducts = await fetchAllProducts();

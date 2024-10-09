@@ -18,13 +18,33 @@ export const ListProduct = () => {
     // Append a timestamp query to force image refresh
   const updatedProducts = data.map(product => ({
     ...product,
-    image: product.image ? `http://localhost:4000/images/${product.image}?${new Date().getTime()}` : null // Correctly prepend the base URL
+    image: product.image ? `http://localhost:4000/images/${product.image}` : null // Ensure the image URL is complete
   }));
   console.log('Fetched products with updated images:', updatedProducts); // Log the updated products
 
     setAllProducts(updatedProducts);
   };
   
+  const fetchAllProducts = async () => {
+    try {
+      const response = await fetch("http://localhost:4000/allproducts");
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const allProducts = await response.json();
+      
+      // Construct the full image URL for each product
+      const updatedProducts = allProducts.map(product => ({
+        ...product,
+        image: product.image ? `http://localhost:4000/images/${product.image}` : null // Ensure the image URL is complete
+      }));
+
+      return updatedProducts;
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      return [];
+    }
+  };
 
   useEffect(() => {
     fetchInfo();
@@ -104,6 +124,8 @@ export const ListProduct = () => {
     } else {
       setIsModalOpen(false);
       await fetchInfo();
+      const updatedProducts = await fetchAllProducts(); // Fetch updated products after edit
+      setAllProducts(updatedProducts); // Update state with the new products
     }
   };
 

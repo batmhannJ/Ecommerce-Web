@@ -5,18 +5,33 @@ import remove_icon from '../../assets/remove_icon.png'
 export const ListProduct = () =>
   {
 
-  const [allproducts, setAllProducts] = useState([]);
+    const [allproducts, setAllProducts] = useState([]);
 
-  const fetchInfo = async () => {
-    await fetch('http://localhost:4000/allproducts')
-      .then((res) => res.json())
-      .then((data) => { setAllProducts(data) });
-  }
-
-  useEffect(() => {
-    fetchInfo();
-  }, [])
-
+    const fetchInfo = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/allproducts');
+        if (!res.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        const data = await res.json();
+        
+        // Construct the full image URL for each product
+        const updatedProducts = data.map(product => ({
+          ...product,
+          image: product.editedImage ? `http://localhost:4000/images/${product.editedImage}` : 
+                  (product.image ? `http://localhost:4000/images/${product.image}` : null) // Use the main image if no edited image
+        }));
+        
+        setAllProducts(updatedProducts);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    }
+    
+    useEffect(() => {
+      fetchInfo();
+    }, []);
+    
   const remove_product = async (id) => {
     await fetch('http://localhost:4000/removeproduct', {
       method: 'POST',
