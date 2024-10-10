@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -25,35 +24,35 @@ class _ImageCarouselState extends State<ImageCarousel> {
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
-        CarouselSlider(
-          items: widget.images,
-          options: CarouselOptions(
-            height: 300,
-            onPageChanged: (index, reason) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            enableInfiniteScroll: widget.images.length > 1,
-          ),
-        ),
-        Positioned(
-          bottom: 15,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.black.withOpacity(.3),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Text(
-              "${_currentPage + 1} / ${widget.images.length}",
-              style: AppTextStyles.caption.copyWith(
-                fontSize: 10,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        )
+        // CarouselSlider(
+        //   items: widget.images,
+        //   options: CarouselOptions(
+        //     height: 300,
+        //     onPageChanged: (index, reason) {
+        //       setState(() {
+        //         _currentPage = index;
+        //       });
+        //     },
+        //     enableInfiniteScroll: widget.images.length > 1,
+        //   ),
+        // ),
+        // Positioned(
+        //   bottom: 15,
+        //   child: Container(
+        //     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        //     decoration: BoxDecoration(
+        //       color: AppColors.black.withOpacity(.3),
+        //       borderRadius: BorderRadius.circular(25),
+        //     ),
+        //     child: Text(
+        //       "${_currentPage + 1} / ${widget.images.length}",
+        //       style: AppTextStyles.caption.copyWith(
+        //         fontSize: 10,
+        //         color: AppColors.primary,
+        //       ),
+        //     ),
+        //   ),
+        // )
       ],
     );
   }
