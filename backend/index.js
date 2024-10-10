@@ -927,6 +927,72 @@ app.delete('/api/cart/:userId/:productId', async (req, res) => {
   }
 });
 
+// API to send OTP
+app.post('/send-otp-mobile', (req, res) => {
+  const { email } = req.body;
+  console.log("Request Body:", req.body);
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+    // Generate OTP
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    otpStore[email] = otp;
+    console.log(`Generated OTP for ${email}: ${otp}`);
+  
+    // Send OTP via email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP code is ${otp}`,
+    };
+  
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending OTP:", error);
+        return res
+          .status(500)
+          .json({ success: false, errors: "Failed to send OTP" });
+      }
+      console.log("OTP sent:", info.response);
+      res.json({ success: true, message: "OTP sent to your email", otp: otp }); // Added the OTP in the response for testing purposes
+    });
+  });
+
+//VERIFY-OTP FOR MOBILE
+
+app.post('/verify-otp-mobile', (req, res) => {
+  const { email, otp } = req.body;
+  console.log("Request Body:", req.body);
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: 'Email and OTP are required' });
+  }
+
+  // Check if OTP exists for the given email
+  const storedOtp = otpStore[email];
+  console.log(`Stored OTP for ${email}: ${storedOtp}`);
+
+  if (!storedOtp) {
+    return res.status(400).json({ success: false, message: 'No OTP found for this email' });
+  }
+
+  // Verify OTP
+  if (storedOtp === otp) {
+    // If OTP matches, delete it from the store (optional)
+    delete otpStore[email];
+
+    return res.json({ success: true, message: 'OTP verified successfully' });
+  } else {
+    return res.status(400).json({ success: false, message: 'Invalid OTP' });
+  }
+});
+
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
