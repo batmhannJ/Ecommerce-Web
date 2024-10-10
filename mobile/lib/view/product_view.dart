@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import '../core/constant/enum/product_size.dart';
 import '../products.dart';
 import '../model/product.dart';
-import '../widget/image_carousel.dart';
+// import '../widget/image_carousel.dart';
 import '../widget/product_list.dart';
 import 'layout/default_view_layout.dart';
 
@@ -53,11 +53,11 @@ class _ProductViewState extends State<ProductView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ImageCarousel(
-              images: widget.product.images.map((e) {
-                return Image.asset(e);
-              }).toList(),
-            ),
+            // ImageCarousel(
+            //   images: widget.product.images.map((e) {
+            //     return Image.asset(e);
+            //   }).toList(),
+            // ),
             const Gap(15),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
