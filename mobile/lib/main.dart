@@ -42,34 +42,36 @@ class _MyAppState extends State<MyApp> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (context) => CartViewModel(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => AuthViewModel(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => AddressViewModel(),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Tienda',
-        home: SafeArea(
-          child: Scaffold(
-            body: IndexedStack(
-              index: _selectedIndex,
-              children: _screens,
-            ),
-            bottomNavigationBar: BottomNavigationBar(
-              elevation: 5,
+Widget build(BuildContext context) {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (context) => CartViewModel(),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => AuthViewModel(),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => AddressViewModel(),
+      ),
+    ],
+    child: MaterialApp(
+      title: 'Tienda',
+      home: SafeArea(
+        child: Scaffold(
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: _screens,
+          ),
+          bottomNavigationBar: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: BottomNavigationBar(
+              elevation: 10, // Slightly elevated for a floating effect
               items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
                   icon: Icon(
                     Symbols.home,
-                    fill: _selectedIndex == 0 ? 1 : 0,
+                    size: 30, // Larger icon size
                   ),
                   label: "Home",
                 ),
@@ -84,7 +86,7 @@ class _MyAppState extends State<MyApp> {
                         isLabelVisible: itemCount > 0,
                         child: Icon(
                           Symbols.shopping_cart,
-                          fill: _selectedIndex == 1 ? 1 : 0,
+                          size: 30, // Larger icon size
                         ),
                       );
                     },
@@ -94,28 +96,35 @@ class _MyAppState extends State<MyApp> {
                 BottomNavigationBarItem(
                   icon: Icon(
                     Symbols.person,
-                    fill: _selectedIndex == 2 ? 1 : 0,
+                    size: 30, // Larger icon size
                   ),
                   label: "Profile",
                 ),
               ],
               selectedIconTheme: const IconThemeData(
-                fill: 1,
+                color: AppColors.orange, // Custom active color
+                size: 30,
+              ),
+              unselectedIconTheme: const IconThemeData(
+                color: AppColors.greyAD,
+                size: 30,
               ),
               selectedLabelStyle: AppTextStyles.caption
                   .copyWith(fontWeight: AppFontWeights.bold),
               unselectedLabelStyle: AppTextStyles.caption,
-              fixedColor: AppColors.black,
               currentIndex: _selectedIndex,
               onTap: _onItemTapped,
+              backgroundColor: Colors.white, // Background color
             ),
           ),
         ),
-        builder: (context, child) {
-          return MediaQuery.withNoTextScaling(
-              child: child ?? const SizedBox.shrink());
-        },
       ),
-    );
-  }
+      builder: (context, child) {
+        return MediaQuery.withNoTextScaling(
+            child: child ?? const SizedBox.shrink());
+      },
+    ),
+  );
+}
+
 }
