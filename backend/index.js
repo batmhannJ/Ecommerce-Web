@@ -927,6 +927,27 @@ app.delete('/api/cart/:userId/:productId', async (req, res) => {
   }
 });
 
+// Validate token endpoint
+app.post('/validate-token', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Kunin ang token mula sa Authorization header
+
+  if (!token) {
+    return res.status(401).json({ valid: false, message: 'No token provided' });
+  }
+
+  // Validate the token
+  jwt.verify(token, 'secret_ecom', (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ valid: false, message: 'Invalid or expired token' });
+    }
+
+    // Token is valid, you can optionally send back user info or other data
+    res.json({ valid: true, userId: decoded.userId });
+  });
+});
+
+//======================== M O B I L E ==================================//
+
 // API to send OTP
 app.post('/send-otp-mobile', (req, res) => {
   const { email } = req.body;
@@ -992,6 +1013,8 @@ app.post('/verify-otp-mobile', (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid OTP' });
   }
 });
+
+
 
 
 // Admin Routes

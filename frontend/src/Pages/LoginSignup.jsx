@@ -113,9 +113,9 @@ const LoginSignup = () => {
 
       const data = await response.json();
       if (data.success) {
-        toast.success("Signup successful!");
-        localStorage.setItem('auth-token', data.token);
-        window.location.replace("/");
+        toast.success("Signup successful! Please log in.");
+        setState("Login"); // Switch to login state
+        setOtpSent(false); // Reset OTP sent state when switching to login
       } else {
         toast.error(data.errors);
       }
@@ -241,35 +241,37 @@ const LoginSignup = () => {
       }
     };    
 
-  const signup = async () => {
-    if (!formData.agreed) {
-      toast.error("Please agree to the terms of use & privacy policy.", {
-        position: "top-left"
-      });
-      return;
-    }
-
-    console.log("Signup Function Executed", formData);
-    let responseData;
-    await fetch('http://localhost:4000/signup', {
-      method:'POST',
-      headers:{
-        Accept:'application/json',
-        'Content-Type':'application/json',
-      },
-      body: JSON.stringify(formData),
-    }).then((response) => response.json()).then((data) => responseData=data);
-
-    if (responseData.success) {
-      localStorage.setItem('auth-token', responseData.token);
-      window.location.replace("/");
-    }
-    else {
-      toast.error(responseData.errors, {
-        position: "top-left"
-      });
-    }
-  };
+    const signup = async () => {
+      if (!formData.agreed) {
+        toast.error("Please agree to the terms of use & privacy policy.", {
+          position: "top-left"
+        });
+        return;
+      }
+    
+      console.log("Signup Function Executed", formData);
+      let responseData;
+      await fetch('http://localhost:4000/signup', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => response.json())
+        .then((data) => responseData = data);
+    
+      if (responseData.success) {
+        toast.success("Signup successful! Please log in.");
+        setState("Login"); // Switch to login state
+      } else {
+        toast.error(responseData.errors, {
+          position: "top-left"
+        });
+      }
+    };
+    
 
   return (
     <div className="loginsignup">

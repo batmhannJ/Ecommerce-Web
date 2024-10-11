@@ -241,7 +241,16 @@ export const PlaceOrder = () => {
   //   }
   // }
 
-  const handleProceedToCheckout = async () => {
+  const handleProceedToCheckout = async (event) => {
+    event.preventDefault(); // Prevent form's native submission behavior
+      // Check if the address fields are filled
+      if (!data.street || !data.city || !data.state || !data.zipcode) {
+        toast.error(
+          "Please provide your complete address to proceed with checkout. You can set up or edit your address in the Profile menu."
+        );
+        return; // Prevent proceeding to checkout if validation fails
+      }
+    
     if (token) {
       const requestReferenceNumber = generateReferenceNumber(); // This is your transaction ID
       console.log("Generated Transaction ID:", requestReferenceNumber);
@@ -432,10 +441,9 @@ export const PlaceOrder = () => {
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleProceedToCheckout();
-      }}
+      noValidate onSubmit = {
+        handleProceedToCheckout
+      }
       className="place-order"
     >
       <div className="place-order-left">
