@@ -65,76 +65,98 @@ class _ShopTabViewState extends State<ShopTabView>
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "WELCOME TO",
-              style: AppTextStyles.subtitle1,
-            ),
-            const Gap(5),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    "TIENDA",
-                    overflow: TextOverflow.visible,
-                    softWrap: true,
-                    style: AppTextStyles.headline4,
-                  ),
-                ),
-                Expanded(
-                  child: Image.asset("assets/images/featured_item.png"),
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    Center(
+      child: Text(
+        "WELCOME TO",
+        style: AppTextStyles.subtitle1.copyWith(
+          fontWeight: FontWeight.bold,
+          letterSpacing: 2,
+          fontSize: 28, // Increased the font size
+        ),
+      ),
+    ),
+    const Gap(10),
+    Stack(
+      alignment: Alignment.center,
+      children: [
+        Expanded(
+          child: Image.asset(
+            "assets/images/featured_item.png",
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          bottom: 10,
+          child: Text(
+            "TIENDA",
+            style: AppTextStyles.headline4.copyWith(
+              fontSize: 40,
+              color: AppColors.red,
+              shadows: [
+                Shadow(
+                  offset: Offset(2, 2),
+                  blurRadius: 5,
+                  color: AppColors.black.withOpacity(0.5),
                 ),
               ],
             ),
-            const Gap(20),
-            CustomButton(
-              text: "Latest Collection",
-              textStyle: AppTextStyles.button,
-              command: _scrollToNewCollections,
-              height: 48,
-              fillColor: AppColors.red,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              borderRadius: 25,
-              icon: const Icon(
-                Icons.arrow_forward_rounded,
-                color: AppColors.primary,
-              ),
-              iconPadding: 5,
-            ),
-            const Gap(60),
-            Padding(
-              key: _newCollectionsKey,
-              padding: const EdgeInsets.only(top: 20),
-              child: Center(
-                child: Column(
-                  children: [
-                    Text(
-                      "NEW COLLECTIONS",
-                      style: AppTextStyles.headline5,
-                    ),
-                    const SizedBox(
-                      width: 100,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        child: Divider(
-                          color: AppColors.black,
-                          height: 0,
-                          thickness: 2.5,
-                        ),
-                      ),
-                    ),
-                    ProductList(
-                      products:
-                          products.where((element) => element.isNew).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
+      ],
+    ),
+    const Gap(30),
+    CustomButton(
+      text: "Explore Latest Collection",
+      textStyle: AppTextStyles.button.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      ),
+      command: _scrollToNewCollections,
+      height: 48,
+      fillColor: AppColors.red,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 30),
+      borderRadius: 30,
+      icon: const Icon(
+        Icons.arrow_forward_rounded,
+        color: AppColors.primary,
+      ),
+      iconPadding: 8,
+    ),
+    const Gap(40),
+    Padding(
+      key: _newCollectionsKey,
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Column(
+        children: [
+          Text(
+            "NEW COLLECTIONS",
+            style: AppTextStyles.headline5.copyWith(
+              color: AppColors.black, // Changed to black
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(
+            width: 100,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Divider(
+                color: AppColors.black, // Changed to black
+                height: 0,
+                thickness: 3,
+              ),
+            ),
+          ),
+          ProductList(
+            products: products.where((element) => element.isNew).toList(),
+          ),
+        ],
+      ),
+    ),
+  ],
+),
+
       ),
     );
   }
