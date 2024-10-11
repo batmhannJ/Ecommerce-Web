@@ -324,18 +324,61 @@ app.post("/login", async (req, res) => {
 
 // Creating Endpoint for NewCollection Data
 app.get("/newcollections", async (req, res) => {
-  let products = await Product.find({});
-  let newcollection = products.slice(1).slice(-8);
-  console.log("NewCollection Fetched");
-  res.send(newcollection);
+  try {
+    let products = await Product.find({});
+    let newcollection = products.slice(1).slice(-8); // Get the last 8 products after the first one
+
+    // Map through the products to construct the full image URL
+    const updatedProducts = newcollection.map(product => {
+      // Determine which image to display: edited or main
+      const mainImage = product.image ? `http://localhost:4000/images/${product.image}` : null;
+      const editedImage = product.editedImage ? `http://localhost:4000/images/${product.editedImage}` : null; // Assuming editedImage is stored in the product object
+
+      // Choose the edited image if it exists; otherwise, use the main image
+      const imageToDisplay = editedImage || mainImage;
+
+      return {
+        ...product.toObject(), // Convert Mongoose object to plain JavaScript object
+        image: imageToDisplay // Set the selected image
+      };
+    });
+
+    console.log("New Collection Fetched");
+    res.send(updatedProducts);
+  } catch (error) {
+    console.error("Error fetching new collections:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
 });
+
 
 // Creating Endpoint for Popular in Crafts Section
 app.get("/popularincrafts", async (req, res) => {
-  let products = await Product.find({ category: "crafts" });
-  let popular_in_crafts = products.slice(5, 9);
-  console.log("Popular in Crafts Fetched");
-  res.send(popular_in_crafts);
+  try {
+    let products = await Product.find({ category: "crafts" });
+    let popular_in_crafts = products.slice(5, 9);
+
+    // Map through the products to construct the full image URL
+    const updatedProducts = popular_in_crafts.map(product => {
+      // Determine which image to display: edited or main
+      const mainImage = product.image ? `http://localhost:4000/images/${product.image}` : null;
+      const editedImage = product.editedImage ? `http://localhost:4000/images/${product.editedImage}` : null; // Assuming editedImage is stored in the product object
+
+      // Choose the edited image if it exists; otherwise, use the main image
+      const imageToDisplay = editedImage || mainImage;
+
+      return {
+        ...product.toObject(), // Convert Mongoose object to plain JavaScript object
+        image: imageToDisplay // Set the selected image
+      };
+    });
+
+    console.log("Popular in Crafts Fetched");
+    res.send(updatedProducts);
+  } catch (error) {
+    console.error("Error fetching popular products in crafts:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
 });
 
 // Creating Endpoint for adding products in CartData
@@ -375,13 +418,30 @@ app.get("/relatedproducts/:category", async (req, res) => {
   const category = req.params.category;
   try {
     const relatedProducts = await Product.find({ category });
+
+    // Map through the related products to construct the full image URL
+    const updatedRelatedProducts = relatedProducts.map(product => {
+      // Determine which image to display: edited or main
+      const mainImage = product.image ? `http://localhost:4000/images/${product.image}` : null;
+      const editedImage = product.editedImage ? `http://localhost:4000/images/${product.editedImage}` : null; // Assuming editedImage is stored in the product object
+
+      // Choose the edited image if it exists; otherwise, use the main image
+      const imageToDisplay = editedImage || mainImage;
+
+      return {
+        ...product.toObject(), // Convert Mongoose object to plain JavaScript object
+        image: imageToDisplay // Set the selected image
+      };
+    });
+
     console.log("Related Products Fetched");
-    res.json(relatedProducts);
+    res.json(updatedRelatedProducts);
   } catch (error) {
     console.error("Error fetching related products:", error);
     res.status(500).json({ error: "Failed to fetch related products" });
   }
 });
+
 
 let otpStore = {};
 
