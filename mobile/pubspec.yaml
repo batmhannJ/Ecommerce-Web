@@ -36,6 +36,7 @@ dependencies:
   flutter_recaptcha_v2_compat: ^1.0.5
   flutter_inappwebview: ^6.0.0
   http: ^1.2.2
+  shared_preferences: ^2.0.0
 
 
 dev_dependencies:

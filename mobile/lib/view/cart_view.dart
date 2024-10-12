@@ -7,7 +7,7 @@ import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/auth/auth_view.dart';
 import 'package:indigitech_shop/view/checkout_view.dart';
-import 'package:indigitech_shop/view/product_view.dart';
+import 'package:indigitech_shop/widget/product_list.dart';
 import 'package:indigitech_shop/view_model/address_view_model.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:indigitech_shop/view_model/cart_view_model.dart';
@@ -103,8 +103,7 @@ Widget build(BuildContext context) {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  ProductView(product: item.key),
+                              builder: (context) => ProductList(products: [item.key]), // Wrap item.key in a list
                             ),
                           );
                         },

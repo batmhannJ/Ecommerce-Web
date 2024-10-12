@@ -126,4 +126,27 @@ router.patch("/edituser/address", async (req, res) => {
     }
   });
 
+
+  // Route to get user details by ID
+router.get('/get-user-details/:id', async (req, res) => {
+    const userId = req.params.id;
+  
+    try {
+      const user = await Users.findById(userId).select('name email phone'); // Select only the needed fields
+  
+      if (user) {
+        return res.status(200).json({
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+        });
+      } else {
+        return res.status(404).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+  });
+
 module.exports = router;

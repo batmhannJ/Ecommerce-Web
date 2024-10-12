@@ -51,7 +51,7 @@ Widget build(BuildContext context) {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => ProductView(product: product),
+                    builder: (context) => ProductList(products: products),
                   ),
                 );
               },

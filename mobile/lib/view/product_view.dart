@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/view/home/tabs/shop_tab_view.dart';
 
 import '../../../core/style/colors.dart';
 import '../../../products.dart';

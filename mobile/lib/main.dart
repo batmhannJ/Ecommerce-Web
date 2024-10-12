@@ -53,6 +53,7 @@ Widget build(BuildContext context) {
       ),
       ChangeNotifierProvider(
         create: (context) => AddressViewModel(),
+        child: MyApp(),
       ),
     ],
     child: MaterialApp(

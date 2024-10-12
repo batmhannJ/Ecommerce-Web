@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:indigitech_shop/dummy.dart';
-
 import '../model/address.dart';
 
 class AddressViewModel extends ChangeNotifier {
+
   Address? _address;
 
   Address? get address => _address;

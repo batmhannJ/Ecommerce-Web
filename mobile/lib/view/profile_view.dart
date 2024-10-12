@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/view/accountSetings_view.dart';
 import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/auth/auth_view.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
@@ -42,6 +43,14 @@ Widget build(BuildContext context) {
               const Gap(25),
 
               // Shipping Address card
+              _buildCardSection(
+                icon: Icons.location_pin,
+                label: "Account Settings",
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const AccountSettingsView(),
+                )),
+              ),
+              const Gap(20),
               _buildCardSection(
                 icon: Icons.location_pin,
                 label: "Shipping Address",

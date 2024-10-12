@@ -3,6 +3,7 @@ import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/products.dart';
 
+
 class SearchBar extends StatefulWidget {
   const SearchBar({super.key});
 
