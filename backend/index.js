@@ -19,6 +19,7 @@ const transactionRoutes = require("./routes/transactionRoute");
 const productRoute = require("./routes/productRoute");
 const cartRoute = require("./routes/cartRoute");
 const { signup } = require("./controllers/sellerController");
+const { getUsers } = require("./controllers/userController");
 const { ObjectId } = require('mongodb');
 
 require("dotenv").config();
@@ -64,23 +65,11 @@ app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
 
-/* app.post('/paymaya-checkout', async (req, res) => {
-  try {
-    const response = await axios.post('https://pg-sandbox.paymaya.com/checkout/v1/checkouts', req.body, {
-      headers: {
-        Authorization: 'Basic WDdZM2VUdnhLUEY5WWRRZzljdmxhckRzWjdiWUNZdjB3blJHOGVpb215cg==',
-        'Content-Type': 'application/json'
-      }
-    });
-    res.send(response.data);
-  } catch (error) {
-    res.status(500).send(error.response ? error.response.data : { error: 'Something went wrong' });
-  }
-});*/
-
 app.get("/api/transactions", (req, res) => {
   res.json({ message: "This is the transactions endpoint" });
 });
+app.get('/api/users/search', getUsers); // Define the route that uses getUsers
+
 
 app.listen(port, (error) => {
   if (!error) {
@@ -987,23 +976,22 @@ app.delete('/api/cart/:userId/:productId', async (req, res) => {
   }
 });
 
-// Validate token endpoint
-app.post('/validate-token', (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Kunin ang token mula sa Authorization header
-
-  if (!token) {
-    return res.status(401).json({ valid: false, message: 'No token provided' });
+// Halimbawa ng search route
+app.get('/api/users/search', async (req, res) => {
+  const searchTerm = req.query.term;
+  
+  try {
+    const users = await Users.find({
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } }, // case-insensitive search
+        { email: { $regex: searchTerm, $options: 'i' } }
+      ]
+    });
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Error fetching user" });
   }
-
-  // Validate the token
-  jwt.verify(token, 'secret_ecom', (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ valid: false, message: 'Invalid or expired token' });
-    }
-
-    // Token is valid, you can optionally send back user info or other data
-    res.json({ valid: true, userId: decoded.userId });
-  });
 });
 
 //======================== M O B I L E ==================================//

@@ -6,22 +6,14 @@ import "./SearchBar.css";
 const UserSearchBar = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSearch = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      try {
-        const response = await axios.get(`http://localhost:4000/api/users/search?term=${searchTerm}`);
-        onSearch(response.data);
-      } catch (error) {
-        toast.error("Error searching users.");
-        console.error(error);
-      }
-    }
+    onSearch(searchTerm); // Call the onSearch function passed from props
   };
 
   return (
     <div className="search-bar">
-      <form onSubmit={handleSearch} style={{ width: "100%", display: "flex" }}>
+      <form onSubmit={handleSubmit} style={{ width: "100%", display: "flex" }}>
         <input
           type="text"
           value={searchTerm}
