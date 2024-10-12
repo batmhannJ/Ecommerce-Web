@@ -10,7 +10,7 @@ class SearchResults extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Search Results'),
+        title: const Text('Search Results'),
       ),
       body: ListView.builder(
         itemCount: filteredProducts.length,

@@ -158,7 +158,7 @@ class _LoginViewState extends State<LoginView> {
                                   } else {
                                     // Handle failure to send OTP
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text("Failed to send OTP. Please try again.")),
+                                      const SnackBar(content: Text("Failed to send OTP. Please try again.")),
                                     );
                                   }
                                 } else {
@@ -170,12 +170,12 @@ class _LoginViewState extends State<LoginView> {
                               } else {
                                 // Handle server error
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Failed to log in. Please try again.")),
+                                  const SnackBar(content: Text("Failed to log in. Please try again.")),
                                 );
                               }
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Please enter both email and password.")),
+                                const SnackBar(content: Text("Please enter both email and password.")),
                               );
                             }
                           },

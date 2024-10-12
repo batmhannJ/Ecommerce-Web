@@ -32,7 +32,7 @@ class _CraftsTabViewState extends State<CraftsTabView>
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1), // Lighten the shadow color
                     blurRadius: 5.0, // Reduced blur radius
-                    offset: Offset(0, 2), // Adjusted shadow offset
+                    offset: const Offset(0, 2), // Adjusted shadow offset
                   ),
                 ],
               ),

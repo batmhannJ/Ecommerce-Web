@@ -44,7 +44,7 @@ class _SearchBarState extends State<SearchBar> {
         children: [
           TextField(
             controller: _searchController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Search for products...',
               border: OutlineInputBorder(),
             ),
@@ -52,7 +52,7 @@ class _SearchBarState extends State<SearchBar> {
           const SizedBox(height: 10),
           ElevatedButton(
             onPressed: _handleSearch,
-            child: Text('Search'),
+            child: const Text('Search'),
           ),
         ],
       ),

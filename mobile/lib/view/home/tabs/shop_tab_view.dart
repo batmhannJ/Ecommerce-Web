@@ -96,7 +96,7 @@ class _ShopTabViewState extends State<ShopTabView>
                       color: AppColors.red,
                       shadows: [
                         Shadow(
-                          offset: Offset(2, 2),
+                          offset: const Offset(2, 2),
                           blurRadius: 5,
                           color: AppColors.black.withOpacity(0.5),
                         ),
@@ -173,8 +173,7 @@ class _ShopTabViewState extends State<ShopTabView>
 class SearchProductsWidget extends StatefulWidget {
   final List<String> products;
 
-  const SearchProductsWidget({Key? key, required this.products})
-      : super(key: key);
+  const SearchProductsWidget({super.key, required this.products});
 
   @override
   _SearchProductsWidgetState createState() => _SearchProductsWidgetState();
@@ -200,14 +199,14 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
       children: [
         TextField(
           onChanged: _filterProducts,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Search Products',
             prefixIcon: Icon(Icons.search),
             border: OutlineInputBorder(),
           ),
         ),
-        SizedBox(height: 16),
-        Container(
+        const SizedBox(height: 16),
+        SizedBox(
           height: 200, // Adjust this height as needed
           child: ListView.builder(
             itemCount: _searchQuery.isEmpty ? 0 : _filteredProducts.length,

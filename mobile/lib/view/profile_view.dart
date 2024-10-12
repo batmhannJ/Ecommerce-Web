@@ -1,18 +1,13 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:gap/gap.dart';
-import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/view/accountSetings_view.dart';
 import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/auth/auth_view.dart';
 import 'package:indigitech_shop/view/changePasswordView.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 
-import '../core/style/colors.dart';
 import '../widget/buttons/custom_filled_button.dart';
 
 class ProfileView extends StatelessWidget {

@@ -53,7 +53,7 @@ Widget build(BuildContext context) {
       ),
       ChangeNotifierProvider(
         create: (context) => AddressViewModel(),
-        child: MyApp(),
+        child: const MyApp(),
       ),
     ],
     child: MaterialApp(
@@ -69,7 +69,7 @@ Widget build(BuildContext context) {
             child: BottomNavigationBar(
               elevation: 10, // Slightly elevated for a floating effect
               items: <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
+                const BottomNavigationBarItem(
                   icon: Icon(
                     Symbols.home,
                     size: 30, // Larger icon size
@@ -85,7 +85,7 @@ Widget build(BuildContext context) {
                       return Badge(
                         label: Text("$itemCount"),
                         isLabelVisible: itemCount > 0,
-                        child: Icon(
+                        child: const Icon(
                           Symbols.shopping_cart,
                           size: 30, // Larger icon size
                         ),
@@ -94,7 +94,7 @@ Widget build(BuildContext context) {
                   ),
                   label: "Cart",
                 ),
-                BottomNavigationBarItem(
+                const BottomNavigationBarItem(
                   icon: Icon(
                     Symbols.person,
                     size: 30, // Larger icon size

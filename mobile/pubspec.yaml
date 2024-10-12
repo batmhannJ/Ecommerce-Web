@@ -37,6 +37,7 @@ dependencies:
   flutter_inappwebview: ^6.0.0
   http: ^1.2.2
   shared_preferences: ^2.0.0
+  fluttertoast: ^8.1.1
 
 
 dev_dependencies:

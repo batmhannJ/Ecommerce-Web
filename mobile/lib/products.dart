@@ -49,7 +49,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'B2',
     price: 100,
     discount: 0,
@@ -66,7 +66,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Bahag',
     price: 280,
     discount: 0,
@@ -85,7 +85,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Tocino',
     price: 120,
     discount: 0,
@@ -103,7 +103,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Toasted Pastillas',
     price: 80,
     discount: 0,
@@ -121,7 +121,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'B3',
     price: 120,
     discount: 0,
@@ -138,7 +138,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'B4',
     price: 350,
     discount: 0,
@@ -155,7 +155,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'P1',
     price: 350,
     discount: 0,
@@ -173,7 +173,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Ube de Leche (Halaya)',
     price: 120,
     discount: 0,
@@ -191,7 +191,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Espasol',
     price: 80,
     discount: 0,
@@ -208,7 +208,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Special Arrowroot Cookies',
     price: 100,
     discount: 0,
@@ -225,7 +225,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Crispy Pilinut',
     price: 70,
     discount: 0,
@@ -244,7 +244,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Yema',
     price: 50,
     discount: 0,
@@ -262,7 +262,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Malong',
     price: 200,
     discount: 0,
@@ -281,7 +281,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'T nalak',
     price: 300,
     discount: 0,
@@ -300,7 +300,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Inaul',
     price: 330,
     discount: 0,
@@ -318,7 +318,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Sawwal',
     price: 150,
     discount: 0,
@@ -337,7 +337,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Chicharon',
     price: 100,
     discount: 0,
@@ -354,7 +354,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Strawberry Jam',
     price: 70,
     discount: 0,
@@ -373,7 +373,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Bicocho',
     price: 50,
     discount: 0,
@@ -391,7 +391,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Landap',
     price: 300,
     discount: 0,
@@ -410,7 +410,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Tubao',
     price: 150,
     discount: 0,
@@ -429,7 +429,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Seputangan',
     price: 100,
     discount: 0,
@@ -448,7 +448,7 @@ List<Product> products = <Product>[
     isNew: true,
     isPopular: true,
   ),
-  Product(
+  const Product(
     name: 'Patadyong',
     price: 100,
     discount: 0,

@@ -115,6 +115,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                           name: _nameController.text,
                           phone: _phoneController.text,
                           email: _emailController.text,
+                          context: context, // Pass the context here
                         );
                         Navigator.of(context).pop();
                       },

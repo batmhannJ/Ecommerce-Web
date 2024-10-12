@@ -2,18 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
-import 'package:indigitech_shop/dummy.dart';
-import 'package:indigitech_shop/model/address.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
-import 'package:indigitech_shop/view_model/address_view_model.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
 
 import '../core/style/form_styles.dart';
 import '../widget/buttons/custom_filled_button.dart';
 import '../widget/form_fields/custom_text_form_field.dart';
-import '../widget/dropdown.dart';
-import '../model/user.dart';
 
 class AddressView extends StatefulWidget {
   const AddressView({super.key});
@@ -25,6 +20,7 @@ class AddressView extends StatefulWidget {
 class _AddressViewState extends State<AddressView> {
   final _fullNameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
+  final _emailController = TextEditingController();
   final _zipController = TextEditingController();
   final _streetController = TextEditingController();
   final _provinceController = TextEditingController();
@@ -51,9 +47,11 @@ void initState() {
       final currentUser = authViewModel.user;
       _fullNameController.text = currentUser?.name ?? ''; // Safe handling of null
       _phoneNumberController.text = currentUser?.phone ?? ''; // Safe handling of null
+      _emailController.text = currentUser?.email ?? ''; // Safe handling of null
 
       print('User Name: ${currentUser?.name}');
       print('User Phone: ${currentUser?.phone}');
+      print('User Email: ${currentUser?.email}');
     });
 
     // Now fetch user address
@@ -191,6 +189,12 @@ void initState() {
                       textStyle: AppTextStyles.button,
                        command: () {
                         // Update user details via AuthViewModel
+                         context.read<AuthViewModel>().updateUser(
+                          name: _fullNameController.text,
+                          phone: _phoneNumberController.text,
+                          email: _emailController.text, // Use the email from the controller
+                          context: context,
+                        );
                         context.read<AuthViewModel>().updateAddress(
                           province: _fullNameController.text,
                           municipality: _phoneNumberController.text,

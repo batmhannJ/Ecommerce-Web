@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import '../model/user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
-import '../model/address.dart'; // Import your Address model if it's in a separate file
+import '../model/address.dart'; 
 
 
 class AuthViewModel extends ChangeNotifier {
@@ -35,13 +36,60 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateUser({required String name, required String phone, required String email}) {
-    if (_user != null) {
-      _user = _user!.copyWith(name: name, phone: phone, email: email);
-      notifyListeners();
+Future<void> updateUser({required String name, required String phone, required String email, required BuildContext context}) async {
+  if (_user != null) {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+    final url = 'http://localhost:4000/api/edituser-mobile/$userId';
+
+    final userData = {
+      'name': name,
+      'phone': phone,
+      'email': email,
+    };
+
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(userData),
+      );
+
+      if (response.statusCode == 200) {
+        final updatedUser = jsonDecode(response.body);
+
+        _user = _user!.copyWith(
+          name: updatedUser['name'],
+          phone: updatedUser['phone'],
+          email: updatedUser['email'],
+        );
+        
+        notifyListeners();
+         ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('User details updated successfully.')),
+          );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update user. Please try again.')),
+          );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating user: $e')),
+        );
     }
   }
+}
 
+void _showSnackBar(BuildContext context, String message, {bool isSuccess = true}) {
+  final snackBar = SnackBar(
+    content: Text(message),
+    backgroundColor: isSuccess ? Colors.green : Colors.red,  // Green for success, red for error
+    duration: const Duration(seconds: 3), // Duration of the SnackBar
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
     void updateAddress({required String province, required String municipality, required String barangay, required String zip, required String street}) {
     if (_user != null) {
       _user = _user!.copyWith(province: province, municipality: municipality, barangay: barangay, zip: zip, street:street);
@@ -139,6 +187,5 @@ class AuthViewModel extends ChangeNotifier {
     print('User ID is null, cannot fetch user address');
   }
 }
-
 
 }

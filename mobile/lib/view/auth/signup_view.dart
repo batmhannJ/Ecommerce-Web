@@ -4,9 +4,7 @@ import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/form_styles.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
-import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:indigitech_shop/widget/form_fields/custom_text_form_field.dart';
-import 'package:provider/provider.dart';
 
 import '../../widget/buttons/custom_filled_button.dart';
 

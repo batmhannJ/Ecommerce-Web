@@ -84,6 +84,33 @@ router.patch('/edituser/:id', async (req, res) => {
     }
 });
 
+// Update user details
+router.patch('/edituser-mobile/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, phone, email } = req.body; // Destructure the user data from the request body
+
+    try {
+        // Update the user in the database
+        const updatedUser = await Users.findByIdAndUpdate(
+            id,
+            { name, phone, email }, // Update only the provided fields
+            { new: true } // Return the updated document
+        );
+
+        // Check if the user was found and updated
+        if (!updatedUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Send the updated user back as a response
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ error: "Failed to update user" });
+    }
+});
+
+
 // Delete user
 router.delete('/deleteuser/:id', async (req, res) => {
     const { id } = req.params;

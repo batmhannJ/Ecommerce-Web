@@ -38,7 +38,7 @@ Widget build(BuildContext context) {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2), // Shadow color
-              offset: Offset(0, 4), // Offset of the shadow
+              offset: const Offset(0, 4), // Offset of the shadow
               blurRadius: 6, // How blurred the shadow is
               spreadRadius: 1, // How much the shadow spreads
             ),

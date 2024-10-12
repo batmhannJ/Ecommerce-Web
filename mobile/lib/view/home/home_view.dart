@@ -31,7 +31,7 @@ Widget build(BuildContext context) {
         Container(
           margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           child: TabBar(
-            tabs: [
+            tabs: const [
               Tab(
                 icon: Icon(Icons.store),
                 text: 'Shop',
@@ -49,13 +49,13 @@ Widget build(BuildContext context) {
                 text: 'Clothes',
               ),
             ],
-            labelStyle: TextStyle(
+            labelStyle: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 14,
             ),
             labelColor: Colors.black,
             unselectedLabelColor: Colors.grey[700],
-            indicator: BoxDecoration(
+            indicator: const BoxDecoration(
               border: Border(
                 bottom: BorderSide(
                   color: Colors.blue, // Color of the indicator
@@ -65,11 +65,11 @@ Widget build(BuildContext context) {
             ),
             indicatorSize: TabBarIndicatorSize.tab,
             indicatorPadding: const EdgeInsets.only(bottom: 5),
-            overlayColor: MaterialStateProperty.all(Colors.transparent),
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ),
         const SizedBox(height: 10),
-        Expanded(
+        const Expanded(
           child: TabBarView(
             children: [
               ShopTabView(),

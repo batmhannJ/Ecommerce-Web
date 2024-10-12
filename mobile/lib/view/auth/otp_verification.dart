@@ -9,7 +9,7 @@ class OTPVerificationScreen extends StatefulWidget {
   final String email;
   final VoidCallback onOTPVerified; // This will be called once OTP is verified
 
-  OTPVerificationScreen({
+  const OTPVerificationScreen({super.key, 
     required this.email,
     required this.onOTPVerified,
   });
@@ -38,21 +38,21 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => ProfileView()), // Navigate to ProfileView
+            MaterialPageRoute(builder: (context) => const ProfileView()), // Navigate to ProfileView
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("User ID not found. Please try again.")),
+            const SnackBar(content: Text("User ID not found. Please try again.")),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Invalid OTP. Please try again.")),
+          const SnackBar(content: Text("Invalid OTP. Please try again.")),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please enter the OTP.")),
+        const SnackBar(content: Text("Please enter the OTP.")),
       );
     }
   }
@@ -126,7 +126,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Verify OTP')),
+      appBar: AppBar(title: const Text('Verify OTP')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -134,13 +134,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
           children: [
             Text(
               "Enter the OTP sent to ${widget.email}",
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
             const Gap(20),
             TextField(
               controller: _otpController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'OTP',
               ),
@@ -148,7 +148,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             const Gap(20),
             ElevatedButton(
               onPressed: _verifyOTP, // Verify OTP on button press
-              child: Text('Verify'),
+              child: const Text('Verify'),
             ),
           ],
         ),
