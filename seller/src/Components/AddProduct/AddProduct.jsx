@@ -144,7 +144,7 @@ export const AddProduct = () => {
       });
       return;
     }
-
+  
     // Validate that the offer price is not higher than the original price
     if (
       parseFloat(productDetails.new_price) >=
@@ -155,14 +155,14 @@ export const AddProduct = () => {
       });
       return;
     }
-
+  
     console.log(productDetails);
     let responseData;
     let product = productDetails;
-
+  
     let formData = new FormData();
     formData.append("product", image);
-
+  
     await fetch("http://localhost:4000/upload", {
       method: "POST",
       headers: {
@@ -174,9 +174,10 @@ export const AddProduct = () => {
       .then((data) => {
         responseData = data;
       });
-
+  
     if (responseData.success) {
-      product.image = responseData.image_url;
+      // Construct the image URL using the correct format
+      product.image = responseData.image_url; 
       console.log(product);
       await fetch("http://localhost:4000/addproduct", {
         method: "POST",
@@ -201,6 +202,7 @@ export const AddProduct = () => {
         });
     }
   };
+  
 
   return (
     <div className="add-product">
@@ -352,24 +354,6 @@ export const AddProduct = () => {
       <button onClick={Add_Product} className="addproduct-btn">
         ADD
       </button>
-
-      {/* Display added product details 
-      {addedProduct && (
-        <div className="product-details">
-          <h3>Product Details</h3>
-          <p><strong>Title:</strong> {addedProduct.name}</p>
-          <p><strong>Description:</strong> {addedProduct.description}</p>
-          <p><strong>Price:</strong> {addedProduct.old_price}</p>
-          <p><strong>Offer Price:</strong> {addedProduct.new_price}</p>
-          <p><strong>Category:</strong> {addedProduct.category}</p>
-          <p><strong>Stock:</strong> {addedProduct.s_stock}</p>
-          <p><strong>Stock:</strong> {addedProduct.m_stock}</p>
-          <p><strong>Stock:</strong> {addedProduct.l_stock}</p>
-          <p><strong>Stock:</strong> {addedProduct.xl_stock}</p>
-          <p><strong>Stock:</strong> {addedProduct.stock}</p>
-          <img src={addedProduct.image} alt="product" />
-        </div>
-      )}*/}
     </div>
   );
 };

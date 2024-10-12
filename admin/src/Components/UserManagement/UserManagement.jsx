@@ -74,10 +74,16 @@ function UserManagement() {
     setNewUser({ name: "", email: "", password: "" });
   };
 
-  const handleSearch = (filteredUsers) => {
-    setUsers(filteredUsers);
+  const handleSearch = async (searchTerm) => {
+    try {
+      const response = await axios.get(`http://localhost:4000/api/users/search?term=${searchTerm}`);
+      setUsers(response.data);  // Update users state with search results
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+      toast.error("Search failed. Please try again.");
+    }
   };
-
+  
   return (
     <div className="user-management-container">
       <h1>Manage Users</h1>

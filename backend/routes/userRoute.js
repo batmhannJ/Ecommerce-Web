@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Users = require('../models/userModels');
 const authMiddleware = require('../middleware/auth'); 
+const { getUsers } = require('../controllers/userController'); // Adjust path as needed
+
 
 router.post('/login', async (req, res) => {
     const { email, password, recaptchaToken } = req.body;
@@ -57,6 +59,7 @@ router.post('/login', async (req, res) => {
     }
 });*/
 
+router.get('/api/users/search', getUsers);
 
 // Fetch all users
 router.get('/users', async (req, res) => {
@@ -94,21 +97,7 @@ router.delete('/deleteuser/:id', async (req, res) => {
 });
 
 // Add this route to your existing router file
-router.get('/users/search', async (req, res) => {
-    const { term } = req.query;
-    try {
-        const users = await Users.find({
-            $or: [
-                { name: new RegExp(term, 'i') },
-                { email: new RegExp(term, 'i') }
-            ]
-        });
-        res.json(users);
-    } catch (error) {
-        console.error("Error searching users:", error);
-        res.status(500).json({ error: "Failed to search users" });
-    }
-});
+
 
 router.patch("/edituser/address", async (req, res) => {
     const { userId, addressData } = req.body;

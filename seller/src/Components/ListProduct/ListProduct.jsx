@@ -18,7 +18,7 @@ export const ListProduct = () => {
     // Append a timestamp query to force image refresh
   const updatedProducts = data.map(product => ({
     ...product,
-    image: product.image ? `http://localhost:4000/images/${product.image}` : null // Ensure the image URL is complete
+    image: product.image ? `http://localhost:4000/images/${product.image}?t=${new Date().getTime()}` : null
   }));
   console.log('Fetched products with updated images:', updatedProducts); // Log the updated products
 
@@ -36,7 +36,7 @@ export const ListProduct = () => {
       // Construct the full image URL for each product
       const updatedProducts = allProducts.map(product => ({
         ...product,
-        image: product.image ? `http://localhost:4000/images/${product.image}` : null // Ensure the image URL is complete
+        image: product.image ? `http://localhost:4000/images/${product.image}?t=${new Date().getTime()}` : null
       }));
 
       return updatedProducts;
