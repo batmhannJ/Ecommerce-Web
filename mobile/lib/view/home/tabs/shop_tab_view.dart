@@ -216,11 +216,8 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
               return ListTile(
                 title: Text(product),
                 onTap: () {
+                  // Handle product selection here
                   print('Selected product: $product');
-                  //
-                  //
-                  //
-                  //Di ko maredirect aaaaaaaaaaaaaaaaaaaaa
                 },
               );
             },
