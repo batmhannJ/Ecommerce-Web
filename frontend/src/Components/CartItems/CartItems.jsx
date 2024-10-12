@@ -130,20 +130,25 @@ const saveCartToDatabase = async () => {
       calculateDeliveryFee();
     }
   }, [data.street, data.city]);
-
-  const handleQuantityChange = (key, delta) => {
-    const currentQuantity = cartItems[key]?.quantity || 0;
-
-    if (currentQuantity + delta > 0) {
-        updateQuantity(key, currentQuantity + delta);
-        saveCartToDatabase(); // Save updated cart to database
+  
+  const handleQuantityChange = (productId, selectedSize, delta) => {
+    const currentKey = `${productId}_${selectedSize}`;
+    const currentQuantity = cartItems[currentKey]?.quantity || 0;
+  
+    // Calculate new quantity
+    const newQuantity = currentQuantity + delta;
+  
+    if (newQuantity > 0) {
+      // Update quantity in cart
+      updateQuantity(currentKey, newQuantity);
+      saveCartToDatabase(); // Save updated cart to database
     } else {
-        // Remove from cart if quantity becomes zero
-        removeFromCart(key);
-        saveCartToDatabase(); // Save after removing
+      // Remove from cart if quantity becomes zero or less
+      removeFromCart(productId, selectedSize); // Pass productId and selectedSize directly
+      saveCartToDatabase(); // Save after removing
     }
-};
-
+  };
+  
 
 const handleProceedToCheckout = async () => {
   if (Object.keys(cartItems).length === 0) {
@@ -229,8 +234,8 @@ const handleProceedToCheckout = async () => {
                 <div className="cartitems-quantity-controls">
                   <button
                     className="cartitems-quantity-button"
-                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.selectedSize, -1)}
-                  >
+                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.size, -1)}
+                    >
                     -
                   </button>
                   <button className="cartitems-quantity-button">
@@ -238,8 +243,8 @@ const handleProceedToCheckout = async () => {
                   </button>
                   <button
                     className="cartitems-quantity-button"
-                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.selectedSize, 1)}
-                  >
+                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.size, 1)}
+                    >
                     +
                   </button>
                 </div>
@@ -248,11 +253,10 @@ const handleProceedToCheckout = async () => {
                   className="cartitems-remove-icon"
                   src={remove_icon}
                   onClick={async () => {
-                    const selectedSize = groupedItem.size; // Use groupedItem.size instead of selectedSize
-                    console.log(`Key to remove: ${groupedItem.product.id}_${selectedSize}`); // Log the key to debug
-                    await removeFromCart(groupedItem.product.id, selectedSize); // Ensure you're passing both parameters
+                    const selectedSize = groupedItem.size; 
+                    await removeFromCart(groupedItem.product.id, selectedSize);
                     await saveCartToDatabase();
-                }}
+                  }}
                   alt="Remove"
                 />
               </div>

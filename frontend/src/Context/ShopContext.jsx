@@ -222,45 +222,54 @@ useEffect(() => {
 
   const updateQuantity = (key, newQuantity) => {
     setCartItems(prevItems => {
-      const updatedItems = [...prevItems];
-      updatedItems[key].quantity = newQuantity;
-      return updatedItems;
+      return {
+        ...prevItems,
+        [key]: {
+          ...prevItems[key],
+          quantity: newQuantity,
+        }
+      };
     });
-  };
-  
-  const removeFromCart = async (productId, selectedSize) => {
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
-        console.error('No user ID found. Cannot remove item.');
-        return;
-    }
+};
 
-    const key = `${productId}_${selectedSize}`;
-    console.log("Cart Items:", cartItems);
-    console.log("Key to remove:", key);
+const removeFromCart = async (productId, selectedSize) => {
+  const userId = localStorage.getItem('userId');
 
-    // Find the index of the item to remove based on productId and selectedSize
-    const itemIndex = cartItems.findIndex(item => item.productId === parseInt(productId) && item.selectedSize === selectedSize);
+  // Check if userId exists
+  if (!userId) {
+      console.error('No user ID found. Cannot remove item.');
+      return;
+  }
 
-    if (itemIndex === -1) {
-        console.error('Item not found in cart.');
-        return; // Exit if the item is not found
-    }
+  const key = `${productId}_${selectedSize || 'N/A'}`; // Handle undefined size
+  console.log("Removing item with key:", key);
+  console.log("Cart Items:", cartItems);
 
-    // Remove item from local state
-    setCartItems(prevItems => {
-        const updatedItems = [...prevItems]; // Create a shallow copy of the previous items
-        updatedItems.splice(itemIndex, 1); // Remove the item by index
-        return updatedItems; // Return the updated items
-    });
+  // Find the index of the item to remove based on productId and selectedSize
+  const itemIndex = cartItems.findIndex(item => {
+    console.log("Comparing with item:", item);
+    return item.productId === Number(productId) && item.selectedSize.toUpperCase()  === selectedSize.toUpperCase()
+});
 
-    // Remove item from the database
-    try {
-        await axios.delete(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`);
-        console.log("Item removed from database successfully.");
-    } catch (error) {
-        console.error("Error removing item from database:", error);
-    }
+  // Check if item is found in the cart
+  if (itemIndex === -1) {
+      console.error('Item not found in cart:', key);
+      return; // Exit if the item is not found
+  }
+
+  // Remove item from local state
+  setCartItems(prevItems => {
+      const updatedItems = prevItems.filter((_, index) => index !== itemIndex);
+      return updatedItems; // Return the updated items
+  });
+
+  // Remove item from the database
+  try {
+      const response = await axios.delete(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`);
+      console.log("Item removed from database successfully:", response.data);
+  } catch (error) {
+      console.error("Error removing item from database:", error.response ? error.response.data : error.message);
+  }
 };
 
 const clearCart = () => {
