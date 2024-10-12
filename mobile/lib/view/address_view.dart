@@ -6,12 +6,14 @@ import 'package:indigitech_shop/dummy.dart';
 import 'package:indigitech_shop/model/address.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/address_view_model.dart';
-import 'package:indigitech_shop/widget/dropdown.dart';
+import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
 
 import '../core/style/form_styles.dart';
 import '../widget/buttons/custom_filled_button.dart';
 import '../widget/form_fields/custom_text_form_field.dart';
+import '../widget/dropdown.dart';
+import '../model/user.dart';
 
 class AddressView extends StatefulWidget {
   const AddressView({super.key});
@@ -23,30 +25,70 @@ class AddressView extends StatefulWidget {
 class _AddressViewState extends State<AddressView> {
   final _fullNameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
-  final _postalCodeController = TextEditingController();
-  final _line1Controller = TextEditingController();
-  final _provinceFormFieldKey = GlobalKey<FormFieldState>();
-  final _cityFormFieldKey = GlobalKey<FormFieldState>();
-  final _barangayFormFieldKey = GlobalKey<FormFieldState>();
+  final _zipController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _provinceController = TextEditingController();
+  final _municipalityController = TextEditingController();
+  final _barangayController = TextEditingController();
 
-  late Address currentAddress;
-  late Address updatedAddress;
+  String? currentName;
+  String? currentPhone;
+  String? currentBarangay;
+  String? currentStreet;
+  String? currentMunicipality;
+  String? currentProvince;
+  String? currentRegion;
+  String? currentZip;
 
-  @override
-  void initState() {
-    updatedAddress = currentAddress =
-        context.read<AddressViewModel>().address ?? Address.empty();
+ @override
+void initState() {
+  super.initState();
+  final authViewModel = context.read<AuthViewModel>();
 
-    super.initState();
-  }
+  // Fetch user details first
+  authViewModel.fetchUserDetails().then((_) {
+    setState(() {
+      final currentUser = authViewModel.user;
+      _fullNameController.text = currentUser?.name ?? ''; // Safe handling of null
+      _phoneNumberController.text = currentUser?.phone ?? ''; // Safe handling of null
+
+      print('User Name: ${currentUser?.name}');
+      print('User Phone: ${currentUser?.phone}');
+    });
+
+    // Now fetch user address
+    authViewModel.fetchUserAddress().then((_) {
+      setState(() {
+        final currentAddress = authViewModel.address; // Use currentAddress for clarity
+        _provinceController.text = currentAddress?.province ?? ''; // Safe handling of null
+        _municipalityController.text = currentAddress?.municipality ?? ''; // Safe handling of null
+        _barangayController.text = currentAddress?.barangay ?? ''; // Safe handling of null
+        _zipController.text = currentAddress?.zip ?? ''; // Safe handling of null
+        _streetController.text = currentAddress?.street ?? ''; // Safe handling of null
+
+        print('Address Province: ${currentAddress?.province}');
+        print('Address Municipality: ${currentAddress?.municipality}');
+        print('Address Barangay: ${currentAddress?.barangay}');
+        print('Address Zip: ${currentAddress?.zip}');
+        print('Address Street: ${currentAddress?.street}');
+      });
+    }).catchError((error) {
+      print('Error fetching address: $error');
+    });
+  }).catchError((error) {
+    print('Error fetching user details: $error');
+  });
+}
 
   @override
   void dispose() {
     _fullNameController.dispose();
     _phoneNumberController.dispose();
-    _postalCodeController.dispose();
-    _line1Controller.dispose();
-
+    _provinceController.dispose();
+    _municipalityController.dispose();
+    _barangayController.dispose();
+    _zipController.dispose();
+    _streetController.dispose();
     super.dispose();
   }
 
@@ -56,16 +98,14 @@ class _AddressViewState extends State<AddressView> {
       title: "Address",
       content: Form(
         onChanged: () {
-          setState(() {
-            updatedAddress = Address(
-              fullName: _fullNameController.text,
-              phoneNumber: _phoneNumberController.text,
-              province: _provinceFormFieldKey.currentState!.value,
-              city: _cityFormFieldKey.currentState!.value,
-              barangay: _barangayFormFieldKey.currentState!.value,
-              postalCode: _postalCodeController.text,
-              line1: _line1Controller.text,
-            );
+           setState(() {
+            currentName = _fullNameController.text;
+            currentPhone = _phoneNumberController.text;
+            currentProvince = _provinceController.text;
+            currentMunicipality = _municipalityController.text;
+            currentBarangay = _barangayController.text;
+            currentZip = _zipController.text;
+            currentStreet = _streetController.text;
           });
         },
         child: SingleChildScrollView(
@@ -84,7 +124,6 @@ class _AddressViewState extends State<AddressView> {
                 formStyle: AppFormStyles.defaultFormStyle,
                 height: 36,
                 hintText: "Full Name",
-                initialValue: currentAddress.fullName,
               ),
               const Gap(10),
               CustomTextFormField(
@@ -93,7 +132,6 @@ class _AddressViewState extends State<AddressView> {
                 formStyle: AppFormStyles.defaultFormStyle,
                 height: 36,
                 hintText: "Phone Number",
-                initialValue: currentAddress.phoneNumber,
               ),
               const Gap(15),
               Text(
@@ -102,63 +140,64 @@ class _AddressViewState extends State<AddressView> {
                     AppTextStyles.subtitle2.copyWith(color: AppColors.darkGrey),
               ),
               const Gap(10),
-              CustomDropdown<String>(
-                formFieldKey: _provinceFormFieldKey,
-                hint: "Province",
-                initialValue: currentAddress.province.isEmpty
-                    ? null
-                    : currentAddress.province,
-                items: dummyProvince,
-              ),
-              const Gap(10),
-              CustomDropdown<String>(
-                formFieldKey: _cityFormFieldKey,
-                hint: "City",
-                initialValue:
-                    currentAddress.city.isEmpty ? null : currentAddress.city,
-                items: dummyCity,
-              ),
-              const Gap(10),
-              CustomDropdown<String>(
-                formFieldKey: _barangayFormFieldKey,
-                hint: "Barangay",
-                initialValue: currentAddress.barangay.isEmpty
-                    ? null
-                    : currentAddress.barangay,
-                items: dummyBarangay,
-              ),
-              const Gap(10),
               CustomTextFormField(
-                keyboardType: TextInputType.number,
-                controller: _postalCodeController,
+                controller: _provinceController,
                 formStyle: AppFormStyles.defaultFormStyle,
                 height: 36,
-                hintText: "Postal Code",
-                initialValue: currentAddress.postalCode,
+                hintText: "Province",
               ),
               const Gap(10),
               CustomTextFormField(
-                controller: _line1Controller,
+                controller: _municipalityController,
+                formStyle: AppFormStyles.defaultFormStyle,
+                height: 36,
+                hintText: "City",
+              ),
+              const Gap(10),
+              CustomTextFormField(
+                controller: _barangayController,
+                formStyle: AppFormStyles.defaultFormStyle,
+                height: 36,
+                hintText: "Barangay",
+              ),
+              const Gap(10),
+             CustomTextFormField(
+                controller: _zipController,
+                formStyle: AppFormStyles.defaultFormStyle,
+                height: 36,
+                hintText: "Zip Code",
+              ),
+              const Gap(10),
+              CustomTextFormField(
+                controller: _streetController,
                 formStyle: AppFormStyles.defaultFormStyle,
                 height: 36,
                 hintText: "Street Name, Building, House No.",
-                initialValue: currentAddress.line1,
               ),
               const Gap(25),
               Row(
                 children: [
                   Expanded(
                     child: CustomButton(
-                      disabled: currentAddress.isEqual(updatedAddress) ||
-                          updatedAddress.isIncomplete(),
+                      disabled: _fullNameController.text.isEmpty ||
+                          _phoneNumberController.text.isEmpty ||
+                          _provinceController.text.isEmpty ||
+                          _municipalityController.text.isEmpty ||
+                          _barangayController.text.isEmpty ||
+                          _zipController.text.isEmpty ||
+                          _streetController.text.isEmpty,
                       isExpanded: true,
-                      text: "Submit",
+                      text: "Update",
                       textStyle: AppTextStyles.button,
-                      command: () {
-                        context
-                            .read<AddressViewModel>()
-                            .updateAddress(updatedAddress);
-
+                       command: () {
+                        // Update user details via AuthViewModel
+                        context.read<AuthViewModel>().updateAddress(
+                          province: _fullNameController.text,
+                          municipality: _phoneNumberController.text,
+                          barangay: _barangayController.text,
+                          zip: _zipController.text,
+                          street: _streetController.text,
+                        );
                         Navigator.of(context).pop();
                       },
                       height: 48,

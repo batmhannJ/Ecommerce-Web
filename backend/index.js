@@ -1118,6 +1118,33 @@ app.get('/get-user-details/:id', async (req, res) => {
   }
 });
 
+app.get('/get-user-address/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await Users.findById(userId).select('address'); // Select only the address field
+
+    if (user) {
+      const { address } = user; // Destructure to get the address object
+      return res.status(200).json({
+        street: address.street,
+        barangay: address.barangay,
+        municipality: address.municipality,
+        province: address.province,
+        region: address.region,
+        zip: address.zip,
+        country: address.country,
+      });
+    } else {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching user address:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);

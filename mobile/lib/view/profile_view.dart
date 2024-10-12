@@ -7,6 +7,7 @@ import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/view/accountSetings_view.dart';
 import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/auth/auth_view.dart';
+import 'package:indigitech_shop/view/changePasswordView.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
@@ -64,7 +65,9 @@ Widget build(BuildContext context) {
               _buildCardSection(
                 icon: Icons.lock_outline,
                 label: "Change Password",
-                onPressed: () {},
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const ChangePasswordView(),
+                )),
               ),
             ],
           ),
