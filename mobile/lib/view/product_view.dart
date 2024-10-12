@@ -5,11 +5,17 @@ import 'package:indigitech_shop/core/extensions/string_extensions.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/view_model/cart_view_model.dart';
+import 'package:indigitech_shop/widget/buttons/custom_filled_button.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:provider/provider.dart';
 
-import '../../../core/style/colors.dart';
-import '../../../products.dart';
-import '../../../widget/buttons/custom_filled_button.dart';
-import '../../../widget/product_list.dart';
+import '../core/constant/enum/product_size.dart';
+import '../products.dart';
+import '../model/product.dart';
+// import '../widget/image_carousel.dart';
+import '../widget/product_list.dart';
+import 'layout/default_view_layout.dart';
 
 class ProductView extends StatefulWidget {
   final Product product;
