@@ -6,6 +6,7 @@ class Address {
   final String barangay;
   final String zip;
   final String street;
+  final String region;
 
   Address({
     this.name = '',
@@ -15,6 +16,7 @@ class Address {
     this.barangay = '',
     this.zip = '',
     this.street = '',
+    this.region = '',
   });
 
   factory Address.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Address {
       barangay: json['barangay'] ?? '',
       zip: json['zip'] ?? '',
       street: json['street'] ?? '',
+      region: json['region'] ?? '',
     );
   }
 }
