@@ -37,46 +37,44 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<bool> _sendOTP(String email) async {
-    final response = await http.post(
-      Uri.parse(
-          'http://localhost:4000/send-otp-mobile'), // Replace with your API URL
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'email': email,
-      }),
-    );
+  final response = await http.post(
+    Uri.parse('http://localhost:4000/send-otp-mobile'), // Replace with your API URL
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: json.encode({
+      'email': email,
+    }),
+  );
 
-    if (response.statusCode == 200) {
-      print(
-          "OTP sent: ${json.decode(response.body)['otp']}"); // For testing purposes
-      return true;
-    } else {
-      print("Failed to send OTP. Server response: ${response.body}");
-      return false;
-    }
+  if (response.statusCode == 200) {
+    print("OTP sent: ${json.decode(response.body)['otp']}"); // For testing purposes
+    return true;
+  } else {
+    print("Failed to send OTP. Server response: ${response.body}");
+    return false;
   }
+}
 
-  Future<bool> _verifyOTP(String email, String otp) async {
-    final response = await http.post(
-      Uri.parse(
-          'http://localhost:4000/verify-otp-mobile'), // Replace with your API URL
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'email': email,
-        'otp': otp,
-      }),
-    );
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      return false;
-    }
+Future<bool> _verifyOTP(String email, String otp) async {
+  final response = await http.post(
+    Uri.parse('http://localhost:4000/verify-otp-mobile'), // Replace with your API URL
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: json.encode({
+      'email': email,
+      'otp': otp,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    return true;
+  } else {
+    return false;
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -115,42 +113,38 @@ class _LoginViewState extends State<LoginView> {
                     children: [
                       Expanded(
                         child: CustomButton(
-                          disabled: !_doAgreeToTerms,
-                          isExpanded: true,
-                          text: "Continue",
-                          textStyle: AppTextStyles.button,
-                          command: () async {
-                            String email = _emailController.text;
-
-                            if (email.isNotEmpty) {
-                              bool otpSent = await _sendOTP(email);
-                              if (otpSent) {
-                                // Navigate to OTP Verification Screen
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => OTPVerificationScreen(
-                                      email: email,
-                                      onOTPVerified: widget
-                                          .onLogin, // Proceed to login after OTP verification
+                            disabled: !_doAgreeToTerms,
+                            isExpanded: true,
+                            text: "Continue",
+                            textStyle: AppTextStyles.button,
+                            command: () async {
+                              String email = _emailController.text;
+                              
+                              if (email.isNotEmpty) {
+                                bool otpSent = await _sendOTP(email);
+                                if (otpSent) {
+                                  // Navigate to OTP Verification Screen
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => OTPVerificationScreen(
+                                        email: email,
+                                        onOTPVerified: widget.onLogin, // Proceed to login after OTP verification
+                                      ),
                                     ),
-                                  ),
-                                );
-                              } else {
-                                // Handle OTP sending failure (show error, etc.)
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          "Failed to send OTP. Please try again.")),
-                                );
+                                  );
+                                } else {
+                                  // Handle OTP sending failure (show error, etc.)
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Failed to send OTP. Please try again.")),
+                                  );
+                                }
                               }
-                            }
-                          },
-                          height: 48,
-                          fillColor: AppColors.red,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 12),
-                        ),
+                            },
+                            height: 48,
+                            fillColor: AppColors.red,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
                       ),
                     ],
                   ),
