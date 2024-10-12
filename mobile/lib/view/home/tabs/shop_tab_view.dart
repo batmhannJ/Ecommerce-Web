@@ -65,102 +65,165 @@ class _ShopTabViewState extends State<ShopTabView>
           ),
         ),
         child: Column(
-  crossAxisAlignment: CrossAxisAlignment.center,
-  children: [
-    Center(
-      child: Text(
-        "WELCOME TO",
-        style: AppTextStyles.subtitle1.copyWith(
-          fontWeight: FontWeight.bold,
-          letterSpacing: 2,
-          fontSize: 28, // Increased the font size
-        ),
-      ),
-    ),
-    const Gap(10),
-    Stack(
-      alignment: Alignment.center,
-      children: [
-        Expanded(
-          child: Image.asset(
-            "assets/images/featured_item.png",
-            fit: BoxFit.cover,
-          ),
-        ),
-        Positioned(
-          bottom: 10,
-          child: Text(
-            "TIENDA",
-            style: AppTextStyles.headline4.copyWith(
-              fontSize: 40,
-              color: AppColors.red,
-              shadows: [
-                Shadow(
-                  offset: Offset(2, 2),
-                  blurRadius: 5,
-                  color: AppColors.black.withOpacity(0.5),
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Center(
+              child: Text(
+                "WELCOME TO",
+                style: AppTextStyles.subtitle1.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                  fontSize: 28,
+                ),
+              ),
+            ),
+            const Gap(10),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Expanded(
+                  child: Image.asset(
+                    "assets/images/featured_item.png",
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  bottom: 10,
+                  child: Text(
+                    "TIENDA",
+                    style: AppTextStyles.headline4.copyWith(
+                      fontSize: 40,
+                      color: AppColors.red,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(2, 2),
+                          blurRadius: 5,
+                          color: AppColors.black.withOpacity(0.5),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-        ),
-      ],
-    ),
-    const Gap(30),
-    CustomButton(
-      text: "Explore Latest Collection",
-      textStyle: AppTextStyles.button.copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-      ),
-      command: _scrollToNewCollections,
-      height: 48,
-      fillColor: AppColors.red,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 30),
-      borderRadius: 30,
-      icon: const Icon(
-        Icons.arrow_forward_rounded,
-        color: AppColors.primary,
-      ),
-      iconPadding: 8,
-    ),
-    const Gap(40),
-    Padding(
-      key: _newCollectionsKey,
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Column(
-        children: [
-          Text(
-            "NEW COLLECTIONS",
-            style: AppTextStyles.headline5.copyWith(
-              color: AppColors.black, // Changed to black
-              fontWeight: FontWeight.bold,
+            const Gap(20),
+            // Add the SearchProductsWidget here
+            SearchProductsWidget(
+              products: products.map((product) => product.name).toList(),
             ),
-          ),
-          const SizedBox(
-            width: 100,
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: Divider(
-                color: AppColors.black, // Changed to black
-                height: 0,
-                thickness: 3,
+            const Gap(20),
+            CustomButton(
+              text: "Explore Latest Collection",
+              textStyle: AppTextStyles.button.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+              command: _scrollToNewCollections,
+              height: 48,
+              fillColor: AppColors.red,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 30),
+              borderRadius: 30,
+              icon: const Icon(
+                Icons.arrow_forward_rounded,
+                color: AppColors.primary,
+              ),
+              iconPadding: 8,
+            ),
+            const Gap(40),
+            Padding(
+              key: _newCollectionsKey,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                children: [
+                  Text(
+                    "NEW COLLECTIONS",
+                    style: AppTextStyles.headline5.copyWith(
+                      color: AppColors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 100,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Divider(
+                        color: AppColors.black,
+                        height: 0,
+                        thickness: 3,
+                      ),
+                    ),
+                  ),
+                  ProductList(
+                    products:
+                        products.where((element) => element.isNew).toList(),
+                  ),
+                ],
               ),
             ),
-          ),
-          ProductList(
-            products: products.where((element) => element.isNew).toList(),
-          ),
-        ],
-      ),
-    ),
-  ],
-),
-
+          ],
+        ),
       ),
     );
   }
 
   @override
   bool get wantKeepAlive => true;
+}
+
+class SearchProductsWidget extends StatefulWidget {
+  final List<String> products;
+
+  const SearchProductsWidget({Key? key, required this.products})
+      : super(key: key);
+
+  @override
+  _SearchProductsWidgetState createState() => _SearchProductsWidgetState();
+}
+
+class _SearchProductsWidgetState extends State<SearchProductsWidget> {
+  String _searchQuery = '';
+  List<String> _filteredProducts = [];
+
+  void _filterProducts(String query) {
+    setState(() {
+      _searchQuery = query;
+      _filteredProducts = widget.products
+          .where(
+              (product) => product.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          onChanged: _filterProducts,
+          decoration: InputDecoration(
+            labelText: 'Search Products',
+            prefixIcon: Icon(Icons.search),
+            border: OutlineInputBorder(),
+          ),
+        ),
+        SizedBox(height: 16),
+        Container(
+          height: 200, // Adjust this height as needed
+          child: ListView.builder(
+            itemCount: _searchQuery.isEmpty ? 0 : _filteredProducts.length,
+            itemBuilder: (context, index) {
+              final product = _filteredProducts[index];
+              return ListTile(
+                title: Text(product),
+                onTap: () {
+                  // Handle product selection here
+                  print('Selected product: $product');
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 }
