@@ -65,9 +65,13 @@ const SLoginSignup = () => {
       toast.success('Sign up successful! Waiting for admin approval.');
       navigate('/login');
     } catch (error) {
-      console.error('Sign up error:', error.response);
-      toast.error(error.response?.data?.errors || 'Sign up failed. Please try again.');
-    }
+      // Extract response or responseText from the error object
+      const errorMessage = error.response?.data?.errors?.[0] || error.response?.data || error.message; 
+  
+      toast.error(errorMessage); // Show error message in a toast notification
+      console.error('Sign up error:', error.response); // Log the error response for debugging
+  }
+  
   };
 
   const handleLogin = async (e) => {
