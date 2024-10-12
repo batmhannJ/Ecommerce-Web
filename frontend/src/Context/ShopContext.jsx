@@ -237,8 +237,8 @@ const removeFromCart = async (productId, selectedSize) => {
 
   // Check if userId exists
   if (!userId) {
-      console.error('No user ID found. Cannot remove item.');
-      return;
+    console.error('No user ID found. Cannot remove item.');
+    return;
   }
 
   const key = `${productId}_${selectedSize || 'N/A'}`; // Handle undefined size
@@ -248,33 +248,94 @@ const removeFromCart = async (productId, selectedSize) => {
   // Find the index of the item to remove based on productId and selectedSize
   const itemIndex = cartItems.findIndex(item => {
     console.log("Comparing with item:", item);
-    return item.productId === Number(productId) && item.selectedSize.toUpperCase()  === selectedSize.toUpperCase()
-});
+    return item.productId === Number(productId) && item.selectedSize.toUpperCase() === selectedSize.toUpperCase();
+  });
 
   // Check if item is found in the cart
   if (itemIndex === -1) {
-      console.error('Item not found in cart:', key);
-      return; // Exit if the item is not found
+    console.error('Item not found in cart:', key);
+    return; // Exit if the item is not found
   }
 
-  // Remove item from local state
-  setCartItems(prevItems => {
+  // Check the quantity of the item
+  const item = cartItems[itemIndex];
+  if (item.quantity > 1) {
+    // Reduce the quantity by one
+    setCartItems(prevItems => {
+      const updatedItems = prevItems.map((cartItem, index) => {
+        if (index === itemIndex) {
+          return { ...cartItem, quantity: cartItem.quantity - 1 }; // Decrease the quantity
+        }
+        return cartItem;
+      });
+      return updatedItems; // Return the updated items
+    });
+  } else {
+    // Remove item from local state if quantity is 1
+    setCartItems(prevItems => {
       const updatedItems = prevItems.filter((_, index) => index !== itemIndex);
       return updatedItems; // Return the updated items
-  });
+    });
+  }
 
-  // Remove item from the database
+  // Update the database accordingly
   try {
-      const response = await axios.delete(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`);
-      console.log("Item removed from database successfully:", response.data);
+    // If quantity was reduced, you may want to update the database with the new quantity
+    const newQuantity = item.quantity > 1 ? item.quantity - 1 : 0; // Update quantity for the database
+    const response = await axios.patch(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`, { quantity: newQuantity });
+    console.log("Cart updated in database successfully:", response.data);
   } catch (error) {
-      console.error("Error removing item from database:", error.response ? error.response.data : error.message);
+    console.error("Error updating cart in database:", error.response ? error.response.data : error.message);
   }
 };
 
 const clearCart = () => {
   setCartItems({}); // Assuming you're using an object to store cart items by productId
 };
+
+const increaseItemQuantity = async (productId, selectedSize) => {
+  const userId = localStorage.getItem('userId');
+
+  // Check if userId exists
+  if (!userId) {
+    console.error('No user ID found. Cannot increase item quantity.');
+    return;
+  }
+
+  const key = `${productId}_${selectedSize || 'N/A'}`; // Handle undefined size
+  console.log("Increasing quantity for item with key:", key);
+  console.log("Cart Items:", cartItems);
+
+  // Find the index of the item to update based on productId and selectedSize
+  const itemIndex = cartItems.findIndex(item => {
+    return item.productId === Number(productId) && item.selectedSize.toUpperCase() === selectedSize.toUpperCase();
+  });
+
+  // If the item is found, increase the quantity
+  if (itemIndex !== -1) {
+    // Update the local state to increase the quantity
+    setCartItems(prevItems => {
+      return prevItems.map((cartItem, index) => {
+        if (index === itemIndex) {
+          return { ...cartItem, quantity: cartItem.quantity + 1 }; // Increase the quantity
+        }
+        return cartItem;
+      });
+    });
+
+    // Update the database
+    try {
+      const updatedQuantity = cartItems[itemIndex].quantity + 1; // New quantity to update in the database
+      const response = await axios.patch(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`, { quantity: updatedQuantity });
+      console.log("Cart updated in database successfully:", response.data);
+    } catch (error) {
+      console.error("Error updating cart in database:", error.response ? error.response.data : error.message);
+    }
+  } else {
+    console.error('Item not found in cart:', key);
+  }
+};
+
 
   
   const getTotalCartAmount = () => {
@@ -316,7 +377,8 @@ const clearCart = () => {
     setUserId,
     setCartItems,
     saveCartToDatabase,
-    clearCart
+    clearCart,
+    increaseItemQuantity
   };
 
   return (

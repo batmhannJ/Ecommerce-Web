@@ -382,6 +382,29 @@ app.post("/addtocart", fetchUser, async (req, res) => {
   res.send("Added");
 });
 
+// API endpoint to update item quantity
+/*app.put('/items/:id', async (req, res) => {
+  const { id } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    const updatedItem = await Cart.findOneAndUpdate(
+      { id: id }, // find item by id
+      { quantity: quantity }, // update quantity
+      { new: true } // return the updated document
+    );
+
+    if (!updatedItem) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.json(updatedItem);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error updating item quantity' });
+  }
+})*/
+
 // Creating Endpoint to remove product from CartData
 app.post("/removefromcart", fetchUser, async (req, res) => {
   console.log("removed", req.body.itemId);
@@ -993,6 +1016,7 @@ app.get('/api/users/search', async (req, res) => {
     res.status(500).json({ message: "Error fetching user" });
   }
 });
+
 
 //======================== M O B I L E ==================================//
 

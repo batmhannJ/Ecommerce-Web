@@ -19,6 +19,7 @@ export const CartItems = () => {
     setCartItems, // Assuming there's a setCartItems function in context
     removeFromCart,
     updateQuantity,
+    increaseItemQuantity,
   } = useContext(ShopContext);
   const navigate = useNavigate();
   const [deliveryFee, setDeliveryFee] = useState(0);
@@ -139,13 +140,11 @@ const saveCartToDatabase = async () => {
     const newQuantity = currentQuantity + delta;
   
     if (newQuantity > 0) {
-      // Update quantity in cart
       updateQuantity(currentKey, newQuantity);
-      saveCartToDatabase(); // Save updated cart to database
+      saveCartToDatabase();
     } else {
-      // Remove from cart if quantity becomes zero or less
-      removeFromCart(productId, selectedSize); // Pass productId and selectedSize directly
-      saveCartToDatabase(); // Save after removing
+      removeFromCart(productId, selectedSize); 
+      saveCartToDatabase(); 
     }
   };
   
@@ -243,7 +242,7 @@ const handleProceedToCheckout = async () => {
                   </button>
                   <button
                     className="cartitems-quantity-button"
-                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.size, 1)}
+                    onClick={() => increaseItemQuantity(groupedItem.product.id, groupedItem.size)}
                     >
                     +
                   </button>
