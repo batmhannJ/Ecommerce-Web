@@ -44,23 +44,52 @@ class AddressService {
     }
   }
 
-  /// Fetch all provinces for a given region code
-  Future<List<dynamic>> provinces(String code) async {
-    try {
-      final data = await fetch('province');
-      print('Fetched provinces: $data'); // Log the fetched data
-      return data.where((province) => province['region_code'] == code).map((filtered) {
-        return {
-          'psgc_code': filtered['psgc_code'],
-          'province_name': filtered['province_name'],
-          'province_code': filtered['province_code'],
-          'region_code': filtered['region_code'],
-        };
-      }).toList();
-    } catch (e) {
-      throw Exception('Error fetching provinces: $e');
+Future<List<dynamic>> provinces(String code) async {
+  try {
+    final data = await fetch('province');
+    print('Fetched provinces: ${jsonEncode(data)}'); // Log the fetched data
+
+    List<dynamic> filteredProvinces = data.where((province) {
+      print('Checking province: ${province['province_code']} against code: $code');
+      return province['region_code'] == code; // Ensure you're filtering based on region code
+    }).toList();
+    
+    if (filteredProvinces.isEmpty) {
+      print('No provinces found for region code: $code');
     }
+
+    return filteredProvinces.map((filtered) {
+      return {
+        'psgc_code': filtered['psgc_code'],
+        'province_name': filtered['province_name'],
+        'province_code': filtered['province_code'],
+        'region_code': filtered['region_code'],
+      };
+    }).toList();
+  } catch (e) {
+    print('Error fetching provinces for code: $code');
+    throw Exception('Error fetching provinces: $e');
   }
+}
+
+Future<Map<String, dynamic>?> provinceByCode(String code) async {
+  try {
+    final data = await fetch('province');
+    print('Provinces fetched: ${jsonEncode(data)}'); // Log fetched provinces
+    final province = data.firstWhere(
+      (province) => province['province_code'] == code,
+      orElse: () => null,
+    );
+    if (province == null) {
+      print('Province not found for code: $code'); // Specific error logging
+    }
+    return province;
+  } catch (e) {
+    print('Error fetching province by code: $code');
+    throw Exception('Error fetching province by code: $e');
+  }
+}
+
 
   /// Fetch all cities for a given province code
   Future<List<dynamic>> cities(String code) async {
@@ -79,6 +108,17 @@ class AddressService {
     }
   }
 
+  Future<Map<String, dynamic>?> citiesByCode(String code) async {
+  try {
+    final data = await fetch('municipality'); // Ensure this is the correct endpoint
+    print('Fetched municipalities: ${jsonEncode(data)}'); // Log fetched municipalities
+    return data.firstWhere((city) => city['municipality_code'] == code, orElse: () => null);
+  } catch (e) {
+    print('Error fetching municipality by code: $code');
+    throw Exception('Error fetching municipality by code: $e');
+  }
+}
+
   /// Fetch all barangays for a given city code
   Future<List<dynamic>> barangays(String code) async {
     try {
@@ -95,6 +135,17 @@ class AddressService {
       throw Exception('Error fetching barangays: $e');
     }
   }
+
+  Future<Map<String, dynamic>?> barangayByCode(String code) async {
+  try {
+    final data = await fetch('barangay'); // Ensure this is the correct endpoint
+    print('Fetched barangays: ${jsonEncode(data)}'); // Log fetched barangays
+    return data.firstWhere((barangay) => barangay['barangay_code'] == code, orElse: () => null);
+  } catch (e) {
+    print('Error fetching barangay by code: $code');
+    throw Exception('Error fetching barangay by code: $e');
+  }
+}
 
   /// Fetch a province by its name
   Future<Map<String, dynamic>?> provinceByName(String name) async {

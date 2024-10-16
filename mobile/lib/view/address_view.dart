@@ -127,7 +127,6 @@ Future<void> fetchAddressDetails() async {
 
 void setAddressNames(dynamic currentAddress) {
   if (currentAddress != null) {
-    // Print the current address for debugging
     print("Current Address: $currentAddress");
 
     // Retrieve region name
@@ -135,48 +134,59 @@ void setAddressNames(dynamic currentAddress) {
       (r) => r['region_code'] == currentAddress.region,
       orElse: () {
         print('Region not found for code: ${currentAddress.region}');
-        return {'region_name': 'Unknown Region'};
+        return {'region_name': ''};  // Return empty string instead of unknown
       },
     )['region_name'];
 
-    // Retrieve province name
+    print("Retrieved Region: $currentRegion");
+
+    // Validate and retrieve province name
     currentProvince = provinces.firstWhere(
       (p) => p['province_code'] == currentAddress.province,
       orElse: () {
         print('Province not found for code: ${currentAddress.province}');
-        return {'province_name': 'Unknown Province'};
+        return {'province_name': ''};  // Return empty string instead of unknown
       },
     )['province_name'];
 
-    // Retrieve municipality name
-    currentMunicipality = cities.firstWhere(
-      (c) => c['city_code'] == currentAddress.municipality,
-      orElse: () {
-        print('City not found for code: ${currentAddress.municipality}');
-        return {'city_name': 'Unknown City'};
-      },
-    )['city_name'];
+    print("Retrieved Province: $currentProvince");
 
-    // Retrieve barangay name
+    // Validate and retrieve municipality name
+    currentMunicipality = cities.firstWhere(
+      (m) => m['municipality_code'] == currentAddress.municipality,
+      orElse: () {
+        print('Municipality not found for code: ${currentAddress.municipality}');
+        return {'municipality_name': ''};  // Return empty string instead of unknown
+      },
+    )['municipality_name'];
+
+    print("Retrieved Municipality: $currentMunicipality");
+
+    // Validate and retrieve barangay name
     currentBarangay = barangays.firstWhere(
-      (b) => b['brgy_code'] == currentAddress.barangay,
+      (b) => b['barangay_code'] == currentAddress.barangay,
       orElse: () {
         print('Barangay not found for code: ${currentAddress.barangay}');
-        return {'brgy_name': 'Unknown Barangay'};
+        return {'barangay_name': ''};  // Return empty string instead of unknown
       },
-    )['brgy_name'];
+    )['barangay_name'];
+
+    print("Retrieved Barangay: $currentBarangay");
 
     // Update the text controllers with names
-    _regionController.text = currentRegion ?? ''; 
-    _provinceController.text = currentProvince ?? '';
-    _municipalityController.text = currentMunicipality ?? '';
-    _barangayController.text = currentBarangay ?? '';
+    setState(() {
+      _regionController.text = currentRegion ?? ''; 
+      _provinceController.text = currentProvince ?? '';
+      _municipalityController.text = currentMunicipality ?? '';
+      _barangayController.text = currentBarangay ?? '';
+    });
 
     printAddressDetails();
   } else {
     print('Current Address is null');
   }
 }
+
 
   void printAddressDetails() {
     print("Region Name: $currentRegion");
