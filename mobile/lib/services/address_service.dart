@@ -6,13 +6,17 @@ class AddressService {
 
   AddressService(this.baseUrl);
 
+  /// General fetch method to retrieve data from the API
   Future<List<dynamic>> fetch(String jsonPathName) async {
-    final response = await http.get(Uri.parse('$baseUrl/$jsonPathName.json'));
+    final url = '$baseUrl/$jsonPathName.json';
+    print('Fetching data from: $url'); // Log the URL
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       print('Fetched $jsonPathName: ${response.body}'); // Log fetched JSON
       return jsonDecode(response.body);
     } else {
+      print('Error fetching data: ${response.statusCode} - ${response.body}'); // Log error details
       throw Exception('Failed to load data');
     }
   }
@@ -30,6 +34,7 @@ class AddressService {
         };
       }).toList();
     } catch (e) {
+      print('Error fetching regions: $e');
       throw Exception('Error fetching regions: $e');
     }
   }
@@ -40,6 +45,7 @@ class AddressService {
       final data = await fetch('region');
       return data.firstWhere((region) => region['region_code'] == code, orElse: () => null);
     } catch (e) {
+      print('Error fetching region by code: $e');
       throw Exception('Error fetching region by code: $e');
     }
   }
@@ -58,6 +64,7 @@ class AddressService {
         };
       }).toList();
     } catch (e) {
+      print('Error fetching provinces: $e');
       throw Exception('Error fetching provinces: $e');
     }
   }
@@ -75,6 +82,7 @@ class AddressService {
         };
       }).toList();
     } catch (e) {
+      print('Error fetching cities: $e');
       throw Exception('Error fetching cities: $e');
     }
   }
@@ -92,6 +100,7 @@ class AddressService {
         };
       }).toList();
     } catch (e) {
+      print('Error fetching barangays: $e');
       throw Exception('Error fetching barangays: $e');
     }
   }
@@ -102,6 +111,7 @@ class AddressService {
       final data = await fetch('province');
       return data.firstWhere((province) => province['province_name'] == name, orElse: () => null);
     } catch (e) {
+      print('Error fetching province by name: $e');
       throw Exception('Error fetching province by name: $e');
     }
   }
