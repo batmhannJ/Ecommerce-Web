@@ -34,6 +34,7 @@ export const CartItems = () => {
       try {
         const response = await axios.get(`http://localhost:4000/api/cart/${userId}`);
         if (response.data && response.data.cartItems) {
+          console.log("Cart items fetched from database:", response.data.cartItems);  // Check what's being returned
           setCartItems(response.data.cartItems);  // Update local state with saved cart items
         }
       } catch (error) {
@@ -251,11 +252,7 @@ const handleProceedToCheckout = async () => {
                 <img
                   className="cartitems-remove-icon"
                   src={remove_icon}
-                  onClick={async () => {
-                    const selectedSize = groupedItem.size; 
-                    await removeFromCart(groupedItem.product.id, selectedSize);
-                    await saveCartToDatabase();
-                  }}
+                  onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.size, -groupedItem.quantity)}  // Set quantity to 0
                   alt="Remove"
                 />
               </div>

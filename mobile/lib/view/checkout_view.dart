@@ -144,7 +144,7 @@ class CheckoutView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            address.fullName,
+            address.name,
             style: AppTextStyles.body2,
           ),
           Text(

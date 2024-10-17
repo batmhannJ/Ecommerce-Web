@@ -89,8 +89,6 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> updateAddress({
-    required String fullName,
-    required String phoneNumber,
     required String province,
     required String municipality, // Change `city` to `municipality`
     required String barangay,
@@ -101,8 +99,6 @@ class AuthViewModel extends ChangeNotifier {
     if (_user != null) {
       // Create a new Address instance with the provided data
       final newAddress = Address(
-        fullName: fullName,
-        phoneNumber: phoneNumber,
         province: province,
         municipality: municipality, // Use municipality instead of city
         barangay: barangay,

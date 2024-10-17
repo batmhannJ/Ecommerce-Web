@@ -233,59 +233,29 @@ useEffect(() => {
 };
 
 const removeFromCart = async (productId, selectedSize) => {
-  const userId = localStorage.getItem('userId');
+  const userId = localStorage.getItem("userId");
 
-  // Check if userId exists
   if (!userId) {
-    console.error('No user ID found. Cannot remove item.');
+    console.error("No user ID found.");
     return;
   }
 
-  const key = `${productId}_${selectedSize || 'N/A'}`; // Handle undefined size
-  console.log("Removing item with key:", key);
-  console.log("Cart Items:", cartItems);
-
-  // Find the index of the item to remove based on productId and selectedSize
-  const itemIndex = cartItems.findIndex(item => {
-    console.log("Comparing with item:", item);
-    return item.productId === Number(productId) && item.selectedSize.toUpperCase() === selectedSize.toUpperCase();
-  });
-
-  // Check if item is found in the cart
-  if (itemIndex === -1) {
-    console.error('Item not found in cart:', key);
-    return; // Exit if the item is not found
-  }
-
-  // Check the quantity of the item
-  const item = cartItems[itemIndex];
-  if (item.quantity > 1) {
-    // Reduce the quantity by one
-    setCartItems(prevItems => {
-      const updatedItems = prevItems.map((cartItem, index) => {
-        if (index === itemIndex) {
-          return { ...cartItem, quantity: cartItem.quantity - 1 }; // Decrease the quantity
-        }
-        return cartItem;
-      });
-      return updatedItems; // Return the updated items
-    });
-  } else {
-    // Remove item from local state if quantity is 1
-    setCartItems(prevItems => {
-      const updatedItems = prevItems.filter((_, index) => index !== itemIndex);
-      return updatedItems; // Return the updated items
-    });
-  }
-
-  // Update the database accordingly
   try {
-    // If quantity was reduced, you may want to update the database with the new quantity
-    const newQuantity = item.quantity > 1 ? item.quantity - 1 : 0; // Update quantity for the database
-    const response = await axios.patch(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`, { quantity: newQuantity });
-    console.log("Cart updated in database successfully:", response.data);
+    // Remove the item from cart (local state)
+    setCartItems(prevItems =>
+      prevItems.filter(
+        item => !(item.productId === Number(productId) && item.selectedSize === selectedSize)
+      )
+    );
+
+    // Send DELETE request to backend
+    await axios.delete(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`);
+
+    // Refetch the cart to ensure consistency
+    const response = await axios.get(`http://localhost:4000/api/cart/${userId}`);
+    setCartItems(response.data.cartItems);
   } catch (error) {
-    console.error("Error updating cart in database:", error.response ? error.response.data : error.message);
+    console.error("Error removing item from cart:", error);
   }
 };
 

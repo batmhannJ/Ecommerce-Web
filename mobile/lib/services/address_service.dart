@@ -51,41 +51,39 @@ class AddressService {
   }
 
   /// Fetch all provinces for a given region code
-  Future<List<dynamic>> provinces(String code) async {
-    try {
-      final data = await fetch('province');
-      print('Fetched provinces: $data'); // Log the fetched data
-      return data.where((province) => province['region_code'] == code).map((filtered) {
-        return {
-          'psgc_code': filtered['psgc_code'],
-          'province_name': filtered['province_name'],
-          'province_code': filtered['province_code'],
-          'region_code': filtered['region_code'],
-        };
-      }).toList();
-    } catch (e) {
-      print('Error fetching provinces: $e');
-      throw Exception('Error fetching provinces: $e');
-    }
+ Future<List<dynamic>> provinces(String regionCode) async {
+  try {
+    final data = await fetch('province');
+    return data.where((province) => province['region_code'] == regionCode).map((filtered) {
+      return {
+        'province_name': filtered['province_name'],
+        'province_code': filtered['province_code'],
+        // Include other necessary fields
+      };
+    }).toList();
+  } catch (e) {
+    print('Error fetching provinces: $e');
+    throw Exception('Error fetching provinces: $e');
   }
+}
+
 
   /// Fetch all cities for a given province code
-  Future<List<dynamic>> cities(String code) async {
-    try {
-      final data = await fetch('city');
-      return data.where((city) => city['province_code'] == code).map((filtered) {
-        return {
-          'city_name': filtered['city_name'],
-          'city_code': filtered['city_code'],
-          'province_code': filtered['province_code'],
-          'region_desc': filtered['region_desc'],
-        };
-      }).toList();
-    } catch (e) {
-      print('Error fetching cities: $e');
-      throw Exception('Error fetching cities: $e');
-    }
+Future<List<dynamic>> cities(String provinceCode) async {
+  try {
+    final data = await fetch('city');
+    return data.where((city) => city['province_code'] == provinceCode).map((filtered) {
+      return {
+        'city_name': filtered['city_name'],
+        'city_code': filtered['city_code'],
+        // Include other necessary fields
+      };
+    }).toList();
+  } catch (e) {
+    print('Error fetching cities: $e');
+    throw Exception('Error fetching cities: $e');
   }
+}
 
   Future<Map<String, dynamic>?> citiesByCode(String code) async {
   try {
