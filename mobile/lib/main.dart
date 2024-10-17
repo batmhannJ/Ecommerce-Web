@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
@@ -11,8 +10,7 @@ import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:indigitech_shop/view_model/cart_view_model.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter/foundation.dart'; // For defaultTargetPlatform
+// For defaultTargetPlatform
 
 
 void main() {

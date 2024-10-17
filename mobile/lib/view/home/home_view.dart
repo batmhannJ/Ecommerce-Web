@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:indigitech_shop/core/style/colors.dart';
-import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/view/home/tabs/clothes_tab_view.dart';
 import 'package:indigitech_shop/view/home/tabs/crafts_tab_view.dart';
 import 'package:indigitech_shop/view/home/tabs/food_tab_view.dart';

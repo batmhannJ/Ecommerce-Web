@@ -115,6 +115,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   Future<void> _storeUserId(String userId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', userId);
+    print("User ID stored: $userId"); // Debug line
   }
 
   @override

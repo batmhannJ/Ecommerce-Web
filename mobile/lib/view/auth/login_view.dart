@@ -9,9 +9,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widget/buttons/custom_filled_button.dart';
 import 'package:indigitech_shop/view/auth/otp_verification.dart';
-import 'package:indigitech_shop/view_model/auth_view_model.dart';
-import 'package:provider/provider.dart';
-import '/model/user.dart'; // Adjust the path according to your project structure
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+
+// Adjust the path according to your project structure
 
 class LoginView extends StatefulWidget {
   final VoidCallback onCreateAccount;
@@ -55,6 +55,10 @@ class _LoginViewState extends State<LoginView> {
         String token = data['token'];
         String userId = data['userId'];
         print("Login successful: Token: $token, User ID: $userId");
+            // Save userId in SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', userId);
+        
         return true; // Credentials are valid
       } else {
         print("Login failed: ${data['errors']}");

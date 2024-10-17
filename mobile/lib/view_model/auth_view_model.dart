@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../model/user.dart';
 import 'package:http/http.dart' as http;
@@ -29,6 +28,11 @@ class AuthViewModel extends ChangeNotifier {
     _user = newUser;
     notifyListeners();
   }
+
+  void setUserId(String id) {
+  _userId = id;
+  notifyListeners();
+}
 
   void setAddress(Address newAddress) { // Method to set the address
     _address = newAddress;
@@ -143,32 +147,6 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // Method to change the password
-  Future<void> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  }) async {
-    // Simulate checking the old password
-    if (_currentPassword == null || _currentPassword != oldPassword) {
-      throw Exception("Old password is incorrect");
-    }
-
-    // Simulate changing the password (here you would make an API call)
-    try {
-      // Update the current password
-      _currentPassword = newPassword;
-
-      // Simulate a successful API response
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Notify listeners about the state change if needed
-      notifyListeners();
-      print("Password changed successfully!");
-    } catch (error) {
-      // Handle any errors that occur during the password change
-      print("Error changing password: $error");
-      throw Exception("Failed to change password");
-    }
-  }
 
   Future<void> fetchUserDetails() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -183,7 +161,7 @@ class AuthViewModel extends ChangeNotifier {
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           setUser(User.fromJson(data)); // Set the user correctly
-          print('User fetched: ${data.toString()}'); // Debugging line
+          print('User fetched: ${data.toString()}'); // Include user ID in the output
         } else {
           print('Failed to load user details');
         }
@@ -226,6 +204,41 @@ class AuthViewModel extends ChangeNotifier {
     } else {
       print('User ID is null, cannot fetch user address');
       setAddress(Address()); // Set to empty Address if user ID is null
+    }
+  }
+
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    }) async {
+    if (_userId == null) {
+      throw Exception("User ID is not set");
+    }
+
+    // Simulate checking the old password locally (optional, could rely on backend)
+    if (_currentPassword != oldPassword) {
+      throw Exception("Old password is incorrect");
+    }
+
+    try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+      final response = await http.post(
+        Uri.parse('http://localhost:4000/updatepassword-mobile/$userId'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'password': newPassword}),
+      );
+
+      if (response.statusCode == 200) {
+        _currentPassword = newPassword;
+        notifyListeners();
+        print("Password changed successfully!");
+      } else {
+        throw Exception("Failed to change password");
+      }
+    } catch (error) {
+      print("Error changing password: $error");
+      throw Exception("Error during password change");
     }
   }
 }

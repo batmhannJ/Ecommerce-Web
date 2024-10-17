@@ -1103,14 +1103,17 @@ app.get('/get-user-details/:id', async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const user = await Users.findById(userId).select('name email phone'); // Select only the needed fields
+    const user = await Users.findById(userId); // Select only the needed fields
 
     if (user) {
+      console.log(user);
       return res.status(200).json({
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          password: user.password,
       });
+      
     } else {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -1142,6 +1145,52 @@ app.get('/get-user-address/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error fetching user address:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/compare-password', async (req, res) => {
+  const { userId, oldPassword } = req.body;
+
+  try {
+    // Fetch the user by ID
+    const user = await Users.findById(userId);
+
+    if (user) {
+      // Directly compare plain text passwords
+      if (user.password === oldPassword) {
+        return res.status(200).json({ message: 'Password match' });
+      } else {
+        return res.status(400).json({ message: 'Old password is incorrect' });
+      }
+    } else {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+app.post('/updatepassword-mobile/:id', async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.params.id;
+
+  try {
+    const user = await Users.findById(userId); // Find user by ID
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Directly update the password without hashing
+    user.password = newPassword; // Save new password as plaintext
+    await user.save();
+
+    return res.status(200).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: 'Server error' });
   }
 });
