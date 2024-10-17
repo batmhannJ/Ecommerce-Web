@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
-
-import '../../../core/style/colors.dart';
-import '../../../products.dart';
-import '../../../widget/buttons/custom_filled_button.dart';
-import '../../../widget/product_list.dart';
+import 'package:indigitech_shop/core/style/colors.dart';
+import 'package:indigitech_shop/widget/buttons/custom_filled_button.dart';
+import 'package:indigitech_shop/widget/product_list.dart';
+import 'package:indigitech_shop/services/product_api_service.dart';
+import 'package:indigitech_shop/model/product.dart';
 
 class ShopTabView extends StatefulWidget {
-  const ShopTabView({super.key});
+  const ShopTabView({Key? key}) : super(key: key);
 
   @override
   State<ShopTabView> createState() => _ShopTabViewState();
@@ -18,6 +18,13 @@ class _ShopTabViewState extends State<ShopTabView>
     with AutomaticKeepAliveClientMixin {
   final _scrollController = ScrollController();
   final _newCollectionsKey = GlobalKey();
+  late Future<List<Product>> _productsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _productsFuture = ProductApiService.fetchProducts();
+  }
 
   void _scrollToNewCollections() {
     final context = _newCollectionsKey.currentContext;
@@ -67,98 +74,76 @@ class _ShopTabViewState extends State<ShopTabView>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
-              child: Text(
-                "WELCOME TO",
-                style: AppTextStyles.subtitle1.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                  fontSize: 28,
-                ),
-              ),
-            ),
-            const Gap(10),
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Expanded(
-                  child: Image.asset(
-                    "assets/images/featured_item.png",
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  bottom: 10,
-                  child: Text(
-                    "TIENDA",
-                    style: AppTextStyles.headline4.copyWith(
-                      fontSize: 40,
-                      color: AppColors.red,
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(2, 2),
-                          blurRadius: 5,
-                          color: AppColors.black.withOpacity(0.5),
-                        ),
-                      ],
+            // ... (rest of the UI code remains the same)
+
+            FutureBuilder<List<Product>>(
+              future: _productsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text('No products available');
+                }
+
+                List<Product> allProducts = snapshot.data!;
+                List<Product> newProducts =
+                    allProducts.where((product) => product.isNew).toList();
+
+                return Column(
+                  children: [
+                    SearchProductsWidget(products: allProducts),
+                    const Gap(20),
+                    CustomButton(
+                      text: "Explore Latest Collection",
+                      textStyle: AppTextStyles.button.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      command: _scrollToNewCollections,
+                      height: 48,
+                      fillColor: AppColors.red,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 30),
+                      borderRadius: 30,
+                      icon: const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: AppColors.primary,
+                      ),
+                      iconPadding: 8,
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const Gap(20),
-            // Add the SearchProductsWidget here
-            SearchProductsWidget(
-              products: products.map((product) => product.name).toList(),
-            ),
-            const Gap(20),
-            CustomButton(
-              text: "Explore Latest Collection",
-              textStyle: AppTextStyles.button.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-              command: _scrollToNewCollections,
-              height: 48,
-              fillColor: AppColors.red,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 30),
-              borderRadius: 30,
-              icon: const Icon(
-                Icons.arrow_forward_rounded,
-                color: AppColors.primary,
-              ),
-              iconPadding: 8,
-            ),
-            const Gap(40),
-            Padding(
-              key: _newCollectionsKey,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  Text(
-                    "NEW COLLECTIONS",
-                    style: AppTextStyles.headline5.copyWith(
-                      color: AppColors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 100,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Divider(
-                        color: AppColors.black,
-                        height: 0,
-                        thickness: 3,
+                    const Gap(40),
+                    Padding(
+                      key: _newCollectionsKey,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        children: [
+                          Text(
+                            "NEW COLLECTIONS",
+                            style: AppTextStyles.headline5.copyWith(
+                              color: AppColors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 100,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: Divider(
+                                color: AppColors.black,
+                                height: 0,
+                                thickness: 3,
+                              ),
+                            ),
+                          ),
+                          ProductList(products: newProducts),
+                        ],
                       ),
                     ),
-                  ),
-                  ProductList(
-                    products:
-                        products.where((element) => element.isNew).toList(),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -171,9 +156,10 @@ class _ShopTabViewState extends State<ShopTabView>
 }
 
 class SearchProductsWidget extends StatefulWidget {
-  final List<String> products;
+  final List<Product> products;
 
-  const SearchProductsWidget({super.key, required this.products});
+  const SearchProductsWidget({Key? key, required this.products})
+      : super(key: key);
 
   @override
   _SearchProductsWidgetState createState() => _SearchProductsWidgetState();
@@ -181,14 +167,14 @@ class SearchProductsWidget extends StatefulWidget {
 
 class _SearchProductsWidgetState extends State<SearchProductsWidget> {
   String _searchQuery = '';
-  List<String> _filteredProducts = [];
+  List<Product> _filteredProducts = [];
 
   void _filterProducts(String query) {
     setState(() {
       _searchQuery = query;
       _filteredProducts = widget.products
-          .where(
-              (product) => product.toLowerCase().contains(query.toLowerCase()))
+          .where((product) =>
+              product.name.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -207,16 +193,16 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 200, // Adjust this height as needed
+          height: 200,
           child: ListView.builder(
             itemCount: _searchQuery.isEmpty ? 0 : _filteredProducts.length,
             itemBuilder: (context, index) {
               final product = _filteredProducts[index];
               return ListTile(
-                title: Text(product),
+                title: Text(product.name),
                 onTap: () {
                   // Handle product selection here
-                  print('Selected product: $product');
+                  print('Selected product: ${product.name}');
                 },
               );
             },
