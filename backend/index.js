@@ -94,6 +94,8 @@ const upload = multer({ storage: storage });
 
 // Creating Upload Endpoints for Images
 app.use("/images", express.static("upload/images"));
+app.use('/upload', express.static('upload'));
+
 
 app.post("/upload", upload.single("product"), (req, res) => {
   res.json({
