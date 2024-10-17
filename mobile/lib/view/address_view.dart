@@ -37,6 +37,7 @@ class _AddressViewState extends State<AddressView> {
   String? selectedCity;
   String? selectedBarangay;
 
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +82,9 @@ class _AddressViewState extends State<AddressView> {
         if (selectedCity != null) {
           fetchBarangays(selectedCity!);
         }
+        print('Street: ${userAddress?.street}');
+        print('Zip: ${userAddress?.zip}');
+
       });
     });
 
@@ -91,36 +95,39 @@ class _AddressViewState extends State<AddressView> {
   Future<void> fetchRegions() async {
     try {
       regions = await _addressService.regions();
-      if (regions.isNotEmpty) {
-        setState(() {
+      setState(() {
+        // Clear the previous selections to avoid duplicates
+        if (selectedRegion != null && regions.any((region) => region['region_code'] == selectedRegion)) {
+          // Keep selectedRegion if it is still valid
+          selectedRegion = selectedRegion; 
+        } else if (regions.isNotEmpty) {
+          // Reset selectedRegion to the first one if not valid
           selectedRegion = regions[0]['region_code'];
-        });
-        await fetchProvinces(selectedRegion!);
-      }
+        } else {
+          selectedRegion = null; // Handle the case when there are no regions
+        }
+      });
     } catch (error) {
       print("Error fetching regions: $error");
     }
   }
 
- Future<void> fetchProvinces(String regionCode) async {
+Future<void> fetchProvinces(String regionCode) async {
   try {
     List<dynamic> fetchedProvinces = await _addressService.provinces(regionCode);
     setState(() {
-      provinces = fetchedProvinces;
-      if (provinces.isNotEmpty) {
-        selectedProvince = provinces[0]['province_code']; // Ensure this matches what dropdown expects
-        fetchCities(selectedProvince!);
+      provinces.clear(); // Clear previous provinces to avoid duplicates
+      provinces.addAll(fetchedProvinces);
+      // Reset selectedProvince if it's not found in the new list
+      if (provinces.any((province) => province['province_code'] == selectedProvince)) {
+        // If selectedProvince exists in the new provinces
+        selectedProvince = selectedProvince; 
       } else {
-        selectedProvince = null; // Reset selected province if empty
-        cities = []; // Clear cities if no provinces fetched
-        selectedCity = null; // Reset selected city
-        barangays = []; // Clear barangays
-        selectedBarangay = null; // Reset selected barangay
+        selectedProvince = provinces.isNotEmpty ? provinces[0]['province_code'] : null; // Default to first province
       }
     });
   } catch (error) {
     print("Error fetching provinces: $error");
-    // Handle error state or retry logic if necessary
   }
 }
 
@@ -128,27 +135,43 @@ Future<void> fetchCities(String provinceCode) async {
   try {
     List<dynamic> fetchedCities = await _addressService.cities(provinceCode);
     setState(() {
-      cities = fetchedCities;
-      if (cities.isNotEmpty) {
-        selectedCity = cities[0]['city_code']; // Ensure this matches what dropdown expects
+      cities.clear(); // Clear previous cities to avoid duplicates
+      cities.addAll(fetchedCities);
+      // Reset selectedCity if it's not found in the new list
+      if (cities.any((city) => city['city_code'] == selectedCity)) {
+        // If selectedCity exists in the new cities
+        selectedCity = selectedCity;
+      } else {
+        selectedCity = cities.isNotEmpty ? cities[0]['city_code'] : null; // Default to first city
+      }
+      // Fetch barangays based on the newly selected city
+      if (selectedCity != null) {
         fetchBarangays(selectedCity!);
       }
     });
   } catch (error) {
     print("Error fetching cities: $error");
-    // Handle error state or retry logic if necessary
   }
 }
-  Future<void> fetchBarangays(String cityCode) async {
-    try {
-      List<dynamic> fetchedBarangays = await _addressService.barangays(cityCode);
-      setState(() {
-        barangays = fetchedBarangays;
-      });
-    } catch (error) {
-      print("Error fetching barangays: $error");
-    }
+
+Future<void> fetchBarangays(String cityCode) async {
+  try {
+    List<dynamic> fetchedBarangays = await _addressService.barangays(cityCode);
+    setState(() {
+      barangays.clear(); // Clear previous barangays to avoid duplicates
+      barangays.addAll(fetchedBarangays);
+      // Reset selectedBarangay if it's not found in the new list
+      if (barangays.any((barangay) => barangay['brgy_code'] == selectedBarangay)) {
+        selectedBarangay = selectedBarangay; // Keep it as is if found
+      } else {
+        selectedBarangay = barangays.isNotEmpty ? barangays[0]['brgy_code'] : null; // Default to first barangay
+      }
+    });
+  } catch (error) {
+    print("Error fetching barangays: $error");
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
