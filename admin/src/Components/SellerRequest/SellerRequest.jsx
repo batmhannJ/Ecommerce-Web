@@ -1,7 +1,7 @@
 // src/Components/SellerRequest/SellerRequest.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import UserSearchBar from "../SearchBar/SearchBar";
+import SellerSearchBar from "../SearchBar/SellerSearchBar";
 import { toast } from "react-toastify";
 import "./SellerRequest.css";
 //import "./ViewUserModal.css";
@@ -11,6 +11,7 @@ function SellerRequest() {
   const [loading, setLoading] = useState(false);
   const [approving, setApproving] = useState(false);
   const [error, setError] = useState(null);
+  const [originalSellers, setOriginalSellers] = useState([]); // To keep original seller data
 
   const adminToken = localStorage.getItem("admin_token"); // Ensure the key matches when storing
 
@@ -31,7 +32,9 @@ function SellerRequest() {
           Authorization: `Bearer ${adminToken}`,
         },
       });
-      setSellers(Array.isArray(response.data) ? response.data : []); // Set sellers to response data
+      const fetchedSellers = Array.isArray(response.data) ? response.data : [];
+      setSellers(fetchedSellers);
+      setOriginalSellers(fetchedSellers); // Save the original list for filtering
     } catch (error) {
       console.error("Error fetching pending sellers:", error);
       setError("Failed to fetch pending sellers.");
@@ -61,6 +64,7 @@ function SellerRequest() {
         toast.success(`Seller ${response.data.seller.name} approved successfully.`);
         // Remove the approved seller from the list
         setSellers(sellers.filter((seller) => seller._id !== id));
+        setOriginalSellers(originalSellers.filter((seller) => seller._id !== id));
       } else {
         toast.error("Failed to approve seller.");
       }
@@ -83,6 +87,7 @@ function SellerRequest() {
         },
       });
       setSellers(sellers.filter((seller) => seller._id !== id));
+      setOriginalSellers(originalSellers.filter((seller) => seller._id !== id));
       toast.success("Seller deleted successfully.");
     } catch (error) {
       console.error("Error deleting seller:", error);
@@ -97,7 +102,7 @@ function SellerRequest() {
   return (
     <div className="seller-management-container">
       <h1>Manage Seller Requests</h1>
-      <UserSearchBar onSearch={handleSearch} />
+      <SellerSearchBar sellers={originalSellers} onSearch={handleSearch} /> {/* Pass sellers and search handler */}
       
       {loading ? (
         <p>Loading pending sellers...</p>
