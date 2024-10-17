@@ -3,5 +3,4 @@ enum ProductSize {
   m,
   l,
   xl,
-  xxl,
 }
