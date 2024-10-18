@@ -92,8 +92,6 @@ const MyOrders = () => {
         const response = await axios.get(
           `http://localhost:4000/api/transactions/userTransactions/${userId}`
         );
-        console.log("Response Status:", response.status);
-        console.log("Response Data:", response.data);
         const fetchedOrders = Array.isArray(response.data) ? response.data : [];
         const filteredOrders = fetchedOrders.filter(
           (order) => order.status !== "pending"
@@ -101,25 +99,24 @@ const MyOrders = () => {
         setOrders(filteredOrders);
         setFilteredOrders(filteredOrders);
       } catch (error) {
-        if (error.response) {
-          console.error("Error Response Data:", error.response.data);
-          console.error("Error Response Status:", error.response.status);
-          console.error("Error Response Headers:", error.response.headers);
-        } else if (error.request) {
-          // The request was made but no response was received
-          console.error("Error Request:", error.request);
-        } else {
-          // Something happened in setting up the request
-          console.error("Error Message:", error.message);
-        }
+        console.error("Error fetching orders:", error);
         toast.error("Error fetching orders.");
       } finally {
         setLoading(false);
       }
     };
 
+    // Initial fetch
     fetchOrders();
-  }, []);
+
+    // Poll every 1 second
+    const intervalId = setInterval(() => {
+      fetchOrders();
+    }, 1000);
+
+    // Cleanup on component unmount
+    return () => clearInterval(intervalId);
+  }, [userId]);
 
   // Handle search input change
   const handleSearchChange = (e) => {
