@@ -88,7 +88,7 @@ const ChangePassword = () => {
               id="oldpass"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              placeholder="Old Password"  // Placeholder instead of label
+              placeholder="Old Password" // Placeholder instead of label
               aria-required="true"
             />
           </div>
@@ -99,7 +99,7 @@ const ChangePassword = () => {
               id="newpass"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password"  // Placeholder instead of label
+              placeholder="New Password" // Placeholder instead of label
               aria-required="true"
             />
           </div>
@@ -110,7 +110,7 @@ const ChangePassword = () => {
               id="confirmpass"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm Password"  // Placeholder instead of label
+              placeholder="Confirm Password" // Placeholder instead of label
               aria-required="true"
             />
           </div>

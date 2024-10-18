@@ -33,11 +33,14 @@ const AccountSettings = () => {
 
       try {
         // Fetch user data for the currently logged-in user
-        const response = await fetch(`http://localhost:4000/api/users/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
+        const response = await fetch(
+          `http://localhost:4000/api/users/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -133,7 +136,9 @@ const AccountSettings = () => {
               aria-required="true"
             />
             {formErrors.phone && (
-              <span className="account-settings__error">{formErrors.phone}</span>
+              <span className="account-settings__error">
+                {formErrors.phone}
+              </span>
             )}
           </div>
 
@@ -150,7 +155,9 @@ const AccountSettings = () => {
               aria-required="true"
             />
             {formErrors.email && (
-              <span className="account-settings__error">{formErrors.email}</span>
+              <span className="account-settings__error">
+                {formErrors.email}
+              </span>
             )}
           </div>
 

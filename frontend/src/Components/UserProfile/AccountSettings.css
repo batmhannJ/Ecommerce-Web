@@ -55,12 +55,12 @@
 }
 
 .account-settings__form-group input:focus {
-  border-color: #BAC195; /* Use primary color on focus */
+  border-color: #bac195; /* Use primary color on focus */
   outline: none; /* Remove default outline */
 }
 
 .account-settings__error {
-  color: #FF0000; /* Use error color */
+  color: #ff0000; /* Use error color */
   font-size: 0.9rem;
   margin-top: 5px;
 }
@@ -68,7 +68,7 @@
 .account-settings__button {
   width: 100%;
   padding: 12px;
-  background-color: #BAC195; /* Use primary color */
+  background-color: #bac195; /* Use primary color */
   color: white;
   border: none;
   border-radius: 5px;

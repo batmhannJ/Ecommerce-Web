@@ -93,7 +93,7 @@
 
 .footer-logistics-item img {
   height: 30px; /* Set the height of logistics logos */
-  width: auto;  /* Maintain aspect ratio */
+  width: auto; /* Maintain aspect ratio */
 }
 
 .footer-social-links {
@@ -110,7 +110,7 @@
 
 .footer-social-link img {
   height: 30px; /* Set a consistent height for the social icons */
-  width: auto;  /* Maintain aspect ratio */
+  width: auto; /* Maintain aspect ratio */
 }
 
 .footer-social-link span {
@@ -162,4 +162,3 @@
     gap: 20px; /* Adjust gap for extra small screens */
   }
 }
-

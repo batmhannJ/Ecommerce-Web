@@ -105,6 +105,7 @@ const Orders = () => {
                     }
                     value={order.status}
                   >
+                    <option value="Paid">Paid</option>
                     <option value="Cart Processing">Cart Processing</option>
                     <option value="Out for Delivery">Out for Delivery</option>
                     <option value="Delivered">Delivered</option>
