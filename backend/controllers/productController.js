@@ -31,7 +31,7 @@ const updateProductStock = async (id, size, quantity) => {
         if (product.l_stock < quantity) throw new Error("Not enough stock");
         product.l_stock -= quantity;
         break;
-      case "Xl":
+      case "XL":
         if (product.xl_stock < quantity) throw new Error("Not enough stock");
         product.xl_stock -= quantity;
         break;
