@@ -255,7 +255,7 @@ export const CartItems = () => {
                 <div className="cartitems-quantity-controls">
                   <button
                     className="cartitems-quantity-button"
-                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.size, -1)}
+                    onClick={() => decreaseItemQuantity(groupedItem.product.id, groupedItem.size)}
                     >
                     -
                   </button>
