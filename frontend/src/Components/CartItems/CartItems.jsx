@@ -19,6 +19,7 @@ export const CartItems = () => {
     setCartItems, // Assuming there's a setCartItems function in context
     removeFromCart,
     updateQuantity,
+    decreaseItemQuantity,
     increaseItemQuantity,
   } = useContext(ShopContext);
   const navigate = useNavigate();
@@ -137,16 +138,18 @@ const saveCartToDatabase = async () => {
     const currentKey = `${productId}_${selectedSize}`;
     const currentQuantity = cartItems[currentKey]?.quantity || 0;
   
-    // Calculate new quantity
+    // Calculate the new quantity
     const newQuantity = currentQuantity + delta;
   
     if (newQuantity > 0) {
+      // Update quantity if newQuantity is greater than 0
       updateQuantity(currentKey, newQuantity);
-      saveCartToDatabase();
     } else {
-      removeFromCart(productId, selectedSize); 
-      saveCartToDatabase(); 
+      // If the new quantity is 0 or less, remove the item from the cart
+      removeFromCart(productId, selectedSize);
     }
+  
+    saveCartToDatabase(); // Save changes to the database after updating or removing the item
   };
   
 
@@ -234,7 +237,7 @@ const handleProceedToCheckout = async () => {
                 <div className="cartitems-quantity-controls">
                   <button
                     className="cartitems-quantity-button"
-                    onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.size, -1)}
+                    onClick={() => decreaseItemQuantity(groupedItem.product.id, groupedItem.size)}
                     >
                     -
                   </button>
@@ -252,7 +255,7 @@ const handleProceedToCheckout = async () => {
                 <img
                   className="cartitems-remove-icon"
                   src={remove_icon}
-                  onClick={() => handleQuantityChange(groupedItem.product.id, groupedItem.size, -groupedItem.quantity)}  // Set quantity to 0
+                  onClick={() => removeFromCart(groupedItem.product.id, groupedItem.size)} // Remove item completely
                   alt="Remove"
                 />
               </div>
