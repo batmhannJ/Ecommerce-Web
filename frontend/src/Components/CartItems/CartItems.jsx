@@ -20,6 +20,7 @@ export const CartItems = () => {
     removeFromCart,
     updateQuantity,
     increaseItemQuantity,
+    decreaseItemQuantity,
   } = useContext(ShopContext);
   const navigate = useNavigate();
   const [deliveryFee, setDeliveryFee] = useState(0);
@@ -253,10 +254,9 @@ export const CartItems = () => {
                 <button
                   className="cartitems-quantity-button"
                   onClick={() =>
-                    handleQuantityChange(
+                    decreaseItemQuantity(
                       groupedItem.product.id,
-                      groupedItem.size,
-                      -1
+                      groupedItem.size
                     )
                   }
                 >
