@@ -128,7 +128,7 @@ router.patch("/:id/approve", async (req, res) => {
   }
 });
 
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const deletedSeller = await Seller.findByIdAndDelete(id);

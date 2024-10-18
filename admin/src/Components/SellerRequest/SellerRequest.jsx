@@ -87,15 +87,21 @@ function SellerRequest() {
     if (!window.confirm("Are you sure you want to delete this seller?")) return;
 
     try {
-      await axios.delete(`http://localhost:4000/api/seller/${id}`, {
-        // Ensure 'sellers' is plural
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-        },
-      });
-      setSellers(sellers.filter((seller) => seller._id !== id));
-      setOriginalSellers(originalSellers.filter((seller) => seller._id !== id));
-      toast.success("Seller deleted successfully.");
+      const response = await axios.delete(
+        `http://localhost:4000/api/seller/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Seller deleted successfully.");
+        fetchPendingSellers();
+      } else {
+        toast.error("Failed to delete seller.");
+      }
     } catch (error) {
       console.error("Error deleting seller:", error);
       toast.error("Error deleting seller.");
