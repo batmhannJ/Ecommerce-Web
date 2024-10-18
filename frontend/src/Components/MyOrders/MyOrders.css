@@ -47,7 +47,8 @@
   border-collapse: collapse;
 }
 
-.order-table th, .order-table td {
+.order-table th,
+.order-table td {
   border: 1px solid #ddd;
   padding: 12px;
   text-align: left;

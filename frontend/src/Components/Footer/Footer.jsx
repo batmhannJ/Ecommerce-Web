@@ -1,41 +1,65 @@
-import React from 'react';
-import './Footer.css';
-import world_icon from '../Assets/world_icon.png';
-import facebook_icon from '../Assets/facebook_icon.png';
-import twitter_icon from '../Assets/t.png'; // Add Twitter icon
-import linkedin_icon from '../Assets/in.png'; // Add LinkedIn icon
-import paymaya_logo from '../Assets/maya.jpg';
-import visa_logo from '../Assets/visa.jpg';
-import mastercard_logo from '../Assets/mc.jpg';
-import flash_express_logo from '../Assets/2.png';
-import jt_logo from '../Assets/3.png';
-import two_go_express_logo from '../Assets/1.png';
-import spx_logo from '../Assets/4.png';
+import React from "react";
+import "./Footer.css";
+import world_icon from "../Assets/world_icon.png";
+import facebook_icon from "../Assets/facebook_icon.png";
+import twitter_icon from "../Assets/t.png"; // Add Twitter icon
+import linkedin_icon from "../Assets/in.png"; // Add LinkedIn icon
+import paymaya_logo from "../Assets/maya.jpg";
+import visa_logo from "../Assets/visa.jpg";
+import mastercard_logo from "../Assets/mc.jpg";
+import flash_express_logo from "../Assets/2.png";
+import jt_logo from "../Assets/3.png";
+import two_go_express_logo from "../Assets/1.png";
+import spx_logo from "../Assets/4.png";
 
 const Footer = () => {
   return (
-    <div className='footer'>
+    <div className="footer">
       <div className="footer-sections">
         <div className="footer-column">
           <h3>Customer Service</h3>
           <ul>
-            <li><a href="#help">Help Center</a></li>
-            <li><a href="#payment">Payment Methods</a></li>
-            <li><a href="#cares">Tienda Cares PH</a></li>
-            <li><a href="#order">Order Tracking</a></li>
-            <li><a href="#contact">Contact Us</a></li>
-            <li><a href="#shipping">Free Shipping</a></li>
+            <li>
+              <a href="#help">Help Center</a>
+            </li>
+            <li>
+              <a href="#payment">Payment Methods</a>
+            </li>
+            <li>
+              <a href="#cares">Tienda Cares PH</a>
+            </li>
+            <li>
+              <a href="#order">Order Tracking</a>
+            </li>
+            <li>
+              <a href="#contact">Contact Us</a>
+            </li>
+            <li>
+              <a href="#shipping">Free Shipping</a>
+            </li>
           </ul>
         </div>
         <div className="footer-column">
           <h3>About</h3>
           <ul>
-          <li><a href="#about">About Us</a></li>
-            <li><a href="Offices">Our Offices</a></li>
-            <li><a href="#careers">Tienda Careers</a></li>
-            <li><a href="#flash">Flash Deals</a></li>
-            <li><a href="#privacy">Privacy Policy</a></li>
-            <li><a href="#terms">Terms of Service</a></li>
+            <li>
+              <a href="#about">About Us</a>
+            </li>
+            <li>
+              <a href="Offices">Our Offices</a>
+            </li>
+            <li>
+              <a href="#careers">Tienda Careers</a>
+            </li>
+            <li>
+              <a href="#flash">Flash Deals</a>
+            </li>
+            <li>
+              <a href="#privacy">Privacy Policy</a>
+            </li>
+            <li>
+              <a href="#terms">Terms of Service</a>
+            </li>
           </ul>
         </div>
         <div className="footer-column">
@@ -87,6 +111,6 @@ const Footer = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Footer;

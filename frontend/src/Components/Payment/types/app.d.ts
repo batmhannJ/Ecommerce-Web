@@ -1,4 +1,4 @@
 type AppState = {
-    cart: Cart,
-    currentUser: User
-}
+  cart: Cart;
+  currentUser: User;
+};

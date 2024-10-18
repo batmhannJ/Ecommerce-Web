@@ -243,14 +243,14 @@ export const PlaceOrder = () => {
 
   const handleProceedToCheckout = async (event) => {
     event.preventDefault(); // Prevent form's native submission behavior
-      // Check if the address fields are filled
-      if (!data.street || !data.city || !data.state || !data.zipcode) {
-        toast.error(
-          "Please provide your complete address to proceed with checkout. You can set up or edit your address in the Profile menu."
-        );
-        return; // Prevent proceeding to checkout if validation fails
-      }
-    
+    // Check if the address fields are filled
+    if (!data.street || !data.city || !data.state || !data.zipcode) {
+      toast.error(
+        "Please provide your complete address to proceed with checkout. You can set up or edit your address in the Profile menu."
+      );
+      return; // Prevent proceeding to checkout if validation fails
+    }
+
     if (token) {
       const requestReferenceNumber = generateReferenceNumber(); // This is your transaction ID
       console.log("Generated Transaction ID:", requestReferenceNumber);
@@ -261,7 +261,6 @@ export const PlaceOrder = () => {
         quantity: item.quantity,
         size: item.size,
       }));
-      
 
       console.log("Cart Details:", itemDetails); // Ensure this logs correctly
 
@@ -375,7 +374,7 @@ export const PlaceOrder = () => {
 
           const updateStock = async () => {
             try {
-              const stockUpdates = cartDetails.map(item => ({
+              const stockUpdates = cartDetails.map((item) => ({
                 id: item.id.toString(),
                 size: item.size,
                 quantity: item.quantity,
@@ -440,12 +439,7 @@ export const PlaceOrder = () => {
   }, [location]);
 
   return (
-    <form
-      noValidate onSubmit = {
-        handleProceedToCheckout
-      }
-      className="place-order"
-    >
+    <form noValidate onSubmit={handleProceedToCheckout} className="place-order">
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
         <div className="multi-fields">
