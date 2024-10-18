@@ -21,7 +21,6 @@ export const CartItems = () => {
     updateQuantity,
     decreaseItemQuantity,
     increaseItemQuantity,
-    decreaseItemQuantity,
   } = useContext(ShopContext);
   const navigate = useNavigate();
   const [deliveryFee, setDeliveryFee] = useState(0);
