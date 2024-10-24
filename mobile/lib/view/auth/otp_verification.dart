@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:http/http.dart' as http;
+import 'package:indigitech_shop/view/cart_view.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:indigitech_shop/view/profile_view.dart';
+import 'package:indigitech_shop/view/address_view.dart'; // Import your AddressView
+
 
 class OTPVerificationScreen extends StatefulWidget {
   final String email;
@@ -35,11 +38,23 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         if (userId != null) {
           // Store the user ID in local storage
           await _storeUserId(userId);
+          await _storeLoginStatus(true); // Set login status to true
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ProfileView()), // Navigate to ProfileView
-          );
+         // Check if the user has an address set up
+          bool hasAddress = await _checkUserAddress(userId); // New method to check address
+          if (hasAddress) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CartView()),
+            );
+          } else {
+            // Navigate to AddressView with a message
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddressView()),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("User ID not found. Please try again.")),
@@ -54,6 +69,35 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter the OTP.")),
       );
+    }
+  }
+
+  Future<void> _storeLoginStatus(bool isLoggedIn) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', isLoggedIn); // Store login status
+  print("Login status stored: $isLoggedIn"); // Debug line
+}
+
+Future<bool> _checkUserAddress(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:4000/check-user-address'), // Endpoint to check user address
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'userId': userId}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['hasAddress']; // Assuming the response contains this field
+      } else {
+        print("Error checking address: ${response.statusCode}, ${response.body}");
+        return false; // Return false if the request fails
+      }
+    } catch (e) {
+      print("Exception while checking address: $e");
+      return false; // Return false on exception
     }
   }
 

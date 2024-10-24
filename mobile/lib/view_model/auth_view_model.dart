@@ -24,6 +24,18 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+Future<void> logins() async {
+    // Simulate a login process (e.g., API call)
+    await Future.delayed(Duration(seconds: 2)); // Simulate a delay
+    _isLoggedIn = true; // Set logged in state after a successful login
+    notifyListeners(); // Notify listeners of the change
+  }
+
+ set isLoggedIn(bool value) {
+    _isLoggedIn = value; // Setter for isLoggedIn
+    notifyListeners(); // Notify listeners if you're using ChangeNotifier
+  }
+
   void setUser(User newUser) {
     _user = newUser;
     notifyListeners();

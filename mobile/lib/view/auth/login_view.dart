@@ -91,9 +91,8 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
+    return Material(
+      child: 
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
           color: AppColors.primary,
@@ -236,7 +235,6 @@ class _LoginViewState extends State<LoginView> {
             ),
           ),
         ),
-      ],
     );
   }
 }

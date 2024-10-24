@@ -1195,6 +1195,27 @@ app.post('/updatepassword-mobile/:id', async (req, res) => {
   }
 });
 
+// Check user address endpoint
+app.post('/check-user-address', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await Users.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.address) {
+      return res.status(200).json({ addressExists: false, message: "No address found. Please set up your address first." });
+    }
+
+    return res.status(200).json({ addressExists: true, address: user.address });
+  } catch (error) {
+    console.error("Error checking user address:", error);
+    return res.status(500).json({ message: "Error checking user address" });
+  }
+});
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);

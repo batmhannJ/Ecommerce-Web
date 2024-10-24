@@ -46,5 +46,15 @@ class CartViewModel with ChangeNotifier {
       }
     }
     notifyListeners();
+    
+  }
+  bool _isLoggedIn = false;
+  bool get isLoggedIn => _isLoggedIn;
+
+  Future<void> logins() async {
+    // Simulate a login process (e.g., API call)
+    await Future.delayed(Duration(seconds: 2)); // Simulate a delay
+    _isLoggedIn = true; // Set logged in state after a successful login
+    notifyListeners(); // Notify listeners of the change
   }
 }

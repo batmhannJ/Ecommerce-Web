@@ -87,7 +87,7 @@ class _ProductViewState extends State<ProductView> {
                               : AppTextStyles.body1,
                         ),
                       ),
-                      if (widget.product.discount != 0)
+                      if (widget.product.discount!= 0)
                         Text(
                           '₱${widget.product.price - (widget.product.price * widget.product.discount)}',
                           style: AppTextStyles.body1

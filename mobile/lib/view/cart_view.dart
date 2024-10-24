@@ -5,7 +5,8 @@ import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/form_styles.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/view/address_view.dart';
-import 'package:indigitech_shop/view/auth/auth_view.dart';
+import 'package:indigitech_shop/view/auth/login_view.dart';
+import 'package:indigitech_shop/view/auth/signup_view.dart';
 import 'package:indigitech_shop/view/checkout_view.dart';
 import 'package:indigitech_shop/widget/product_list.dart';
 import 'package:indigitech_shop/view_model/address_view_model.dart';
@@ -14,9 +15,11 @@ import 'package:indigitech_shop/view_model/cart_view_model.dart';
 import 'package:indigitech_shop/widget/form_fields/custom_text_form_field.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../model/product.dart';
 import '../widget/buttons/custom_filled_button.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class CartView extends StatefulWidget {
   const CartView({super.key});
@@ -26,56 +29,107 @@ class CartView extends StatefulWidget {
 }
 
 class _CartViewState extends State<CartView> {
- @override
-Widget build(BuildContext context) {
-  List<MapEntry<Product, int>> items =
-      context.select<CartViewModel, List<MapEntry<Product, int>>>(
-    (value) => value.items,
-  );
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
 
-  return Stack(
-    fit: StackFit.expand,
-    children: [
-      Container(
+void _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+    if (!isLoggedIn) {
+      final authViewModel = context.watch<AuthViewModel>(); // Get the AuthViewModel instance
+
+      // Redirect to LoginView if not logged in
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginView(
+            onLogin: () async {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('isLoggedIn', true);  // Save login state
+            _navigateToNextStep();
+        },
+          onCreateAccount: () {
+            // Navigate to the Signup View
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => SignupView(onLogin: () {
+                _navigateToNextStep(); // Redirect after account creation
+              })),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+  void _navigateToNextStep() {
+    // Check if the user has an address set, if not redirect to AddressView
+    final addressViewModel = context.read<AuthViewModel>();
+    if (addressViewModel.address == null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const AddressView()),
+      );
+    } else {
+      // Otherwise proceed to checkout
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const CheckoutView()),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<MapEntry<Product, int>> items = context.select<CartViewModel, List<MapEntry<Product, int>>>(
+      (value) => value.items,
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Cart'),
+        backgroundColor: AppColors.primary,
+      ),
+      body: Container(
         color: AppColors.lightGrey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20), // Adjust padding for spacing
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Add the "CART" title here
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0), // Vertical padding for "CART"
-                child: Center( // Center the container itself in the parent column
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Center(
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.9, // Set width to 90% of screen width
-                    height: 50.0, // Set a specific height for the container
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    height: 50.0,
                     decoration: BoxDecoration(
-                      color: Colors.white, // Set container color to white
-                      borderRadius: BorderRadius.circular(10.0), // Reduced border radius
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10.0),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1), // Light shadow color
-                          blurRadius: 5.0, // Reduced blur radius
-                          offset: const Offset(0, 2), // Adjusted shadow offset
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 5.0,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(10.0), // Padding around the text
-                    child: Center( // Center the text within the container
+                    padding: const EdgeInsets.all(10.0),
+                    child: Center(
                       child: Text(
-                        'CART', // Title for the cart section
-                        style: AppTextStyles.headline5.copyWith( // Use a headline style
+                        'CART',
+                        style: AppTextStyles.headline5.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black, // Change text color to black for contrast
-                          fontSize: 24.0, // Maintain the original font size
+                          color: Colors.black,
+                          fontSize: 24.0,
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-              // Existing cart items list
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -84,44 +138,44 @@ Widget build(BuildContext context) {
                   MapEntry<Product, int> item = items[index];
 
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 12), // Space between list items
-                    padding: const EdgeInsets.all(10), // Padding for content spacing
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8), // Add rounded corners
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.05),
                           blurRadius: 5,
-                          offset: const Offset(0, 3), // Subtle shadow for depth
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.all(8), // Add padding inside the list tile
+                      contentPadding: const EdgeInsets.all(8),
                       leading: GestureDetector(
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => ProductList(products: [item.key]), // Wrap item.key in a list
+                              builder: (context) => ProductList(products: [item.key]),
                             ),
                           );
                         },
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(6), // Rounded image corners
+                          borderRadius: BorderRadius.circular(6),
                           child: Image.asset(
                             item.key.images.first,
                             width: 50,
-                            fit: BoxFit.cover, // Ensures image scaling is consistent
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
                       title: Text(
                         item.key.name,
-                        overflow: TextOverflow.ellipsis, // Better text handling for long product names
+                        overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.body2.copyWith(
                           fontWeight: FontWeight.w600,
-                          fontSize: 14, // Slightly smaller for compact display
+                          fontSize: 14,
                         ),
                       ),
                       subtitle: Padding(
@@ -132,16 +186,16 @@ Widget build(BuildContext context) {
                             Builder(
                               builder: (context) {
                                 return Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4), // Add padding for aesthetics
+                                  padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.transparent, // Background color if needed
-                                    borderRadius: BorderRadius.circular(4), // Rounded corners for the container
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
                                     "₱${context.read<CartViewModel>().totalItemPrice(item.key)}",
                                     style: AppTextStyles.body2.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black, // Changed to standard color
+                                      color: Colors.black,
                                     ),
                                   ),
                                 );
@@ -157,14 +211,12 @@ Widget build(BuildContext context) {
                   );
                 },
               ),
-              const SizedBox(height: 20), // Increase spacing between list and totals section
-              
-              // Cart Totals Section wrapped in Container
+              const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.all(16), // Add padding for the container
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white, // Background color for the totals section
-                  borderRadius: BorderRadius.circular(8), // Rounded corners
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -179,7 +231,7 @@ Widget build(BuildContext context) {
                     Text(
                       "Cart Totals",
                       style: AppTextStyles.headline5.copyWith(
-                        fontSize: 18, // Bold and larger font for "Cart Totals"
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -205,7 +257,7 @@ Widget build(BuildContext context) {
                       child: Divider(
                         color: AppColors.greyAD.withAlpha(100),
                         height: 0,
-                        thickness: 1.5, // Thinner divider for a more refined look
+                        thickness: 1.5,
                       ),
                     ),
                     Row(
@@ -220,7 +272,7 @@ Widget build(BuildContext context) {
                           style: AppTextStyles.body2.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green, // Green for positive 'Free' indication
+                            color: Colors.green,
                           ),
                         ),
                       ],
@@ -240,7 +292,7 @@ Widget build(BuildContext context) {
                           "Total",
                           style: AppTextStyles.subtitle1.copyWith(
                             fontWeight: FontWeight.w600,
-                            fontSize: 16, // Make 'Total' text slightly larger
+                            fontSize: 16,
                           ),
                         ),
                         Text(
@@ -257,35 +309,46 @@ Widget build(BuildContext context) {
                       disabled: items.isEmpty,
                       text: "PROCEED TO CHECKOUT",
                       textStyle: AppTextStyles.button,
-                      height: 50, // Slightly increased button height for better tap target
+                      height: 50,
                       fillColor: AppColors.red,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14), // Adjusted button padding
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                       command: () async {
-                        if (!context.read<AuthViewModel>().isLoggedIn) {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const AuthView(),
-                            ),
-                          );
-                        }
+                        final authViewModel = context.read<AuthViewModel>();
 
-                        if (context.mounted &&
-                            context.read<AddressViewModel>().address == null &&
-                            context.read<AuthViewModel>().isLoggedIn) {
-                          await Navigator.of(context).push(
+                        if (!authViewModel.isLoggedIn) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("You need to log in to proceed to checkout")),
+                          );
+                          await Navigator.push(
+                            context,
                             MaterialPageRoute(
-                              builder: (context) => const AddressView(),
+                              builder: (context) => LoginView(
+                                onLogin: () async {
+                                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                                    await prefs.setBool('isLoggedIn', true);  // Save login state
+                                    _navigateToNextStep();
+                                },   
+                                onCreateAccount: () {
+                                    // Navigate to the Signup View
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (context) => SignupView(onLogin: () { _navigateToNextStep(); 
+                                      })),
+                                    );
+                                  },
+                              ),
                             ),
                           );
-                        }
-
-                        if (context.mounted &&
-                            context.read<AddressViewModel>().address != null) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const CheckoutView(),
-                            ),
-                          );
+                        } else {
+                          final addressViewModel = context.read<AuthViewModel>();
+                          if (addressViewModel.address == null) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const AddressView()),
+                            );
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const CheckoutView()),
+                            );
+                          }
                         }
                       },
                     ),
@@ -296,68 +359,12 @@ Widget build(BuildContext context) {
           ),
         ),
       ),
-    ],
-  );
-}
-
-
-}
-
-class PromoCodeForm extends StatefulWidget {
-  const PromoCodeForm({super.key});
-
-  @override
-  State<PromoCodeForm> createState() => _PromoCodeFormState();
-}
-
-class _PromoCodeFormState extends State<PromoCodeForm> {
-  final _promoCodeController = TextEditingController();
-
-  @override
-  void dispose() {
-    _promoCodeController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "If you have a promo code, Enter it here",
-            style: AppTextStyles.body2,
-          ),
-          const Gap(10),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextFormField(
-                  controller: _promoCodeController,
-                  formStyle: FormStyle(
-                    textStyle: AppTextStyles.body1,
-                    fillColor: AppColors.greyAD.withAlpha(100),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                  ),
-                  height: 48,
-                  hintText: "promo code",
-                ),
-              ),
-              CustomButton(
-                text: "Submit",
-                textStyle: AppTextStyles.button,
-                command: () {},
-                height: 48,
-                fillColor: AppColors.black,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
+}
+
+extension on String? {
+  Null get first => null;
 }
 
 class QuantitySelector extends StatelessWidget {

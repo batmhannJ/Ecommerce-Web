@@ -9,6 +9,8 @@ import 'package:indigitech_shop/services/address_service.dart';
 import '../core/style/form_styles.dart';
 import '../widget/buttons/custom_filled_button.dart';
 import '../widget/form_fields/custom_text_form_field.dart';
+import 'package:indigitech_shop/view/checkout_view.dart'; // Import your AddressView
+
 
 class AddressView extends StatefulWidget {
   const AddressView({super.key});
@@ -172,6 +174,15 @@ Future<void> fetchBarangays(String cityCode) async {
   }
 }
 
+  void _proceedToPayment() {
+    // Navigate to your payment screen here
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CheckoutView()), // Assuming you have a PaymentView class
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -333,6 +344,17 @@ DropdownButtonFormField(
                 },
                 child: const Text("Update Address"),
               ),
+              // Proceed to Payment Button
+            const Gap(15),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: _proceedToPayment, // Call the method to navigate to payment
+              child: const Text("Proceed to Payment"),
+            ),
             ],
           ),
         ),

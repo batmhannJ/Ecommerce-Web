@@ -2,19 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/cart_view.dart';
+import 'package:indigitech_shop/view/checkout_view.dart';
 import 'package:indigitech_shop/view/home/home_view.dart';
+import 'package:indigitech_shop/view/auth/login_view.dart';
+import 'package:indigitech_shop/view/auth/signup_view.dart';
 import 'package:indigitech_shop/view/profile_view.dart';
 import 'package:indigitech_shop/view_model/address_view_model.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:indigitech_shop/view_model/cart_view_model.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
-// For defaultTargetPlatform
-
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => CartViewModel()),
+        ChangeNotifierProvider(create: (context) => AuthViewModel()),
+        ChangeNotifierProvider(create: (context) => AddressViewModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -33,34 +44,15 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  final List<Widget> _screens = <Widget>[
-    const HomeView(),
-    const CartView(),
-    const ProfileView(),
-  ];
-
   @override
-Widget build(BuildContext context) {
-  return MultiProvider(
-    providers: [
-      ChangeNotifierProvider(
-        create: (context) => CartViewModel(),
-      ),
-      ChangeNotifierProvider(
-        create: (context) => AuthViewModel(),
-      ),
-      ChangeNotifierProvider(
-        create: (context) => AddressViewModel(),
-        child: const MyApp(),
-      ),
-    ],
-    child: MaterialApp(
+  Widget build(BuildContext context) {
+    return MaterialApp(
       title: 'Tienda',
       home: SafeArea(
         child: Scaffold(
           body: IndexedStack(
             index: _selectedIndex,
-            children: _screens,
+            children: _screens(context),
           ),
           bottomNavigationBar: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -122,8 +114,40 @@ Widget build(BuildContext context) {
         return MediaQuery.withNoTextScaling(
             child: child ?? const SizedBox.shrink());
       },
-    ),
-  );
-}
+    );
+  }
 
+  List<Widget> _screens(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>(); // Get the AuthViewModel instance
+
+    return <Widget>[
+      const HomeView(),
+      const CartView(),
+      const ProfileView(),
+      LoginView(
+        onLogin: () {
+          authViewModel.logins().then((_) {
+            if (authViewModel.isLoggedIn) {
+              final addressViewModel = context.read<AddressViewModel>();
+              if (addressViewModel.address == null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const AddressView()),
+                );
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const CheckoutView()),
+                );
+              }
+            }
+          });
+        },
+        onCreateAccount: () {
+          // Navigate to the Signup View
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => SignupView(onLogin: () { authViewModel.logins; },)),
+          );
+        },
+      ),
+    ];
+  }
 }
