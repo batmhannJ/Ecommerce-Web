@@ -33,13 +33,13 @@ dependencies:
   carousel_slider: ^5.0.0
   ensure_visible_when_focused: ^1.2.0
   dropdown_button2: ^2.3.9
-  flutter_recaptcha_v2_compat: ^1.0.5
+  #flutter_recaptcha_v2_compat: ^1.0.5
   flutter_inappwebview: ^6.0.0
   http: ^1.2.2
   shared_preferences: ^2.0.0
   fluttertoast: ^8.1.1
   url_launcher: ^6.3.1
-
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:

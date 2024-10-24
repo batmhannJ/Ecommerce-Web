@@ -17,6 +17,8 @@ import '../widget/buttons/custom_filled_button.dart';
 import 'package:indigitech_shop/view/checkout_result.dart';
 // ignore: depend_on_referenced_packages
 import 'package:url_launcher/url_launcher.dart'; // Add this import for URL launching
+// ignore: depend_on_referenced_packages
+import 'package:intl/intl.dart';
 
 
 class CheckoutView extends StatelessWidget {
@@ -105,33 +107,37 @@ class CheckoutView extends StatelessWidget {
     );
   }
 
-  Widget orderDetailsCard() => InfoCard(
-        title: "ORDER DETAILS",
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Date",
-              style: AppTextStyles.body2
-                  .copyWith(fontWeight: AppFontWeights.semiBold),
-            ),
-            Text(
-              "July 21, 2024",
-              style: AppTextStyles.body2,
-            ),
-            const Gap(10),
-            Text(
-              "Order Number",
-              style: AppTextStyles.body2
-                  .copyWith(fontWeight: AppFontWeights.semiBold),
-            ),
-            Text(
-              "072102",
-              style: AppTextStyles.body2,
-            ),
-          ],
+  Widget orderDetailsCard() {
+  // Get the current date and format it
+  String formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
+
+  return InfoCard(
+    title: "ORDER DETAILS",
+    content: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Date",
+          style: AppTextStyles.body2.copyWith(fontWeight: AppFontWeights.semiBold),
         ),
-      );
+        Text(
+          formattedDate, // Use the formatted date here
+          style: AppTextStyles.body2,
+        ),
+        const Gap(10),
+        Text(
+          "Order Number",
+          style: AppTextStyles.body2.copyWith(fontWeight: AppFontWeights.semiBold),
+        ),
+        Text(
+          "072102", // Keep this as is or modify if necessary
+          style: AppTextStyles.body2,
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget itemsOrderedCard(BuildContext context) {
     List<MapEntry<Product, int>> items =
