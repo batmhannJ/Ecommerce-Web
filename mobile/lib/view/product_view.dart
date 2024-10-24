@@ -8,7 +8,7 @@ import 'package:indigitech_shop/view_model/cart_view_model.dart';
 import 'package:indigitech_shop/widget/buttons/custom_filled_button.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constant/enum/product_size.dart';
 import '../products.dart';
 import '../model/product.dart';
@@ -43,6 +43,20 @@ class _ProductViewState extends State<ProductView> {
                 .isNotEmpty)
         .toList();
     super.initState();
+  }
+
+  // Function to save cart items to SharedPreferences
+  Future<void> _saveToCart(Product product) async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Retrieve existing cart items
+    List<String>? cartItems = prefs.getStringList('cart') ?? [];
+    
+    // Add the new product to the cart (you may need to convert the product to a String or JSON)
+    cartItems.add(product.name); // Simplified, you may want to serialize the whole product
+    
+    // Save updated cart
+    await prefs.setStringList('cart', cartItems);
   }
 
   @override
@@ -121,6 +135,7 @@ class _ProductViewState extends State<ProductView> {
                     textStyle: AppTextStyles.button,
                     command: () {
                       context.read<CartViewModel>().addItem(widget.product);
+                      _saveToCart(widget.product); // Save to SharedPreferences
                     },
                     height: 48,
                     fillColor: AppColors.red,

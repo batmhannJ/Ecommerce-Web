@@ -9,7 +9,7 @@ import 'package:indigitech_shop/services/address_service.dart';
 import '../core/style/form_styles.dart';
 import '../widget/buttons/custom_filled_button.dart';
 import '../widget/form_fields/custom_text_form_field.dart';
-import 'package:indigitech_shop/view/checkout_view.dart'; // Import your AddressView
+import 'package:indigitech_shop/view/cart_view.dart'; // Import your AddressView
 
 
 class AddressView extends StatefulWidget {
@@ -175,10 +175,17 @@ Future<void> fetchBarangays(String cityCode) async {
 }
 
   void _proceedToPayment() {
-    // Navigate to your payment screen here
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CheckoutView()), // Assuming you have a PaymentView class
+    final authViewModel = context.read<AuthViewModel>();  // Using read() to avoid listening
+    final currentUser = authViewModel.user; 
+    final userAddress = authViewModel.address;
+
+    authViewModel.isLoggedIn = true; // Gamitin ang setter para sa isLoggedIn
+ // Fetch the logged-in user
+      // Navigate to your payment screen here
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CartView(user: currentUser, address: userAddress, // Pass the user address details here
+)), // Assuming you have a PaymentView class
     );
   }
 

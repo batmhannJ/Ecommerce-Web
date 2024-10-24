@@ -6,15 +6,76 @@ import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/address_view_model.dart';
+import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
-
+import 'package:http/http.dart' as http; // Add this import
+import 'dart:convert';
 import '../model/address.dart';
 import '../model/product.dart';
 import '../view_model/cart_view_model.dart';
 import '../widget/buttons/custom_filled_button.dart';
+import 'package:indigitech_shop/view/checkout_result.dart';
+// ignore: depend_on_referenced_packages
+import 'package:url_launcher/url_launcher.dart'; // Add this import for URL launching
+
 
 class CheckoutView extends StatelessWidget {
   const CheckoutView({super.key});
+
+  Future<void> proceedToPayment(BuildContext context) async {
+  final cartViewModel = context.read<CartViewModel>();
+  final subtotal = cartViewModel.getSubtotal();
+
+  // Prepare your payment request data here
+  final paymentData = {
+    //"intent": "SALE",
+    "totalAmount": { // Correctly specify totalAmount as an object
+      "currency": "PHP",
+      "value": subtotal.toString(), // Ensure subtotal is a string
+    },
+    "requestReferenceNumber": DateTime.now().millisecondsSinceEpoch.toString(), // Generate a unique request reference number
+  };
+
+  const publicKey = 'pk-NCLk7JeDbX1m22ZRMDYO9bEPowNWT5J4aNIKIbcTy2a'; // Replace with your public key
+  const secretKey = '8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi'; // Replace with your secret key
+  final auth = base64Encode(utf8.encode('$publicKey:$secretKey'));
+
+
+  final response = await http.post(
+    Uri.parse("https://pg-sandbox.paymaya.com/checkout/v1/checkouts"),
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Basic $auth", // Set Authorization header
+    },
+    body: json.encode(paymentData),
+  );
+
+  if (response.statusCode == 200) {
+    final responseData = json.decode(response.body);
+    final checkoutUrl = responseData['redirectUrl']; // Extract the redirect URL
+
+    // Launch the PayMaya checkout URL
+    // ignore: deprecated_member_use
+    if (await canLaunch(checkoutUrl)) {
+      // ignore: deprecated_member_use
+      await launch(checkoutUrl);
+    } else {
+      // Handle the error if the URL cannot be launched
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CheckoutFailureView()),
+      );
+      print('Could not launch $checkoutUrl');
+    }
+  }  else {
+   // Handle failure - navigate to CheckoutFailureView
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CheckoutFailureView()),
+    );
+    print('Payment failed: ${response.body}');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +197,7 @@ class CheckoutView extends StatelessWidget {
   }
 
   Widget shippingInformationCard(BuildContext context) {
-    Address address = context.read<AddressViewModel>().address!;
+    Address address = context.read<AuthViewModel>().address!;
 
     return InfoCard(
       title: "SHIPPING INFORMATION",
@@ -224,13 +285,10 @@ class CheckoutView extends StatelessWidget {
                   isExpanded: true,
                   text: "Proceed",
                   textStyle: AppTextStyles.button,
-                  command: () {
-
-                  },
+                  command: () => proceedToPayment(context), // Call the payment function here
                   height: 48,
                   fillColor: AppColors.red,
-                  contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
               ),
             ],
