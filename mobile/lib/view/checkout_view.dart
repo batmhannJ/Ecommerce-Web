@@ -59,6 +59,10 @@ class CheckoutView extends StatelessWidget {
     if (await canLaunch(checkoutUrl)) {
       // ignore: deprecated_member_use
       await launch(checkoutUrl);
+       Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CheckoutSuccessView()), // Navigate on successful payment
+      );
     } else {
       // Handle the error if the URL cannot be launched
       Navigator.push(
