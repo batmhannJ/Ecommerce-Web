@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:http/http.dart' as http;
 import 'package:indigitech_shop/view/cart_view.dart';
+import 'package:indigitech_shop/view/home/home_view.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:indigitech_shop/view/profile_view.dart';
 import 'package:indigitech_shop/view/address_view.dart'; // Import your AddressView
+
 
 
 class OTPVerificationScreen extends StatefulWidget {
@@ -25,52 +27,53 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   final _otpController = TextEditingController();
 
   Future<void> _verifyOTP() async {
-    String otp = _otpController.text.trim(); // Trim the OTP input
+  String otp = _otpController.text.trim(); // Trim the OTP input
 
-    if (otp.isNotEmpty) {
-      bool isVerified = await _verifyOTPRequest(widget.email, otp);
-      if (isVerified) {
-        // Call the onOTPVerified callback
-        widget.onOTPVerified();
+  if (otp.isNotEmpty) {
+    bool isVerified = await _verifyOTPRequest(widget.email, otp);
+    if (isVerified) {
+      // Redirect to HomeView after successful OTP verification
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
+      );
 
-        // Fetch userId after OTP verification
-        String? userId = await _fetchUserId(widget.email);
-        if (userId != null) {
-          // Store the user ID in local storage
-          await _storeUserId(userId);
-          await _storeLoginStatus(true); // Set login status to true
+      // Call the onOTPVerified callback (optional, if needed elsewhere)
+      widget.onOTPVerified();
 
-         // Check if the user has an address set up
-          bool hasAddress = await _checkUserAddress(userId); // New method to check address
-          if (hasAddress) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const CartView()),
-            );
-          } else {
-            // Navigate to AddressView with a message
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AddressView()),
-            );
-          }
+      // Fetch userId after OTP verification
+      String? userId = await _fetchUserId(widget.email);
+      if (userId != null) {
+        // Store the user ID and other details in SharedPreferences
+        await _storeUserId(userId);
+        await _storeLoginStatus(true); // Set login status to true
+
+        // Optionally check if the user has an address set up
+        bool hasAddress = await _checkUserAddress(userId);
+        if (hasAddress) {
+          print("User has an address, proceed with the flow.");
+          // You can proceed with CartView or other logic here
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("User ID not found. Please try again.")),
-          );
+          print("User does not have an address, proceed to address setup.");
+          // You can display a notification or message about setting the address
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid OTP. Please try again.")),
+          const SnackBar(content: Text("User ID not found. Please try again.")),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter the OTP.")),
+        const SnackBar(content: Text("Invalid OTP. Please try again.")),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter the OTP.")),
+    );
   }
+}
+
 
   Future<void> _storeLoginStatus(bool isLoggedIn) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();

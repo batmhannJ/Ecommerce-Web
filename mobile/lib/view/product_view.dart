@@ -5,6 +5,9 @@ import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/view_model/cart_view_model.dart';
+import 'package:indigitech_shop/view/auth/login_view.dart';
+import 'package:indigitech_shop/view/auth/signup_view.dart';
+import 'package:indigitech_shop/view/home/home_view.dart';
 import 'package:indigitech_shop/widget/buttons/custom_filled_button.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +18,8 @@ import '../model/product.dart';
 // import '../widget/image_carousel.dart';
 import '../widget/product_list.dart';
 import 'layout/default_view_layout.dart';
+import 'package:indigitech_shop/view_model/auth_view_model.dart';
+
 
 class ProductView extends StatefulWidget {
   final Product product;
@@ -129,18 +134,70 @@ class _ProductViewState extends State<ProductView> {
                     ),
                   const Gap(20),
                   CustomButton(
-                    disabled: _selectedSize == null &&
-                        widget.product.sizes.isNotEmpty,
+                    disabled: _selectedSize == null && widget.product.sizes.isNotEmpty,
                     text: "ADD TO CART",
                     textStyle: AppTextStyles.button,
-                    command: () {
-                      context.read<CartViewModel>().addItem(widget.product);
-                      _saveToCart(widget.product); // Save to SharedPreferences
+                    command: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      
+                      // Check if user is logged in
+                      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+                      
+                      if (isLoggedIn) {
+                        // User is logged in, proceed with adding to cart
+                        context.read<CartViewModel>().addItem(widget.product);
+                        _saveToCart(widget.product); // Save to SharedPreferences
+                      } else {
+                        // User is not logged in, redirect to login page using MaterialPageRoute
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => 
+                              LoginView(
+                                onLogin: () {
+                                  final authViewModel = context.read<AuthViewModel>();
+                                  authViewModel.logins().then((_) async {
+                                    if (authViewModel.isLoggedIn) {
+                                      // Get user info from authViewModel
+                                      final userInfo = authViewModel.user; // Assuming this is where user info is stored
+
+                                      // Store user info in SharedPreferences
+                                      SharedPreferences prefs = await SharedPreferences.getInstance();
+                                      await prefs.setString('userId', userInfo!.id); // Replace 'id' with actual field
+                                      await prefs.setString('userName', userInfo.name); // Replace 'name' with actual field
+                                      await prefs.setString('userEmail', userInfo.email); // Replace 'email' with actual field
+                                      // Add other user details as needed
+
+                                      // Redirect to HomeView after successful login
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (context) => const HomeView()),
+                                      );
+                                    }
+                                  });
+                                },
+                                
+                                onCreateAccount: () {
+                                  final authViewModel = context.read<AuthViewModel>();
+                                  // Navigate to the Signup View
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => SignupView(
+                                        onLogin: () { 
+                                          authViewModel.logins(); 
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ), // Replace with your login screen widget
+                          ),
+                        );
+                      }
                     },
                     height: 48,
                     fillColor: AppColors.red,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                   ),
+
                   const Gap(20),
                   RichText(
                     text: TextSpan(

@@ -5,6 +5,7 @@ import 'package:indigitech_shop/view/home/tabs/food_tab_view.dart';
 import 'package:indigitech_shop/view/home/tabs/shop_tab_view.dart';
 
 class HomeView extends StatefulWidget {
+  
   const HomeView({super.key});
 
   @override
@@ -19,16 +20,14 @@ class _HomeViewState extends State<HomeView> {
     const Tab(text: "Clothes"),
   ];
 
-@override
-Widget build(BuildContext context) {
-  return DefaultTabController(
-    length: _tabs.length,
-    initialIndex: 0,
-    child: Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-          child: TabBar(
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: _tabs.length,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Home'),
+          bottom: TabBar(
             tabs: const [
               Tab(
                 icon: Icon(Icons.store),
@@ -63,23 +62,18 @@ Widget build(BuildContext context) {
             ),
             indicatorSize: TabBarIndicatorSize.tab,
             indicatorPadding: const EdgeInsets.only(bottom: 5),
-            overlayColor: WidgetStateProperty.all(Colors.transparent),
+            overlayColor: MaterialStateProperty.all(Colors.transparent),
           ),
         ),
-        const SizedBox(height: 10),
-        const Expanded(
-          child: TabBarView(
-            children: [
-              ShopTabView(),
-              FoodTabView(),
-              CraftsTabView(),
-              ClothesTabView(),
-            ],
-          ),
+        body: const TabBarView(
+          children: [
+            ShopTabView(),
+            FoodTabView(),
+            CraftsTabView(),
+            ClothesTabView(),
+          ],
         ),
-      ],
-    ),
-  );
-}
-
+      ),
+    );
+  }
 }
