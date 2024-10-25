@@ -26,7 +26,7 @@ class _HomeViewState extends State<HomeView> {
       length: _tabs.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Home'),
+          //title: const Text('Home'),
           bottom: TabBar(
             tabs: const [
               Tab(
@@ -62,7 +62,7 @@ class _HomeViewState extends State<HomeView> {
             ),
             indicatorSize: TabBarIndicatorSize.tab,
             indicatorPadding: const EdgeInsets.only(bottom: 5),
-            overlayColor: MaterialStateProperty.all(Colors.transparent),
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ),
         body: const TabBarView(

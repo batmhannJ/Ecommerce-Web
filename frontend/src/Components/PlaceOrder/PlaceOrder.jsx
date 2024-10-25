@@ -368,7 +368,7 @@ export const PlaceOrder = () => {
             quantity: totalQuantity,
             amount: totalAmount,
             address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
-            status: "pending",
+            status: "Cart Processing",
             userId: userId, // Include userId here
           });
 

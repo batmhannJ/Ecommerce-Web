@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import "./Orders.css";
 import { toast } from "react-toastify";
 import parcel_icon from "../../assets/parcel_icon.png";
+import { io } from "socket.io-client"; // Import Socket.IO client
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
+  const socket = io("http://localhost:4000"); // Connect to Socket.IO server
 
   // Fetch all orders (transactions)
   const fetchAllOrders = async () => {
@@ -42,8 +44,8 @@ const Orders = () => {
       }
 
       // Update local state to reflect the status change
-      setOrders(
-        orders.map((order) =>
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
           order.transactionId === transactionId
             ? { ...order, status: newStatus }
             : order
@@ -58,60 +60,71 @@ const Orders = () => {
   };
 
   useEffect(() => {
-    fetchAllOrders();
-  }, []);
+    fetchAllOrders(); // Initial fetch of orders
+
+    // Listen for updates from the server via Socket.IO
+    socket.on("orderUpdated", (updatedOrder) => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.transactionId === updatedOrder.transactionId
+            ? { ...order, status: updatedOrder.status }
+            : order
+        )
+      );
+    });
+
+    // Cleanup on component unmount
+    return () => {
+      socket.disconnect(); // Disconnect the socket
+    };
+  }, []); // Empty dependency array to run only once on mount
 
   return (
-    <div class="container">
+    <div className="container">
       <div className="order add">
         <h3>Order Page</h3>
         <div className="order-list">
           {orders.length === 0 ? (
             <p>No orders available</p>
           ) : (
-            orders
-              .filter((order) => order.status !== "pending")
-              .map((order, index) => (
-                <div key={index} className="order-item">
-                  <img src={parcel_icon} alt="parcel icon" />
-                  <div>
-                    <p className="order-item-food">
-                      {order.item} {/* Display the correct quantity */}
-                    </p>
+            orders.map((order, index) => (
+              <div key={index} className="order-item">
+                <img src={parcel_icon} alt="parcel icon" />
+                <div>
+                  <p className="order-item-food">
+                    {order.item} {/* Display the correct item */}
+                  </p>
 
-                    <p className="order-item-name">
-                      {order.name || "Unknown User"}
-                    </p>
+                  <p className="order-item-name">
+                    {order.name || "Unknown User"}
+                  </p>
 
-                    <div className="order-item-address">
-                      <p>{order.address || "Address Not Available"}</p>
-                    </div>
-
-                    <p className="order-item-phone">
-                      {order.contact || "No Phone Number"}
-                    </p>
+                  <div className="order-item-address">
+                    <p>{order.address || "Address Not Available"}</p>
                   </div>
 
-                  <p>
-                    Quantity: {order.quantity}{" "}
-                    {/* Display the actual quantity of items ordered */}
+                  <p className="order-item-phone">
+                    {order.contact || "No Phone Number"}
                   </p>
-                  <p>₱{order.amount || "Amount Not Available"}</p>
-
-                  {/* Order status update dropdown */}
-                  <select
-                    onChange={(event) =>
-                      statusHandler(event, order.transactionId)
-                    }
-                    value={order.status}
-                  >
-                    <option value="Paid">Paid</option>
-                    <option value="Cart Processing">Cart Processing</option>
-                    <option value="Out for Delivery">Out for Delivery</option>
-                    <option value="Delivered">Delivered</option>
-                  </select>
                 </div>
-              ))
+
+                <p>
+                  Quantity: {order.quantity}
+                  {/* Display the actual quantity of items ordered */}
+                </p>
+                <p>₱{order.amount || "Amount Not Available"}</p>
+
+                {/* Order status update dropdown */}
+                <select
+                  onChange={(event) => statusHandler(event, order.transactionId)}
+                  value={order.status}
+                >
+                  <option value="Cart Processing">Cart Processing</option>
+                  <option value="Out for Delivery">Out for Delivery</option>
+                  <option value="Delivered">Delivered</option>
+                </select>
+              </div>
+            ))
           )}
         </div>
       </div>
