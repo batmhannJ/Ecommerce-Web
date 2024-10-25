@@ -4,6 +4,8 @@ import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/model/user.dart';
+import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/address_view_model.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
@@ -22,9 +24,30 @@ import 'package:intl/intl.dart';
 
 
 class CheckoutView extends StatelessWidget {
-  const CheckoutView({super.key});
+    final User? user; // Allow null to handle cases where user may not be set
+  final Address? address; // Assuming Address is your address model
+
+  const CheckoutView({super.key, this.user, this.address});
 
   Future<void> proceedToPayment(BuildContext context) async {
+    final userAddress = context.read<AuthViewModel>().address;
+    
+    if (userAddress == null) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Address Required"),
+          content: Text("Please set your address before proceeding to payment."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return; // Stop if no address is set
+    }
   final cartViewModel = context.read<CartViewModel>();
   final subtotal = cartViewModel.getSubtotal();
 
@@ -83,8 +106,11 @@ class CheckoutView extends StatelessWidget {
   }
 }
 
-  @override
+    @override
   Widget build(BuildContext context) {
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
+
     return DefaultViewLayout(
       title: "Checkout",
       background: AppColors.coolGrey,
@@ -97,7 +123,9 @@ class CheckoutView extends StatelessWidget {
               children: [
                 orderDetailsCard(),
                 itemsOrderedCard(context),
-                shippingInformationCard(context),
+                userAddress != null ? 
+                    shippingInformationCard(context) : 
+                    addressPromptCard(context), // Show address prompt if no address
                 orderSummaryCard(context),
               ],
             ),
@@ -106,6 +134,34 @@ class CheckoutView extends StatelessWidget {
       ),
     );
   }
+Widget addressPromptCard(BuildContext context) {
+    return InfoCard(
+      title: "SET SHIPPING ADDRESS",
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "You haven't set a shipping address yet. Please set your address to proceed.",
+            style: AppTextStyles.body2,
+          ),
+          const Gap(10),
+          CustomButton(
+            isExpanded: true,
+            text: "Set Address",
+            textStyle: AppTextStyles.button,
+            command: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddressView()),
+            ),
+            height: 48,
+            fillColor: AppColors.red,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget orderDetailsCard() {
   // Get the current date and format it

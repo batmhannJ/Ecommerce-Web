@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/view/checkout_view.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
@@ -184,7 +185,7 @@ Future<void> fetchBarangays(String cityCode) async {
       // Navigate to your payment screen here
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => CartView(user: currentUser, address: userAddress, // Pass the user address details here
+        MaterialPageRoute(builder: (context) => CheckoutView(user: currentUser, address: userAddress, // Pass the user address details here
 )), // Assuming you have a PaymentView class
     );
   }

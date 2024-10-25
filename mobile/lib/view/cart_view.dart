@@ -73,19 +73,11 @@ void _checkLoginStatus() async {
 }
 
   void _navigateToNextStep() {
-    // Check if the user has an address set, if not redirect to AddressView
-    final addressViewModel = context.read<AuthViewModel>();
-    if (addressViewModel.address == null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const AddressView()),
-      );
-    } else {
-      // Otherwise proceed to checkout
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const CheckoutView()),
-      );
-    }
-  }
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(builder: (context) => const CheckoutView()),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -312,57 +304,46 @@ void _checkLoginStatus() async {
                     ),
                     const SizedBox(height: 20),
                     CustomButton(
-  disabled: items.isEmpty,
-  text: "PROCEED TO CHECKOUT",
-  textStyle: AppTextStyles.button,
-  height: 50,
-  fillColor: AppColors.red,
-  contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-  command: () async {
-    final authViewModel = context.read<AuthViewModel>();
+                      disabled: items.isEmpty,
+                      text: "PROCEED TO CHECKOUT",
+                      textStyle: AppTextStyles.button,
+                      height: 50,
+                      fillColor: AppColors.red,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                      command: () async {
+                        final authViewModel = context.read<AuthViewModel>();
 
-    // Check if the user is logged in
-    if (!authViewModel.isLoggedIn) {
-      // Prompt user to log in
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("You need to log in to proceed to checkout")),
-      );
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LoginView(
-            onLogin: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('isLoggedIn', true); // Save login state
-              _navigateToNextStep(); // Proceed to the next step after login
-            },
-            onCreateAccount: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => SignupView(onLogin: () {
-                  _navigateToNextStep(); // Proceed to the next step after account creation
-                })),
-              );
-            },
-          ),
-        ),
-      );
-    } else {
-      // User is logged in, check if they have an address
-      final addressViewModel = context.read<AuthViewModel>();
-      if (addressViewModel.address == null) {
-        // No address found, navigate to AddressView
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const AddressView()),
-        );
-      } else {
-        // User has an address, proceed to CheckoutView
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const CheckoutView()),
-        );
-      }
-    }
-  },
-),
+                        // Check if the user is logged in
+                        if (!authViewModel.isLoggedIn) {
+                          // Prompt user to log in
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("You need to log in to proceed to checkout")),
+                          );
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginView(
+                                onLogin: () async {
+                                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                                  await prefs.setBool('isLoggedIn', true); // Save login state
+                                  _navigateToNextStep(); // Proceed to CheckoutView after login
+                                },
+                                onCreateAccount: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => SignupView(onLogin: () {
+                                      _navigateToNextStep(); // Proceed to CheckoutView after account creation
+                                    })),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        } else {
+                          // User is logged in, proceed directly to CheckoutView
+                          _navigateToNextStep();
+                        }
+                      },
+                    ),
 
                   ],
                 ),
