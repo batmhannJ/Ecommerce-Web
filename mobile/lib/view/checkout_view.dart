@@ -22,6 +22,7 @@ import 'package:indigitech_shop/view/checkout_result.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add this import for URL launching
 // ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart'; // Make sure to add geolocator package to your pubspec.yaml
 
 
 class CheckoutView extends StatefulWidget {
