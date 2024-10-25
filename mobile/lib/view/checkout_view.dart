@@ -5,6 +5,7 @@ import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/model/user.dart';
+import 'package:indigitech_shop/services/address_service.dart';
 import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/address_view_model.dart';
@@ -23,11 +24,20 @@ import 'package:url_launcher/url_launcher.dart'; // Add this import for URL laun
 import 'package:intl/intl.dart';
 
 
-class CheckoutView extends StatelessWidget {
-    final User? user; // Allow null to handle cases where user may not be set
-  final Address? address; // Assuming Address is your address model
+class CheckoutView extends StatefulWidget {
+  final User? user; // User information passed from AddressView
+  final Address? address; // Address details passed from AddressView
 
   const CheckoutView({super.key, this.user, this.address});
+
+  @override
+  State<CheckoutView> createState() => _CheckoutViewState();
+}
+
+class _CheckoutViewState extends State<CheckoutView> {
+  final AddressService _addressService =
+      AddressService('https://isaacdarcilla.github.io/philippine-addresses');
+
 
   Future<void> proceedToPayment(BuildContext context) async {
     final userAddress = context.read<AuthViewModel>().address;
@@ -105,6 +115,167 @@ class CheckoutView extends StatelessWidget {
     print('Payment failed: ${response.body}');
   }
 }
+
+  List<dynamic> regions = [];
+  List<dynamic> provinces = [];
+  List<dynamic> cities = [];
+  List<dynamic> barangays = [];
+
+  String? selectedRegion;
+  String? selectedProvince;
+  String? selectedCity;
+  String? selectedBarangay;
+
+  @override
+  void initState() {
+    super.initState();
+    final authViewModel = context.read<AuthViewModel>();
+    authViewModel.fetchUserAddress().then((_) {
+      setState(() {
+        final userAddress = authViewModel.address;
+
+        // Update drop-downs for region, province, city, and barangay
+        selectedRegion = userAddress?.region;
+        selectedProvince = userAddress?.province;
+        selectedCity = userAddress?.municipality;
+        selectedBarangay = userAddress?.barangay;
+
+        // Fetch corresponding provinces, cities, and barangays based on address
+        if (selectedRegion != null) {
+          fetchProvinces(selectedRegion!);
+        }
+        if (selectedProvince != null) {
+          fetchCities(selectedProvince!);
+        }
+        if (selectedCity != null) {
+          fetchBarangays(selectedCity!);
+        }
+        print('Street: ${userAddress?.street}');
+        print('Zip: ${userAddress?.zip}');
+
+      });
+    });
+
+    // Fetch regions initially
+    fetchRegions();
+
+  }
+
+Future<void> fetchRegions() async {
+    try {
+      regions = await _addressService.regions();
+      setState(() {
+        // Clear the previous selections to avoid duplicates
+        if (selectedRegion != null && regions.any((region) => region['region_code'] == selectedRegion)) {
+          // Keep selectedRegion if it is still valid
+          selectedRegion = selectedRegion; 
+        } else if (regions.isNotEmpty) {
+          // Reset selectedRegion to the first one if not valid
+          selectedRegion = regions[0]['region_code'];
+        } else {
+          selectedRegion = null; // Handle the case when there are no regions
+        }
+      });
+    } catch (error) {
+      print("Error fetching regions: $error");
+    }
+  }
+
+Future<void> fetchProvinces(String regionCode) async {
+  try {
+    List<dynamic> fetchedProvinces = await _addressService.provinces(regionCode);
+    setState(() {
+      provinces.clear(); // Clear previous provinces to avoid duplicates
+      provinces.addAll(fetchedProvinces);
+      // Reset selectedProvince if it's not found in the new list
+      if (provinces.any((province) => province['province_code'] == selectedProvince)) {
+        // If selectedProvince exists in the new provinces
+        selectedProvince = selectedProvince; 
+      } else {
+        selectedProvince = provinces.isNotEmpty ? provinces[0]['province_code'] : null; // Default to first province
+      }
+    });
+  } catch (error) {
+    print("Error fetching provinces: $error");
+  }
+}
+
+Future<void> fetchCities(String provinceCode) async {
+  try {
+    List<dynamic> fetchedCities = await _addressService.cities(provinceCode);
+    setState(() {
+      cities.clear(); // Clear previous cities to avoid duplicates
+      cities.addAll(fetchedCities);
+      // Reset selectedCity if it's not found in the new list
+      if (cities.any((city) => city['city_code'] == selectedCity)) {
+        // If selectedCity exists in the new cities
+        selectedCity = selectedCity;
+      } else {
+        selectedCity = cities.isNotEmpty ? cities[0]['city_code'] : null; // Default to first city
+      }
+      // Fetch barangays based on the newly selected city
+      if (selectedCity != null) {
+        fetchBarangays(selectedCity!);
+      }
+    });
+  } catch (error) {
+    print("Error fetching cities: $error");
+  }
+}
+
+Future<void> fetchBarangays(String cityCode) async {
+  try {
+    List<dynamic> fetchedBarangays = await _addressService.barangays(cityCode);
+    setState(() {
+      barangays.clear(); // Clear previous barangays to avoid duplicates
+      barangays.addAll(fetchedBarangays);
+      // Reset selectedBarangay if it's not found in the new list
+      if (barangays.any((barangay) => barangay['brgy_code'] == selectedBarangay)) {
+        selectedBarangay = selectedBarangay; // Keep it as is if found
+      } else {
+        selectedBarangay = barangays.isNotEmpty ? barangays[0]['brgy_code'] : null; // Default to first barangay
+      }
+    });
+  } catch (error) {
+    print("Error fetching barangays: $error");
+  }
+}
+String getRegionName(String? regionCode) {
+  final region = regions.firstWhere(
+    (r) => r['region_code'] == regionCode,
+    orElse: () => {'region_name': "Not provided"}, // Ensure a valid map is returned
+  ) as Map<String, dynamic>; // Cast to the expected type
+
+  return region['region_name'] ?? "Not provided";
+}
+
+String getProvinceName(String? provinceCode) {
+  final province = provinces.firstWhere(
+    (p) => p['province_code'] == provinceCode,
+    orElse: () => {'province_name': "Not provided"}, // Ensure a valid map is returned
+  ) as Map<String, dynamic>; // Cast to the expected type
+
+  return province['province_name'] ?? "Not provided";
+}
+
+String getCityName(String? cityCode) {
+  final city = cities.firstWhere(
+    (c) => c['city_code'] == cityCode,
+    orElse: () => {'city_name': "Not provided"}, // Ensure a valid map is returned
+  ) as Map<String, dynamic>; // Cast to the expected type
+
+  return city['city_name'] ?? "Not provided";
+}
+
+String getBarangayName(String? barangayCode) {
+  final barangay = barangays.firstWhere(
+    (b) => b['brgy_code'] == barangayCode,
+    orElse: () => {'brgy_name': "Not provided"}, // Ensure a valid map is returned
+  ) as Map<String, dynamic>; // Cast to the expected type
+
+  return barangay['brgy_name'] ?? "Not provided";
+}
+
 
     @override
   Widget build(BuildContext context) {
@@ -263,33 +434,43 @@ Widget addressPromptCard(BuildContext context) {
   }
 
   Widget shippingInformationCard(BuildContext context) {
-    Address address = context.read<AuthViewModel>().address!;
+  final authViewModel = context.read<AuthViewModel>();
+  final userAddress = authViewModel.address;
 
-    return InfoCard(
-      title: "SHIPPING INFORMATION",
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            address.name,
-            style: AppTextStyles.body2,
-          ),
-          Text(
-            address.street,
-            style: AppTextStyles.body2,
-          ),
-          Text(
-            "${address.barangay}, ${address.municipality}",
-            style: AppTextStyles.body2,
-          ),
-          Text(
-            "${address.zip}, ${address.province}",
-            style: AppTextStyles.body2,
-          ),
-        ],
-      ),
-    );
-  }
+  return InfoCard(
+    title: "SHIPPING INFORMATION",
+    content: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Street: ${userAddress?.street ?? "Not provided"}',
+          style: TextStyle(fontSize: 16),
+        ),
+        Text(
+          'Barangay: ${getBarangayName(selectedBarangay)}',
+          style: TextStyle(fontSize: 16),
+        ),
+        Text(
+          'City: ${getCityName(selectedCity)}',
+          style: TextStyle(fontSize: 16),
+        ),
+        Text(
+          'Province: ${getProvinceName(selectedProvince)}',
+          style: TextStyle(fontSize: 16),
+        ),
+        Text(
+          'Region: ${getRegionName(selectedRegion)}',
+          style: TextStyle(fontSize: 16),
+        ),
+         Text(
+          'Zip: ${userAddress?.zip ?? "Not provided"}',
+          style: TextStyle(fontSize: 16),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget orderSummaryCard(BuildContext context) {
     return InfoCard(

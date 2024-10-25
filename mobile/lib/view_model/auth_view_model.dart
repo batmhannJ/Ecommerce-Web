@@ -24,6 +24,11 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+    String? regionName;
+  String? provinceName;
+  String? cityName;
+  String? barangayName;
+
 Future<void> logins() async {
     // Simulate a login process (e.g., API call)
     await Future.delayed(Duration(seconds: 2)); // Simulate a delay

@@ -56,13 +56,13 @@ void _checkLoginStatus() async {
             onLogin: () async {
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setBool('isLoggedIn', true);  // Save login state
-            _navigateToNextStep();
+            _navigateToCheckout(authViewModel.address);
         },
           onCreateAccount: () {
             // Navigate to the Signup View
             Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => SignupView(onLogin: () {
-                _navigateToNextStep(); // Redirect after account creation
+                _navigateToCheckout(authViewModel.address); // Redirect after account creation
               })),
             );
           },
@@ -72,9 +72,12 @@ void _checkLoginStatus() async {
   }
 }
 
-  void _navigateToNextStep() {
+  void _navigateToCheckout(Address? userAddress) {
+
   Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (context) => const CheckoutView()),
+    MaterialPageRoute(
+      builder: (context) => CheckoutView(address: userAddress),
+    ),
   );
 }
 
@@ -312,6 +315,7 @@ void _checkLoginStatus() async {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                       command: () async {
                         final authViewModel = context.read<AuthViewModel>();
+                        final addressViewModel = context.read<AuthViewModel>();
 
                         // Check if the user is logged in
                         if (!authViewModel.isLoggedIn) {
@@ -326,12 +330,12 @@ void _checkLoginStatus() async {
                                 onLogin: () async {
                                   SharedPreferences prefs = await SharedPreferences.getInstance();
                                   await prefs.setBool('isLoggedIn', true); // Save login state
-                                  _navigateToNextStep(); // Proceed to CheckoutView after login
+                                  _navigateToCheckout(addressViewModel.address); // Proceed to CheckoutView after login
                                 },
                                 onCreateAccount: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(builder: (context) => SignupView(onLogin: () {
-                                      _navigateToNextStep(); // Proceed to CheckoutView after account creation
+                                      _navigateToCheckout(addressViewModel.address); // Proceed to CheckoutView after account creation
                                     })),
                                   );
                                 },
@@ -339,8 +343,8 @@ void _checkLoginStatus() async {
                             ),
                           );
                         } else {
-                          // User is logged in, proceed directly to CheckoutView
-                          _navigateToNextStep();
+                          // User is logged in, proceed to CheckoutView
+                          _navigateToCheckout(addressViewModel.address);
                         }
                       },
                     ),
