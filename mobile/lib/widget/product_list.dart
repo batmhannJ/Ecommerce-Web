@@ -24,6 +24,7 @@ class ProductList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         Product product = products[index];
+        print(product.image);
 
         return Container(
           width: MediaQuery.of(context).size.width / 2 - 22,
@@ -47,22 +48,28 @@ class ProductList extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => ProductView(product: product),
+                      builder: (context) => ProductView(product: product, products: products),
                     ),
                   );
                 },
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     height: 200,
                     width: double.infinity,
-                    child: Image.network(
-                      product.images[0],
+                     child: product.image.isNotEmpty
+                        ? Image.network(
+                      'http://localhost:4000/upload/images/${product.image[0]}', // Check if image list is not empty
                       fit: BoxFit.contain,
                       alignment: Alignment.center,
-                    ),
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Image.asset('assets/images/placeholder_food.png'), // Placeholder image path
+                        ); // Show a placeholder if image fails to load
+                      },
+                    )
+                        : Center(child: Text("No image available")),
                   ),
                 ),
               ),
@@ -87,7 +94,7 @@ class ProductList extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(right: 15),
                             child: Text(
-                              '₱${(product.price - (product.price * product.discount)).toStringAsFixed(2)}',
+                              '₱${(product.old_price - (product.new_price * product.discount)).toStringAsFixed(2)}',
                               style: AppTextStyles.caption.copyWith(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -95,7 +102,7 @@ class ProductList extends StatelessWidget {
                             ),
                           ),
                         Text(
-                          '₱${product.price.toStringAsFixed(2)}',
+                          '₱${product.new_price.toStringAsFixed(2)}',
                           style: product.discount != 0
                               ? AppTextStyles.caption.copyWith(
                                   color: AppColors.greyAD,

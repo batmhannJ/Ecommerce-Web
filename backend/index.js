@@ -47,8 +47,23 @@ const sendEmail = async (to, subject, text) => {
     });
   });
 };
-
-app.use(cors());
+const allowedOrigins = [  
+  'http://localhost:3000', 
+  'http://localhost:28429',
+  'http://localhost:5173', 
+  'http://localhost:5174', 
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true // Allow credentials to be included in the request
+}));
 app.use(express.json());
 app.use("/api/transactions", transactionRoutes);
 app.use("/api", productRoute);
@@ -93,8 +108,16 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Creating Upload Endpoints for Images
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Allow specified methods
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specified headers
+  next();
+});
 app.use("/images", express.static("upload/images"));
 app.use('/upload', express.static('upload'));
+app.use('/upload/images', express.static('upload/images'));
+
 
 
 app.post("/upload", upload.single("product"), (req, res) => {

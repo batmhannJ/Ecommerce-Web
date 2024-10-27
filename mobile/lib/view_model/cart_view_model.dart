@@ -22,7 +22,7 @@ class CartViewModel with ChangeNotifier {
   double totalItemPrice(Product item) {
     if (!_items.containsKey(item)) return 0;
 
-    double discountedPrice = item.price - (item.price * item.discount);
+    double discountedPrice = item.old_price - (item.new_price * item.discount);
 
     return discountedPrice * _items[item]!;
   }

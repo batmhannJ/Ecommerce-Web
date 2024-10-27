@@ -19,13 +19,17 @@ import '../model/product.dart';
 import '../widget/product_list.dart';
 import 'layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
+import '../core/constant/enum/product_size.dart';
 
 
 class ProductView extends StatefulWidget {
   final Product product;
+    final List<Product> products;
+
   const ProductView({
     super.key,
     required this.product,
+    required this.products, // Pass the products as a parameter
   });
 
   @override
@@ -38,7 +42,7 @@ class _ProductViewState extends State<ProductView> {
 
   @override
   void initState() {
-    _relatedProducts = products
+    _relatedProducts = widget.products
         .where((element) =>
             element.name != widget.product.name &&
             element.category == widget.product.category &&
@@ -96,7 +100,7 @@ class _ProductViewState extends State<ProductView> {
                       Padding(
                         padding: const EdgeInsets.only(right: 15),
                         child: Text(
-                          '₱${widget.product.price}',
+                          '₱${widget.product.new_price}',
                           style: widget.product.discount != 0
                               ? AppTextStyles.body1.copyWith(
                                   color: AppColors.greyAD,
@@ -108,7 +112,7 @@ class _ProductViewState extends State<ProductView> {
                       ),
                       if (widget.product.discount!= 0)
                         Text(
-                          '₱${widget.product.price - (widget.product.price * widget.product.discount)}',
+                          '₱${widget.product.old_price - (widget.product.new_price * widget.product.discount)}',
                           style: AppTextStyles.body1
                               .copyWith(color: AppColors.red),
                         ),
@@ -120,11 +124,11 @@ class _ProductViewState extends State<ProductView> {
                     overflow: TextOverflow.clip,
                     style: AppTextStyles.body2,
                   ),
-                  if (widget.product.sizes.isNotEmpty)
+                  if (widget.product.stocks.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 25),
                       child: SizePicker(
-                        sizes: widget.product.sizes,
+                      sizes: widget.product.stocks.keys.toList(), // Convert Map keys to List
                         onSizeSelected: (value) {
                           setState(() {
                             _selectedSize = value;
@@ -134,7 +138,7 @@ class _ProductViewState extends State<ProductView> {
                     ),
                   const Gap(20),
                   CustomButton(
-                    disabled: _selectedSize == null && widget.product.sizes.isNotEmpty,
+                    disabled: _selectedSize == null && widget.product.stocks.isNotEmpty,
                     text: "ADD TO CART",
                     textStyle: AppTextStyles.button,
                     command: () async {

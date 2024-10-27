@@ -390,10 +390,10 @@ Widget addressPromptCard(BuildContext context) {
                 Container(
                   decoration: BoxDecoration(
                       border: Border.all(color: AppColors.greyAD)),
-                  child: Image.asset(
-                    item.key.images.first,
-                    height: 80,
-                    width: 80,
+                   child: Image.network(
+                    item.key.image as String, // Corrected: Access the single image URL from the product
+                    width: 50,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const Gap(10),

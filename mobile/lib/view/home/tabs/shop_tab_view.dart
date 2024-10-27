@@ -137,10 +137,20 @@ class _ShopTabViewState extends State<ShopTabView>
                               ),
                             ),
                           ),
-                          ProductList(products: newProducts),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: newProducts.length,
+                            itemBuilder: (context, index) {
+                              final product = newProducts[index];
+                              return ListTile(
+                                title: Text(product.name),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
+
                   ],
                 );
               },

@@ -164,8 +164,8 @@ void _checkLoginStatus() async {
                         },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: Image.asset(
-                            item.key.images.first,
+                           child: Image.network(
+                            item.key.image as String, // Corrected: Access the single image URL from the product
                             width: 50,
                             fit: BoxFit.cover,
                           ),

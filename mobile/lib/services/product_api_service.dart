@@ -20,10 +20,15 @@ class ProductApiService {
   }
 
   static Product _parseProduct(Map<String, dynamic> json) {
+    double old_price = (json['old_price'] ?? 0).toDouble();
+    double new_price = (json['new_price'] ?? old_price).toDouble();
+    double discount = old_price > 0 ? ((old_price - new_price) / old_price) : 0;
+
     return Product(
       name: json['name'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
-      discount: (json['discount'] ?? 0).toDouble(),
+      old_price: old_price,
+      new_price: new_price,
+      discount: discount,
       description: json['description'] ?? '',
       reviews: (json['reviews'] as List<dynamic>?)
               ?.map((r) => Review(
@@ -33,20 +38,19 @@ class ProductApiService {
                   ))
               .toList() ??
           [],
-      sizes: (json['sizes'] as List<dynamic>?)
-              ?.map((s) => ProductSize.values.firstWhere(
-                    (e) => e.toString().split('.').last == s,
-                    orElse: () => ProductSize.s,
-                  ))
-              .toList() ??
-          [],
+      stocks: {
+        ProductSize.s: json['s_stock'] ?? 0,
+        ProductSize.m: json['m_stock'] ?? 0,
+        ProductSize.l: json['l_stock'] ?? 0,
+        ProductSize.xl: json['xl_stock'] ?? 0,
+      },
       category: json['category'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
-      images: List<String>.from(json['images'] ?? [])
-          .map((image) => '$baseUrl/images/$image')
-          .toList(),
-      isNew: json['isNew'] ?? false,
-      isPopular: json['isPopular'] ?? false,
+      image: json['image'] != null && json['image'] is List
+        ? List<String>.from(json['image'])
+        : [json['image']], // Assuming you have a fallback for single images
+      available: json['available'] ?? false,
+      isNew: DateTime.now().difference(DateTime.parse(json['date'])).inDays <= 30, // Check if it's recent
     );
   }
 }
