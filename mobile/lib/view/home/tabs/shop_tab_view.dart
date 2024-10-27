@@ -19,6 +19,13 @@ class _ShopTabViewState extends State<ShopTabView>
   final _scrollController = ScrollController();
   final _newCollectionsKey = GlobalKey();
   late Future<List<Product>> _productsFuture;
+  List<Product> _selectedProducts = [];
+
+  void _updateSelectedProducts(List<Product> products) {
+    setState(() {
+      _selectedProducts = products;
+    });
+  }
 
   @override
   void initState() {
@@ -62,20 +69,50 @@ class _ShopTabViewState extends State<ShopTabView>
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            stops: const <double>[
-              .03,
-              .1,
-              .225,
-              .275,
-              1,
-            ],
+            stops: const <double>[.03, .1, .225, .275, 1],
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ... (rest of the UI code remains the same)
-
+            Center(
+              child: Text(
+                "WELCOME TO",
+                style: AppTextStyles.subtitle1.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                  fontSize: 28,
+                ),
+              ),
+            ),
+            const Gap(10),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Image.asset(
+                  "assets/images/featured_item.png",
+                  fit: BoxFit.cover,
+                ),
+                Positioned(
+                  bottom: 10,
+                  child: Text(
+                    "TIENDA",
+                    style: AppTextStyles.headline4.copyWith(
+                      fontSize: 40,
+                      color: AppColors.red,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(2, 2),
+                          blurRadius: 5,
+                          color: AppColors.black.withOpacity(0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Gap(20),
             FutureBuilder<List<Product>>(
               future: _productsFuture,
               builder: (context, snapshot) {
@@ -93,7 +130,13 @@ class _ShopTabViewState extends State<ShopTabView>
 
                 return Column(
                   children: [
-                    SearchProductsWidget(products: allProducts),
+                    const Gap(20),
+                     const Gap(20),
+                    // Pass _updateSelectedProducts to SearchProductsWidget
+                    SearchProductsWidget(
+                      products: allProducts,
+                      onProductSelected: _updateSelectedProducts,
+                    ),
                     const Gap(20),
                     CustomButton(
                       text: "Explore Latest Collection",
@@ -113,6 +156,28 @@ class _ShopTabViewState extends State<ShopTabView>
                       ),
                       iconPadding: 8,
                     ),
+                    if (_selectedProducts.isNotEmpty)
+                      Column(
+                        children: _selectedProducts.map((product) {
+                          return ListTile(
+                            contentPadding: const EdgeInsets.all(8.0),
+                            leading: Image.network(
+                              'http://localhost:4000/upload/images/${product.image[0]}',
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(product.name),
+                            subtitle: Text(
+                              '\₱${product.new_price}.00',
+                              style: const TextStyle(
+                                color: AppColors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     const Gap(40),
                     Padding(
                       key: _newCollectionsKey,
@@ -139,18 +204,32 @@ class _ShopTabViewState extends State<ShopTabView>
                           ),
                           ListView.builder(
                             shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
                             itemCount: newProducts.length,
                             itemBuilder: (context, index) {
                               final product = newProducts[index];
                               return ListTile(
+                                contentPadding: const EdgeInsets.all(8.0),
+                                leading: Image.network(
+                                  'http://localhost:4000/upload/images/${product.image[0]}',
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                ),
                                 title: Text(product.name),
+                                subtitle: Text(
+                                  '\₱${product.new_price}.00', // Display new price
+                                  style: const TextStyle(
+                                    color: AppColors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               );
                             },
                           ),
                         ],
                       ),
                     ),
-
                   ],
                 );
               },
@@ -167,9 +246,13 @@ class _ShopTabViewState extends State<ShopTabView>
 
 class SearchProductsWidget extends StatefulWidget {
   final List<Product> products;
+  final void Function(List<Product>) onProductSelected;
 
-  const SearchProductsWidget({Key? key, required this.products})
-      : super(key: key);
+  const SearchProductsWidget({
+    Key? key,
+    required this.products,
+    required this.onProductSelected,
+  }) : super(key: key);
 
   @override
   _SearchProductsWidgetState createState() => _SearchProductsWidgetState();
@@ -189,7 +272,7 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
     });
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Column(
       children: [
@@ -205,14 +288,14 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
         SizedBox(
           height: 200,
           child: ListView.builder(
+            shrinkWrap: true,
             itemCount: _searchQuery.isEmpty ? 0 : _filteredProducts.length,
             itemBuilder: (context, index) {
               final product = _filteredProducts[index];
               return ListTile(
                 title: Text(product.name),
                 onTap: () {
-                  // Handle product selection here
-                  print('Selected product: ${product.name}');
+                  widget.onProductSelected([product]);
                 },
               );
             },

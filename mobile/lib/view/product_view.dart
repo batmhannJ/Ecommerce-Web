@@ -100,7 +100,7 @@ class _ProductViewState extends State<ProductView> {
                       Padding(
                         padding: const EdgeInsets.only(right: 15),
                         child: Text(
-                          '₱${widget.product.new_price}',
+                          '₱${widget.product.new_price}.00',
                           style: widget.product.discount != 0
                               ? AppTextStyles.body1.copyWith(
                                   color: AppColors.greyAD,
@@ -112,7 +112,7 @@ class _ProductViewState extends State<ProductView> {
                       ),
                       if (widget.product.discount!= 0)
                         Text(
-                          '₱${widget.product.old_price - (widget.product.new_price * widget.product.discount)}',
+                          '₱${widget.product.old_price - (widget.product.new_price * widget.product.discount)}.00',
                           style: AppTextStyles.body1
                               .copyWith(color: AppColors.red),
                         ),
