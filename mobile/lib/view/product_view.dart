@@ -137,6 +137,25 @@ class _ProductViewState extends State<ProductView> {
                       ),
                     ),
                   const Gap(20),
+                  //For qty button
+                  Text(
+                    widget.product.description,
+                    overflow: TextOverflow.clip,
+                    style: AppTextStyles.body2,
+                  ),
+                  if (widget.product.stocks.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 25),
+                      child: SizePicker(
+                      sizes: widget.product.stocks.keys.toList(), // Convert Map keys to List
+                        onSizeSelected: (value) {
+                          setState(() {
+                            _selectedSize = value;
+                          });
+                        },
+                      ),
+                    ),
+                  const Gap(20),
                   CustomButton(
                     disabled: _selectedSize == null && widget.product.stocks.isNotEmpty,
                     text: "ADD TO CART",
