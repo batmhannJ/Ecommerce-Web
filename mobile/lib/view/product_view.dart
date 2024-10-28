@@ -85,17 +85,20 @@ class _ProductViewState extends State<ProductView> {
       await prefs.setInt('stockCount', _stockCount);
   }
 
-  // Function to save cart items to SharedPreferences
-Future<void> _saveToCart(Product product) async {
+ Future<void> _saveToCart(Product product) async {
   final prefs = await SharedPreferences.getInstance();
   List<String>? cartItems = prefs.getStringList('cart') ?? [];
 
   // Update the product with adjusted price before saving to cart
   final updatedProduct = product.copyWith(new_price: adjustedPrice);
 
-  // Add adjusted product details in a structured format
-cartItems.add('${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name}');
-  await prefs.setStringList('cart', cartItems);
+  // Ensure _selectedSize is not null before accessing its name
+  if (_selectedSize != null) {
+    cartItems.add('${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name}');
+    await prefs.setStringList('cart', cartItems);
+  } else {
+    print("Error: No size selected.");
+  }
 }
 
 
@@ -162,7 +165,9 @@ cartItems.add('${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_sel
         setState(() {
           _selectedSize = value; // Update selected size
         });
-         _updateStockCount(value!); // Update the stock count based on the selected size
+       if (value != null) {
+        _updateStockCount(value); // Update the stock count based on selected size
+      }// Update the stock count based on the selected size
       },
     ),
   ),const Gap(10),
@@ -183,13 +188,20 @@ CustomButton(
   command: () async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-
+    
     if (isLoggedIn) {
           final updatedProduct = widget.product.copyWith(new_price: adjustedPrice);
 
-     context.read<CartViewModel>().addItem(updatedProduct); // Add adjusted product to cart
-      await _saveToCart(updatedProduct); // Pass adjusted product and selected size to save function    
-      //await _saveToCart(widget.product); 
+  context.read<CartViewModel>().addItem(updatedProduct, size: _selectedSize); // Pass selected size
+     if (_selectedSize != null) {
+      await _saveToCart(updatedProduct);
+      print("Selected Size: ${_selectedSize?.name}, Adjusted Price: $adjustedPrice");
+ProductSize? selectedSize = context.read<CartViewModel>().getSelectedSize(widget.product);
+print("Retrieving size for ${widget.product.name}: ${selectedSize?.name}");
+    } else {
+      // Handle case where size is not selected
+      print("Please select a size before adding to cart.");
+    }
     } else {
       Navigator.of(context).push(
         MaterialPageRoute(

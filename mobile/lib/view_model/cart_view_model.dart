@@ -38,6 +38,9 @@ class CartViewModel with ChangeNotifier {
       _items[item] = 1; // Save adjusted price
     if (size != null) {
       selectedSizes[item] = size; // Set selected size for the new item
+            _itemPrices[item] = item.new_price; // Initialize adjusted price if needed
+      print("Saving size: ${size} for product: ${item.name}");
+
     }
     }
 
@@ -69,11 +72,15 @@ class CartViewModel with ChangeNotifier {
   }
 
    void setSelectedSize(Product product, ProductSize size) {
+      print("Setting size for ${product.name}: $size");
+
     selectedSizes[product] = size;
     notifyListeners();
   }
 
   ProductSize? getSelectedSize(Product product) {
-    return selectedSizes[product];
+     ProductSize? size = selectedSizes[product];
+  print("Retrieving size for ${product.name}: $size");
+  return size;
   }
 }

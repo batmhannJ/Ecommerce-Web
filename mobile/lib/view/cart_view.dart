@@ -208,7 +208,7 @@ void _checkLoginStatus() async {
             children: [
               // Display the selected size
               Text(
-  "Selected Size: ${context.watch<CartViewModel>().getSelectedSize(item.key)?.toString() ?? 'N/A'}",
+  "Selected Size: ${context.watch<CartViewModel>().getSelectedSize(item.key)?.name ?? 'N/A'}",
                 style: AppTextStyles.body2.copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
