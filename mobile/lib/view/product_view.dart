@@ -58,7 +58,7 @@ class _ProductViewState extends State<ProductView> {
     super.initState();
   }
 
-   void _updateStockCount(ProductSize size) {
+   Future<void> _updateStockCount(ProductSize size) async {
     setState(() {
       switch (size) {
         case ProductSize.S:
@@ -81,6 +81,8 @@ class _ProductViewState extends State<ProductView> {
           break;
       }
     });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('stockCount', _stockCount);
   }
 
   // Function to save cart items to SharedPreferences
@@ -92,17 +94,13 @@ Future<void> _saveToCart(Product product) async {
   final updatedProduct = product.copyWith(new_price: adjustedPrice);
 
   // Add adjusted product details in a structured format
-  cartItems.add('${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)}'); // Save with adjusted price
+cartItems.add('${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name}');
   await prefs.setStringList('cart', cartItems);
 }
 
 
   @override
   Widget build(BuildContext context) {
-    int s_stock = widget.product.stocks[ProductSize.S] ?? 0;
-    int m_stock = widget.product.stocks[ProductSize.M] ?? 0;
-    int l_stock = widget.product.stocks[ProductSize.L] ?? 0;
-    int xl_stock = widget.product.stocks[ProductSize.XL] ?? 0;
     return DefaultViewLayout(
       content: SingleChildScrollView(
         child: Column(
@@ -190,7 +188,7 @@ CustomButton(
           final updatedProduct = widget.product.copyWith(new_price: adjustedPrice);
 
      context.read<CartViewModel>().addItem(updatedProduct); // Add adjusted product to cart
-    await _saveToCart(updatedProduct); // Pass adjusted product to save function    
+      await _saveToCart(updatedProduct); // Pass adjusted product and selected size to save function    
       //await _saveToCart(widget.product); 
     } else {
       Navigator.of(context).push(

@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 
 import '../model/product.dart';
 
 class CartViewModel with ChangeNotifier {
     final Map<Product, double> _itemPrices = {}; // Store adjusted prices
+  Map<Product, ProductSize> selectedSizes = {};
 
   final Map<Product, int> _items = {};
 
@@ -29,12 +31,14 @@ class CartViewModel with ChangeNotifier {
 
   }
 
-  void addItem(Product item) {
+  void addItem(Product item, {ProductSize? size}) {
     if (_items.containsKey(item)) {
       _items[item] = _items[item]! + 1;
     } else {
       _items[item] = 1; // Save adjusted price
-
+    if (size != null) {
+      selectedSizes[item] = size; // Set selected size for the new item
+    }
     }
 
     notifyListeners();
@@ -47,6 +51,7 @@ class CartViewModel with ChangeNotifier {
       } else {
         _items.remove(item);
                 _itemPrices.remove(item); // Remove adjusted price entry
+      selectedSizes.remove(item); // Remove size entry
 
       }
     }
@@ -61,5 +66,14 @@ class CartViewModel with ChangeNotifier {
     await Future.delayed(Duration(seconds: 2)); // Simulate a delay
     _isLoggedIn = true; // Set logged in state after a successful login
     notifyListeners(); // Notify listeners of the change
+  }
+
+   void setSelectedSize(Product product, ProductSize size) {
+    selectedSizes[product] = size;
+    notifyListeners();
+  }
+
+  ProductSize? getSelectedSize(Product product) {
+    return selectedSizes[product];
   }
 }

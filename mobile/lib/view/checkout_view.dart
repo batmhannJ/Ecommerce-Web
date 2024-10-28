@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
@@ -13,6 +14,7 @@ import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http; // Add this import
 import 'dart:convert';
+import '../core/constant/enum/product_size.dart';
 import '../model/address.dart';
 import '../model/product.dart';
 import '../view_model/cart_view_model.dart';
@@ -23,12 +25,11 @@ import 'package:url_launcher/url_launcher.dart'; // Add this import for URL laun
 // ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart'; // Make sure to add geolocator package to your pubspec.yaml
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckoutView extends StatefulWidget {
   final User? user; // User information passed from AddressView
-  final Address? address; // Address details passed from AddressView
-
+  final Address? address; 
   const CheckoutView({super.key, this.user, this.address});
 
   @override
@@ -38,6 +39,7 @@ class CheckoutView extends StatefulWidget {
 class _CheckoutViewState extends State<CheckoutView> {
   final AddressService _addressService =
       AddressService('https://isaacdarcilla.github.io/philippine-addresses');
+int? _stockCount;
 
 
   Future<void> proceedToPayment(BuildContext context) async {
@@ -61,7 +63,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     }
   final cartViewModel = context.read<CartViewModel>();
   final subtotal = cartViewModel.getSubtotal();
-
+    final items = cartViewModel.items;
   // Prepare your payment request data here
   final paymentData = {
     //"intent": "SALE",
@@ -88,17 +90,23 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   if (response.statusCode == 200) {
     final responseData = json.decode(response.body);
-    final checkoutUrl = responseData['redirectUrl']; // Extract the redirect URL
+    final checkoutUrl = responseData['redirectUrl']; // Extract the redirect URl
 
     // Launch the PayMaya checkout URL
     // ignore: deprecated_member_use
     if (await canLaunch(checkoutUrl)) {
       // ignore: deprecated_member_use
       await launch(checkoutUrl);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
+      );
        Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => CheckoutSuccessView()), // Navigate on successful payment
       );
+      await _updateStockInDatabase(_stockCount as List<Map<String, dynamic>>);
+
     } else {
       // Handle the error if the URL cannot be launched
       Navigator.push(
@@ -159,8 +167,34 @@ class _CheckoutViewState extends State<CheckoutView> {
 
     // Fetch regions initially
     fetchRegions();
-
+_loadStockCount();
   }
+
+  Future<void> _loadStockCount() async {
+  final prefs = await SharedPreferences.getInstance();
+  setState(() {
+    _stockCount = prefs.getInt('stockCount');
+  });
+}
+
+ Future<void> _updateStockInDatabase(List<Map<String, dynamic>> updates) async {
+    final response = await http.post(
+      Uri.parse('http://localhost:4000/updateStock'), // Adjust the URL
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'newStockCount': _stockCount! - 1, // Decrease stock count after purchase
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Stock updated successfully');
+    } else {
+      print('Failed to update stock: ${response.body}');
+    }
+  }
+
 
 Future<void> fetchRegions() async {
     try {
