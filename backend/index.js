@@ -1243,6 +1243,54 @@ app.post('/check-user-address', async (req, res) => {
   }
 });
 
+app.post('/updateStock', async (req, res) => {
+  console.log("Received body:", req.body); // Log the entire body
+  const { name, size } = req.body;
+  const quantity = Number(req.body.quantity); // Ensure quantity is a number
+
+  try {
+    // Define the field name for the selected size
+    let sizeField;
+    switch (size) {
+      case 'S':
+        sizeField = 's_stock';
+        break;
+      case 'M':
+        sizeField = 'm_stock';
+        break;
+      case 'L':
+        sizeField = 'l_stock';
+        break;
+      case 'XL':
+        sizeField = 'xl_stock';
+        break;
+      default:
+        return res.status(400).send("Invalid size selected.");
+    }
+
+    // Find the product by name
+    const product = await Product.findOne({ name: name });
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    // Build the update query to decrement the specific size stock
+    const updateQuery = { $inc: { [sizeField]: -quantity, stock: -quantity } };
+    console.log("Update query:", updateQuery); // Log the update query
+
+    // Perform the update
+    const updatedProduct = await Product.findOneAndUpdate(
+      { name: name }, // Find by name
+      updateQuery,
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Stock updated successfully", updatedProduct });
+  } catch (error) {
+    res.status(500).send("Error updating stock: " + error.message);
+  }
+});
+
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);

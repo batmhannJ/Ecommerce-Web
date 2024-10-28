@@ -4,8 +4,17 @@ import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 import '../model/product.dart';
 
 class CartViewModel with ChangeNotifier {
-    final Map<Product, double> _itemPrices = {}; // Store adjusted prices
+  final Map<Product, double> _itemPrices = {}; // Store adjusted prices
   Map<Product, ProductSize> selectedSizes = {};
+  Map<Product, Map<String, dynamic>> cartItems =
+      {}; // Store quantity and selectedSize
+  void addToCart(Product product, int quantity, String selectedSize) {
+    cartItems[product] = {
+      'quantity': quantity,
+      'selectedSize': selectedSize,
+    };
+    notifyListeners();
+  }
 
   final Map<Product, int> _items = {};
 
@@ -25,10 +34,10 @@ class CartViewModel with ChangeNotifier {
 
   double totalItemPrice(Product item) {
     if (!_items.containsKey(item)) return 0;
-    double price = _itemPrices[item] ?? item.new_price; // Get adjusted price if available
+    double price =
+        _itemPrices[item] ?? item.new_price; // Get adjusted price if available
 
-        return price * _items[item]!;
-
+    return price * _items[item]!;
   }
 
   void addItem(Product item, {ProductSize? size}) {
@@ -36,12 +45,12 @@ class CartViewModel with ChangeNotifier {
       _items[item] = _items[item]! + 1;
     } else {
       _items[item] = 1; // Save adjusted price
-    if (size != null) {
-      selectedSizes[item] = size; // Set selected size for the new item
-            _itemPrices[item] = item.new_price; // Initialize adjusted price if needed
-      print("Saving size: ${size} for product: ${item.name}");
-
-    }
+      if (size != null) {
+        selectedSizes[item] = size; // Set selected size for the new item
+        _itemPrices[item] =
+            item.new_price; // Initialize adjusted price if needed
+        print("Saving size: ${size} for product: ${item.name}");
+      }
     }
 
     notifyListeners();
@@ -53,14 +62,13 @@ class CartViewModel with ChangeNotifier {
         _items[item] = _items[item]! - 1;
       } else {
         _items.remove(item);
-                _itemPrices.remove(item); // Remove adjusted price entry
-      selectedSizes.remove(item); // Remove size entry
-
+        _itemPrices.remove(item); // Remove adjusted price entry
+        selectedSizes.remove(item); // Remove size entry
       }
     }
     notifyListeners();
-    
   }
+
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
 
@@ -71,16 +79,30 @@ class CartViewModel with ChangeNotifier {
     notifyListeners(); // Notify listeners of the change
   }
 
-   void setSelectedSize(Product product, ProductSize size) {
-      print("Setting size for ${product.name}: $size");
+  void reduceStock(Product product) {
+    ProductSize? selectedSize = getSelectedSize(product);
+    if (selectedSize == ProductSize.S && product.s_stock > 0) {
+      product.s_stock -= 1;
+    } else if (selectedSize == ProductSize.M && product.m_stock > 0) {
+      product.m_stock -= 1;
+    } else if (selectedSize == ProductSize.L && product.l_stock > 0) {
+      product.l_stock -= 1;
+    } else if (selectedSize == ProductSize.L && product.xl_stock > 0) {
+      product.xl_stock -= 1;
+    }
+    notifyListeners();
+  }
+
+  void setSelectedSize(Product product, ProductSize size) {
+    print("Setting size for ${product.name}: $size");
 
     selectedSizes[product] = size;
     notifyListeners();
   }
 
   ProductSize? getSelectedSize(Product product) {
-     ProductSize? size = selectedSizes[product];
-  print("Retrieving size for ${product.name}: $size");
-  return size;
+    ProductSize? size = selectedSizes[product];
+    print("Retrieving size for ${product.name}: $size");
+    return size;
   }
 }

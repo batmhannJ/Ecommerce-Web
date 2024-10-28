@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/constant/enum/product_size.dart';
@@ -29,8 +28,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckoutView extends StatefulWidget {
   final User? user; // User information passed from AddressView
-  final Address? address; 
-  const CheckoutView({super.key, this.user, this.address});
+  final Address? address;
+  final List<Map<String, dynamic>>
+      cartItems; // List of items with product name, size, and quantity
+
+  const CheckoutView({
+    super.key,
+    this.user,
+    this.address,
+    required this.cartItems, // Make cartItems required
+  });
 
   @override
   State<CheckoutView> createState() => _CheckoutViewState();
@@ -39,18 +46,18 @@ class CheckoutView extends StatefulWidget {
 class _CheckoutViewState extends State<CheckoutView> {
   final AddressService _addressService =
       AddressService('https://isaacdarcilla.github.io/philippine-addresses');
-int? _stockCount;
-
+  int? _stockCount;
 
   Future<void> proceedToPayment(BuildContext context) async {
     final userAddress = context.read<AuthViewModel>().address;
-    
+
     if (userAddress == null) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text("Address Required"),
-          content: Text("Please set your address before proceeding to payment."),
+          content:
+              Text("Please set your address before proceeding to payment."),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -61,69 +68,93 @@ int? _stockCount;
       );
       return; // Stop if no address is set
     }
-  final cartViewModel = context.read<CartViewModel>();
-  final subtotal = cartViewModel.getSubtotal();
+    final cartViewModel = context.read<CartViewModel>();
+    final subtotal = cartViewModel.getSubtotal();
     final items = cartViewModel.items;
-  // Prepare your payment request data here
-  final paymentData = {
-    //"intent": "SALE",
-    "totalAmount": { // Correctly specify totalAmount as an object
-      "currency": "PHP",
-      "value": subtotal.toString(), // Ensure subtotal is a string
-    },
-    "requestReferenceNumber": DateTime.now().millisecondsSinceEpoch.toString(), // Generate a unique request reference number
-  };
 
-  const publicKey = 'pk-NCLk7JeDbX1m22ZRMDYO9bEPowNWT5J4aNIKIbcTy2a'; // Replace with your public key
-  const secretKey = '8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi'; // Replace with your secret key
-  final auth = base64Encode(utf8.encode('$publicKey:$secretKey'));
+    final paymentData = {
+      "totalAmount": {
+        "currency": "PHP",
+        "value": subtotal.toString(),
+      },
+      "requestReferenceNumber":
+          DateTime.now().millisecondsSinceEpoch.toString(),
+      "items": items.map((productEntry) {
+        final product = productEntry.key;
+        final quantity = productEntry.value;
+        final selectedSize = cartViewModel.getSelectedSize(product);
 
+        return {
+          "name": product.name,
+          "size": selectedSize?.name ?? '', // Ensure size is included
+          "quantity": quantity,
+          "totalAmount": {
+            // Add totalAmount for each item
+            "currency": "PHP",
+            "value": subtotal
+                .toString(), // Adjust based on product price and quantity
+          },
+        };
+      }).toList(),
+    };
 
-  final response = await http.post(
-    Uri.parse("https://pg-sandbox.paymaya.com/checkout/v1/checkouts"),
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Basic $auth", // Set Authorization header
-    },
-    body: json.encode(paymentData),
-  );
+// Debug the updated payment data structure
+    print("Payment Data: ${json.encode(paymentData)}");
 
-  if (response.statusCode == 200) {
-    final responseData = json.decode(response.body);
-    final checkoutUrl = responseData['redirectUrl']; // Extract the redirect URl
+    const publicKey =
+        'pk-NCLk7JeDbX1m22ZRMDYO9bEPowNWT5J4aNIKIbcTy2a'; // Replace with your public key
+    const secretKey =
+        '8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi'; // Replace with your secret key
+    final auth = base64Encode(utf8.encode('$publicKey:$secretKey'));
 
-    // Launch the PayMaya checkout URL
-    // ignore: deprecated_member_use
-    if (await canLaunch(checkoutUrl)) {
-      // ignore: deprecated_member_use
-      await launch(checkoutUrl);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
-      );
-       Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => CheckoutSuccessView()), // Navigate on successful payment
-      );
-      await _updateStockInDatabase(_stockCount as List<Map<String, dynamic>>);
+    final response = await http.post(
+      Uri.parse("https://pg-sandbox.paymaya.com/checkout/v1/checkouts"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic $auth", // Set Authorization header
+      },
+      body: json.encode(paymentData),
+    );
 
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      final checkoutUrl =
+          responseData['redirectUrl']; // Extract the redirect URl
+
+      if (await canLaunch(checkoutUrl)) {
+        await launch(checkoutUrl);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  CheckoutSuccessView()), // Navigate on successful payment
+        );
+        await _updateStockInDatabase(
+          widget.cartItems,
+          List<Map<String, dynamic>>.from(
+              paymentData['items'] as List), // Cast to the correct type
+        );
+      } else {
+        // Handle the error if the URL cannot be launched
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CheckoutFailureView()),
+        );
+        print('Could not launch $checkoutUrl');
+      }
     } else {
-      // Handle the error if the URL cannot be launched
+      // Handle failure - navigate to CheckoutFailureView
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => CheckoutFailureView()),
       );
-      print('Could not launch $checkoutUrl');
+      print('Payment failed: ${response.body}');
     }
-  }  else {
-   // Handle failure - navigate to CheckoutFailureView
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => CheckoutFailureView()),
-    );
-    print('Payment failed: ${response.body}');
   }
-}
 
   List<dynamic> regions = [];
   List<dynamic> provinces = [];
@@ -161,49 +192,64 @@ int? _stockCount;
         }
         print('Street: ${userAddress?.street}');
         print('Zip: ${userAddress?.zip}');
-
       });
     });
 
     // Fetch regions initially
     fetchRegions();
-_loadStockCount();
+    _loadStockCount();
   }
 
   Future<void> _loadStockCount() async {
-  final prefs = await SharedPreferences.getInstance();
-  setState(() {
-    _stockCount = prefs.getInt('stockCount');
-  });
-}
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _stockCount = prefs.getInt('stockCount');
+    });
+  }
 
- Future<void> _updateStockInDatabase(List<Map<String, dynamic>> updates) async {
-    final response = await http.post(
-      Uri.parse('http://localhost:4000/updateStock'), // Adjust the URL
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'newStockCount': _stockCount! - 1, // Decrease stock count after purchase
-      }),
-    );
+  Future<void> _updateStockInDatabase(List<Map<String, dynamic>> cartItems,
+      List<Map<String, dynamic>> paymentItems) async {
+    for (var item in paymentItems) {
+      final name = item['name'];
+      final size = item['size'];
+      final quantity = item['quantity'];
 
-    if (response.statusCode == 200) {
-      print('Stock updated successfully');
-    } else {
-      print('Failed to update stock: ${response.body}');
+      // Check if required fields are present
+      if (name == null || size == null || quantity == null) {
+        print('Missing fields for item: $item');
+        continue; // Skip this iteration if required fields are missing
+      }
+
+      final response = await http.post(
+        Uri.parse('http://localhost:4000/updateStock'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'name': name,
+          'size': size,
+          'quantity': quantity,
+          // No productId needed here
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Stock updated successfully for $name');
+      } else {
+        print('Failed to update stock: ${response.body}');
+      }
     }
   }
 
-
-Future<void> fetchRegions() async {
+  Future<void> fetchRegions() async {
     try {
       regions = await _addressService.regions();
       setState(() {
         // Clear the previous selections to avoid duplicates
-        if (selectedRegion != null && regions.any((region) => region['region_code'] == selectedRegion)) {
+        if (selectedRegion != null &&
+            regions.any((region) => region['region_code'] == selectedRegion)) {
           // Keep selectedRegion if it is still valid
-          selectedRegion = selectedRegion; 
+          selectedRegion = selectedRegion;
         } else if (regions.isNotEmpty) {
           // Reset selectedRegion to the first one if not valid
           selectedRegion = regions[0]['region_code'];
@@ -216,103 +262,117 @@ Future<void> fetchRegions() async {
     }
   }
 
-Future<void> fetchProvinces(String regionCode) async {
-  try {
-    List<dynamic> fetchedProvinces = await _addressService.provinces(regionCode);
-    setState(() {
-      provinces.clear(); // Clear previous provinces to avoid duplicates
-      provinces.addAll(fetchedProvinces);
-      // Reset selectedProvince if it's not found in the new list
-      if (provinces.any((province) => province['province_code'] == selectedProvince)) {
-        // If selectedProvince exists in the new provinces
-        selectedProvince = selectedProvince; 
-      } else {
-        selectedProvince = provinces.isNotEmpty ? provinces[0]['province_code'] : null; // Default to first province
-      }
-    });
-  } catch (error) {
-    print("Error fetching provinces: $error");
+  Future<void> fetchProvinces(String regionCode) async {
+    try {
+      List<dynamic> fetchedProvinces =
+          await _addressService.provinces(regionCode);
+      setState(() {
+        provinces.clear(); // Clear previous provinces to avoid duplicates
+        provinces.addAll(fetchedProvinces);
+        // Reset selectedProvince if it's not found in the new list
+        if (provinces
+            .any((province) => province['province_code'] == selectedProvince)) {
+          // If selectedProvince exists in the new provinces
+          selectedProvince = selectedProvince;
+        } else {
+          selectedProvince = provinces.isNotEmpty
+              ? provinces[0]['province_code']
+              : null; // Default to first province
+        }
+      });
+    } catch (error) {
+      print("Error fetching provinces: $error");
+    }
   }
-}
 
-Future<void> fetchCities(String provinceCode) async {
-  try {
-    List<dynamic> fetchedCities = await _addressService.cities(provinceCode);
-    setState(() {
-      cities.clear(); // Clear previous cities to avoid duplicates
-      cities.addAll(fetchedCities);
-      // Reset selectedCity if it's not found in the new list
-      if (cities.any((city) => city['city_code'] == selectedCity)) {
-        // If selectedCity exists in the new cities
-        selectedCity = selectedCity;
-      } else {
-        selectedCity = cities.isNotEmpty ? cities[0]['city_code'] : null; // Default to first city
-      }
-      // Fetch barangays based on the newly selected city
-      if (selectedCity != null) {
-        fetchBarangays(selectedCity!);
-      }
-    });
-  } catch (error) {
-    print("Error fetching cities: $error");
+  Future<void> fetchCities(String provinceCode) async {
+    try {
+      List<dynamic> fetchedCities = await _addressService.cities(provinceCode);
+      setState(() {
+        cities.clear(); // Clear previous cities to avoid duplicates
+        cities.addAll(fetchedCities);
+        // Reset selectedCity if it's not found in the new list
+        if (cities.any((city) => city['city_code'] == selectedCity)) {
+          // If selectedCity exists in the new cities
+          selectedCity = selectedCity;
+        } else {
+          selectedCity = cities.isNotEmpty
+              ? cities[0]['city_code']
+              : null; // Default to first city
+        }
+        // Fetch barangays based on the newly selected city
+        if (selectedCity != null) {
+          fetchBarangays(selectedCity!);
+        }
+      });
+    } catch (error) {
+      print("Error fetching cities: $error");
+    }
   }
-}
 
-Future<void> fetchBarangays(String cityCode) async {
-  try {
-    List<dynamic> fetchedBarangays = await _addressService.barangays(cityCode);
-    setState(() {
-      barangays.clear(); // Clear previous barangays to avoid duplicates
-      barangays.addAll(fetchedBarangays);
-      // Reset selectedBarangay if it's not found in the new list
-      if (barangays.any((barangay) => barangay['brgy_code'] == selectedBarangay)) {
-        selectedBarangay = selectedBarangay; // Keep it as is if found
-      } else {
-        selectedBarangay = barangays.isNotEmpty ? barangays[0]['brgy_code'] : null; // Default to first barangay
-      }
-    });
-  } catch (error) {
-    print("Error fetching barangays: $error");
+  Future<void> fetchBarangays(String cityCode) async {
+    try {
+      List<dynamic> fetchedBarangays =
+          await _addressService.barangays(cityCode);
+      setState(() {
+        barangays.clear(); // Clear previous barangays to avoid duplicates
+        barangays.addAll(fetchedBarangays);
+        // Reset selectedBarangay if it's not found in the new list
+        if (barangays
+            .any((barangay) => barangay['brgy_code'] == selectedBarangay)) {
+          selectedBarangay = selectedBarangay; // Keep it as is if found
+        } else {
+          selectedBarangay = barangays.isNotEmpty
+              ? barangays[0]['brgy_code']
+              : null; // Default to first barangay
+        }
+      });
+    } catch (error) {
+      print("Error fetching barangays: $error");
+    }
   }
-}
-String getRegionName(String? regionCode) {
-  final region = regions.firstWhere(
-    (r) => r['region_code'] == regionCode,
-    orElse: () => {'region_name': "Not provided"}, // Ensure a valid map is returned
-  ) as Map<String, dynamic>; // Cast to the expected type
 
-  return region['region_name'] ?? "Not provided";
-}
+  String getRegionName(String? regionCode) {
+    final region = regions.firstWhere(
+      (r) => r['region_code'] == regionCode,
+      orElse: () =>
+          {'region_name': "Not provided"}, // Ensure a valid map is returned
+    ) as Map<String, dynamic>; // Cast to the expected type
 
-String getProvinceName(String? provinceCode) {
-  final province = provinces.firstWhere(
-    (p) => p['province_code'] == provinceCode,
-    orElse: () => {'province_name': "Not provided"}, // Ensure a valid map is returned
-  ) as Map<String, dynamic>; // Cast to the expected type
+    return region['region_name'] ?? "Not provided";
+  }
 
-  return province['province_name'] ?? "Not provided";
-}
+  String getProvinceName(String? provinceCode) {
+    final province = provinces.firstWhere(
+      (p) => p['province_code'] == provinceCode,
+      orElse: () =>
+          {'province_name': "Not provided"}, // Ensure a valid map is returned
+    ) as Map<String, dynamic>; // Cast to the expected type
 
-String getCityName(String? cityCode) {
-  final city = cities.firstWhere(
-    (c) => c['city_code'] == cityCode,
-    orElse: () => {'city_name': "Not provided"}, // Ensure a valid map is returned
-  ) as Map<String, dynamic>; // Cast to the expected type
+    return province['province_name'] ?? "Not provided";
+  }
 
-  return city['city_name'] ?? "Not provided";
-}
+  String getCityName(String? cityCode) {
+    final city = cities.firstWhere(
+      (c) => c['city_code'] == cityCode,
+      orElse: () =>
+          {'city_name': "Not provided"}, // Ensure a valid map is returned
+    ) as Map<String, dynamic>; // Cast to the expected type
 
-String getBarangayName(String? barangayCode) {
-  final barangay = barangays.firstWhere(
-    (b) => b['brgy_code'] == barangayCode,
-    orElse: () => {'brgy_name': "Not provided"}, // Ensure a valid map is returned
-  ) as Map<String, dynamic>; // Cast to the expected type
+    return city['city_name'] ?? "Not provided";
+  }
 
-  return barangay['brgy_name'] ?? "Not provided";
-}
+  String getBarangayName(String? barangayCode) {
+    final barangay = barangays.firstWhere(
+      (b) => b['brgy_code'] == barangayCode,
+      orElse: () =>
+          {'brgy_name': "Not provided"}, // Ensure a valid map is returned
+    ) as Map<String, dynamic>; // Cast to the expected type
 
+    return barangay['brgy_name'] ?? "Not provided";
+  }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     final authViewModel = context.read<AuthViewModel>();
     final userAddress = authViewModel.address;
@@ -329,9 +389,10 @@ String getBarangayName(String? barangayCode) {
               children: [
                 orderDetailsCard(),
                 itemsOrderedCard(context),
-                userAddress != null ? 
-                    shippingInformationCard(context) : 
-                    addressPromptCard(context), // Show address prompt if no address
+                userAddress != null
+                    ? shippingInformationCard(context)
+                    : addressPromptCard(
+                        context), // Show address prompt if no address
                 orderSummaryCard(context),
               ],
             ),
@@ -340,7 +401,8 @@ String getBarangayName(String? barangayCode) {
       ),
     );
   }
-Widget addressPromptCard(BuildContext context) {
+
+  Widget addressPromptCard(BuildContext context) {
     return InfoCard(
       title: "SET SHIPPING ADDRESS",
       content: Column(
@@ -368,40 +430,42 @@ Widget addressPromptCard(BuildContext context) {
     );
   }
 
-
   Widget orderDetailsCard() {
-  // Get the current date and format it
-  String formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
+    // Get the current date and format it
+    String formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
 
-  return InfoCard(
-    title: "ORDER DETAILS",
-    content: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Date",
-          style: AppTextStyles.body2.copyWith(fontWeight: AppFontWeights.semiBold),
-        ),
-        Text(
-          formattedDate, // Use the formatted date here
-          style: AppTextStyles.body2,
-        ),
-        const Gap(10),
-        Text(
-          "Order Number",
-          style: AppTextStyles.body2.copyWith(fontWeight: AppFontWeights.semiBold),
-        ),
-        Text(
-          "072102", // Keep this as is or modify if necessary
-          style: AppTextStyles.body2,
-        ),
-      ],
-    ),
-  );
-}
-
+    return InfoCard(
+      title: "ORDER DETAILS",
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Date",
+            style: AppTextStyles.body2
+                .copyWith(fontWeight: AppFontWeights.semiBold),
+          ),
+          Text(
+            formattedDate, // Use the formatted date here
+            style: AppTextStyles.body2,
+          ),
+          const Gap(10),
+          Text(
+            "Order Number",
+            style: AppTextStyles.body2
+                .copyWith(fontWeight: AppFontWeights.semiBold),
+          ),
+          Text(
+            "072102", // Keep this as is or modify if necessary
+            style: AppTextStyles.body2,
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget itemsOrderedCard(BuildContext context) {
+    final cartViewModel = Provider.of<CartViewModel>(context);
+
     List<MapEntry<Product, int>> items =
         context.select<CartViewModel, List<MapEntry<Product, int>>>(
       (value) => value.items,
@@ -415,6 +479,9 @@ Widget addressPromptCard(BuildContext context) {
         itemCount: items.length,
         itemBuilder: (context, index) {
           MapEntry<Product, int> item = items[index];
+          final productEntry = cartViewModel.items[index];
+          final product = productEntry.key;
+          final selectedSize = cartViewModel.getSelectedSize(product);
 
           return Padding(
             padding: EdgeInsets.only(top: index != 0 ? 20 : 0),
@@ -424,31 +491,31 @@ Widget addressPromptCard(BuildContext context) {
                 Container(
                   decoration: BoxDecoration(
                       border: Border.all(color: AppColors.greyAD)),
-                   child: item.key.image.isNotEmpty
-                          ? Image.network(
-                              'http://localhost:4000/upload/images/${item.key.image[0]}', // Fetch image from local server
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.contain,
-                              alignment: Alignment.center,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Image.asset(
-                                    'assets/images/placeholder_food.png', // Local placeholder image
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                  ),
-                                );
-                              },
-                            )
-                          : const Center(
-                              child: Text(
-                                "No image available",
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                  child: item.key.image.isNotEmpty
+                      ? Image.network(
+                          'http://localhost:4000/upload/images/${item.key.image[0]}', // Fetch image from local server
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Image.asset(
+                                'assets/images/placeholder_food.png', // Local placeholder image
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
                               ),
-                            ),
+                            );
+                          },
+                        )
+                      : const Center(
+                          child: Text(
+                            "No image available",
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
                         ),
+                ),
                 const Gap(10),
                 SizedBox(
                   height: 80,
@@ -462,6 +529,8 @@ Widget addressPromptCard(BuildContext context) {
                           fontWeight: AppFontWeights.bold,
                         ),
                       ),
+                      Text(
+                          'Size: ${selectedSize != null ? selectedSize.name : 'N/A'}'),
                       RichText(
                         text: TextSpan(
                           style: AppTextStyles.subtitle2,
@@ -488,43 +557,42 @@ Widget addressPromptCard(BuildContext context) {
   }
 
   Widget shippingInformationCard(BuildContext context) {
-  final authViewModel = context.read<AuthViewModel>();
-  final userAddress = authViewModel.address;
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
 
-  return InfoCard(
-    title: "SHIPPING INFORMATION",
-    content: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Street: ${userAddress?.street ?? "Not provided"}',
-          style: TextStyle(fontSize: 16),
-        ),
-        Text(
-          'Barangay: ${getBarangayName(selectedBarangay)}',
-          style: TextStyle(fontSize: 16),
-        ),
-        Text(
-          'City: ${getCityName(selectedCity)}',
-          style: TextStyle(fontSize: 16),
-        ),
-        Text(
-          'Province: ${getProvinceName(selectedProvince)}',
-          style: TextStyle(fontSize: 16),
-        ),
-        Text(
-          'Region: ${getRegionName(selectedRegion)}',
-          style: TextStyle(fontSize: 16),
-        ),
-         Text(
-          'Zip: ${userAddress?.zip ?? "Not provided"}',
-          style: TextStyle(fontSize: 16),
-        ),
-      ],
-    ),
-  );
-}
-
+    return InfoCard(
+      title: "SHIPPING INFORMATION",
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Street: ${userAddress?.street ?? "Not provided"}',
+            style: TextStyle(fontSize: 16),
+          ),
+          Text(
+            'Barangay: ${getBarangayName(selectedBarangay)}',
+            style: TextStyle(fontSize: 16),
+          ),
+          Text(
+            'City: ${getCityName(selectedCity)}',
+            style: TextStyle(fontSize: 16),
+          ),
+          Text(
+            'Province: ${getProvinceName(selectedProvince)}',
+            style: TextStyle(fontSize: 16),
+          ),
+          Text(
+            'Region: ${getRegionName(selectedRegion)}',
+            style: TextStyle(fontSize: 16),
+          ),
+          Text(
+            'Zip: ${userAddress?.zip ?? "Not provided"}',
+            style: TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget orderSummaryCard(BuildContext context) {
     return InfoCard(
@@ -586,7 +654,8 @@ Widget addressPromptCard(BuildContext context) {
                   isExpanded: true,
                   text: "Proceed",
                   textStyle: AppTextStyles.button,
-                  command: () => proceedToPayment(context), // Call the payment function here
+                  command: () => proceedToPayment(
+                      context), // Call the payment function here
                   height: 48,
                   fillColor: AppColors.red,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),

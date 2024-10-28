@@ -22,8 +22,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../model/product.dart';
 import '../widget/buttons/custom_filled_button.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
-import 'dart:js' as js;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartView extends StatefulWidget {
   final User? user; // Allow null to handle cases where user may not be set
@@ -44,12 +43,13 @@ class _CartViewState extends State<CartView> {
     _checkLoginStatus();
   }
 
-void _checkLoginStatus() async {
+  void _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool? isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
     if (!isLoggedIn) {
-      final authViewModel = context.watch<AuthViewModel>(); // Get the AuthViewModel instance
+      final authViewModel =
+          context.watch<AuthViewModel>(); // Get the AuthViewModel instance
 
       // Redirect to LoginView if not logged in
       Navigator.pushReplacement(
@@ -57,37 +57,56 @@ void _checkLoginStatus() async {
         MaterialPageRoute(
           builder: (context) => LoginView(
             onLogin: () async {
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            await prefs.setBool('isLoggedIn', true);  // Save login state
-            _navigateToCheckout(authViewModel.address);
-        },
-          onCreateAccount: () {
-            // Navigate to the Signup View
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => SignupView(onLogin: () {
-                _navigateToCheckout(authViewModel.address); // Redirect after account creation
-              })),
-            );
-          },
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('isLoggedIn', true); // Save login state
+              _navigateToCheckout(authViewModel.address);
+            },
+            onCreateAccount: () {
+              // Navigate to the Signup View
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (context) => SignupView(onLogin: () {
+                          _navigateToCheckout(authViewModel
+                              .address); // Redirect after account creation
+                        })),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
+  void _navigateToCheckout(Address? userAddress) {
+    // Prepare cart items to pass
+    List<Map<String, dynamic>> cartItems =
+        context.read<CartViewModel>().items.map((entry) {
+      Product product = entry.key;
+      int quantity = entry.value;
+      String selectedSize = selectedSizes[product]?.name ??
+          ""; // Get selected size for each product
+// Assuming you have a way to get the selected size for each product
+      return {
+        'name': product.name,
+        'selectedSize': selectedSize, // Modify to get actual selected size
+        'quantity': quantity,
+      };
+    }).toList();
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => CheckoutView(
+          address: userAddress,
+          cartItems: cartItems, // Pass the cart items
         ),
       ),
     );
   }
-}
-
-  void _navigateToCheckout(Address? userAddress) {
-  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(
-      builder: (context) => CheckoutView(address: userAddress),
-    ),
-  );
-}
-
-
 
   @override
   Widget build(BuildContext context) {
-    List<MapEntry<Product, int>> items = context.select<CartViewModel, List<MapEntry<Product, int>>>(
+    List<MapEntry<Product, int>> items =
+        context.select<CartViewModel, List<MapEntry<Product, int>>>(
       (value) => value.items,
     );
 
@@ -135,117 +154,119 @@ void _checkLoginStatus() async {
                 ),
               ),
               ListView.builder(
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  itemCount: items.length,
-  itemBuilder: (context, index) {
-    MapEntry<Product, int> item = items[index];
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  MapEntry<Product, int> item = items[index];
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(8),
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ProductList(products: [item.key]),
-              ),
-            );
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: item.key.image.isNotEmpty
-                ? Image.network(
-                    'http://localhost:4000/upload/images/${item.key.image[0]}',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.contain,
-                    alignment: Alignment.center,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Image.asset(
-                          'assets/images/placeholder_food.png',
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    },
-                  )
-                : const Center(
-                    child: Text(
-                      "No image available",
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ),
-          ),
-        ),
-        title: Text(
-          item.key.name,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.body2.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Display the selected size
-              Text(
-  "Selected Size: ${context.watch<CartViewModel>().getSelectedSize(item.key)?.name ?? 'N/A'}",
-                style: AppTextStyles.body2.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      "₱${context.read<CartViewModel>().totalItemPrice(item.key)}",
-                      style: AppTextStyles.body2.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(8),
+                      leading: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductList(products: [item.key]),
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: item.key.image.isNotEmpty
+                              ? Image.network(
+                                  'http://localhost:4000/upload/images/${item.key.image[0]}',
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Image.asset(
+                                        'assets/images/placeholder_food.png',
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: Text(
+                                    "No image available",
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                  ),
+                                ),
+                        ),
+                      ),
+                      title: Text(
+                        item.key.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.body2.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Display the selected size
+                            Text(
+                              "Size: ${context.watch<CartViewModel>().getSelectedSize(item.key)?.name ?? 'N/A'}",
+                              style: AppTextStyles.body2.copyWith(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    "₱${context.read<CartViewModel>().totalItemPrice(item.key)}",
+                                    style: AppTextStyles.body2.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                QuantitySelector(
+                                  product: item.key,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  QuantitySelector(
-                    product: item.key,
-                  ),
-                ],
+                  );
+                },
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  },
-),
-
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -346,7 +367,8 @@ void _checkLoginStatus() async {
                       textStyle: AppTextStyles.button,
                       height: 50,
                       fillColor: AppColors.red,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 14),
                       command: () async {
                         final authViewModel = context.read<AuthViewModel>();
                         final addressViewModel = context.read<AuthViewModel>();
@@ -355,22 +377,30 @@ void _checkLoginStatus() async {
                         if (!authViewModel.isLoggedIn) {
                           // Prompt user to log in
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("You need to log in to proceed to checkout")),
+                            const SnackBar(
+                                content: Text(
+                                    "You need to log in to proceed to checkout")),
                           );
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => LoginView(
                                 onLogin: () async {
-                                  SharedPreferences prefs = await SharedPreferences.getInstance();
-                                  await prefs.setBool('isLoggedIn', true); // Save login state
-                                  _navigateToCheckout(addressViewModel.address); // Proceed to CheckoutView after login
+                                  SharedPreferences prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.setBool(
+                                      'isLoggedIn', true); // Save login state
+                                  _navigateToCheckout(addressViewModel
+                                      .address); // Proceed to CheckoutView after login
                                 },
                                 onCreateAccount: () {
                                   Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (context) => SignupView(onLogin: () {
-                                      _navigateToCheckout(addressViewModel.address); // Proceed to CheckoutView after account creation
-                                    })),
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            SignupView(onLogin: () {
+                                              _navigateToCheckout(addressViewModel
+                                                  .address); // Proceed to CheckoutView after account creation
+                                            })),
                                   );
                                 },
                               ),
@@ -382,7 +412,6 @@ void _checkLoginStatus() async {
                         }
                       },
                     ),
-
                   ],
                 ),
               ),
