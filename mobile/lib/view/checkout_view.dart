@@ -390,12 +390,31 @@ Widget addressPromptCard(BuildContext context) {
                 Container(
                   decoration: BoxDecoration(
                       border: Border.all(color: AppColors.greyAD)),
-                   child: Image.network(
-                    item.key.image as String, // Corrected: Access the single image URL from the product
-                    width: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                   child: item.key.image.isNotEmpty
+                          ? Image.network(
+                              'http://localhost:4000/upload/images/${item.key.image[0]}', // Fetch image from local server
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.contain,
+                              alignment: Alignment.center,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Image.asset(
+                                    'assets/images/placeholder_food.png', // Local placeholder image
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              },
+                            )
+                          : const Center(
+                              child: Text(
+                                "No image available",
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ),
+                        ),
                 const Gap(10),
                 SizedBox(
                   height: 80,

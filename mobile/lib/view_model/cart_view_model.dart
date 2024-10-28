@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import '../model/product.dart';
 
 class CartViewModel with ChangeNotifier {
+    final Map<Product, double> _itemPrices = {}; // Store adjusted prices
+
   final Map<Product, int> _items = {};
 
   List<MapEntry<Product, int>> get items => _items.entries.toList();
@@ -21,17 +23,18 @@ class CartViewModel with ChangeNotifier {
 
   double totalItemPrice(Product item) {
     if (!_items.containsKey(item)) return 0;
+    double price = _itemPrices[item] ?? item.new_price; // Get adjusted price if available
 
-    double discountedPrice = item.old_price - (item.new_price * item.discount);
+        return price * _items[item]!;
 
-    return discountedPrice * _items[item]!;
   }
 
   void addItem(Product item) {
     if (_items.containsKey(item)) {
       _items[item] = _items[item]! + 1;
     } else {
-      _items[item] = 1;
+      _items[item] = 1; // Save adjusted price
+
     }
 
     notifyListeners();
@@ -43,6 +46,8 @@ class CartViewModel with ChangeNotifier {
         _items[item] = _items[item]! - 1;
       } else {
         _items.remove(item);
+                _itemPrices.remove(item); // Remove adjusted price entry
+
       }
     }
     notifyListeners();

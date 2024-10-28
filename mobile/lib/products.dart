@@ -29,6 +29,12 @@ Future<List<Product>> fetchProducts() async {
             value,
           );
         }) ?? {}, // Default to empty map if stocks is null
+        s_stock: data['s_stock'] ?? 0,
+        m_stock: data['m_stock']?? 0,
+        l_stock: data['l_stock']?? 0,
+        xl_stock: data['xl_stock']?? 0,
+                adjustedPrice: data['adjustedPrice'] ?? 0,
+
         category: data['category'] ?? '', // Default to empty string if null
         tags: List<String>.from(data['tags'] ?? []), // Default to empty list if null
         image: (data['image'] is List) 

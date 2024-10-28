@@ -20,7 +20,7 @@ import '../widget/product_list.dart';
 import 'layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import '../core/constant/enum/product_size.dart';
-
+import 'dart:js' as js;
 
 class ProductView extends StatefulWidget {
   final Product product;
@@ -39,6 +39,8 @@ class ProductView extends StatefulWidget {
 class _ProductViewState extends State<ProductView> {
   late List<Product> _relatedProducts;
   ProductSize? _selectedSize;
+  int _stockCount = 0;
+  double adjustedPrice = 0.0;
 
   @override
   void initState() {
@@ -51,36 +53,61 @@ class _ProductViewState extends State<ProductView> {
                 .intersection(widget.product.tags.toSet())
                 .isNotEmpty)
         .toList();
+    adjustedPrice = widget.product.new_price;
+
     super.initState();
   }
 
-  // Function to save cart items to SharedPreferences
-  Future<void> _saveToCart(Product product) async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Retrieve existing cart items
-    List<String>? cartItems = prefs.getStringList('cart') ?? [];
-    
-    // Add the new product to the cart (you may need to convert the product to a String or JSON)
-    cartItems.add(product.name); // Simplified, you may want to serialize the whole product
-    
-    // Save updated cart
-    await prefs.setStringList('cart', cartItems);
+   void _updateStockCount(ProductSize size) {
+    setState(() {
+      switch (size) {
+        case ProductSize.S:
+          _stockCount = widget.product.s_stock;
+          adjustedPrice = widget.product.new_price; // Base price for S
+          break;
+        case ProductSize.M:
+          _stockCount = widget.product.m_stock;
+                    adjustedPrice = widget.product.new_price + 100; // Add 100 for M
+          break;
+        case ProductSize.L:
+          _stockCount = widget.product.l_stock;
+                   adjustedPrice = widget.product.new_price + 200; // Add 100 for M
+ 
+          break;
+        case ProductSize.XL:
+          _stockCount = widget.product.xl_stock;
+                    adjustedPrice = widget.product.new_price + 300; // Add 100 for M
+
+          break;
+      }
+    });
   }
+
+  // Function to save cart items to SharedPreferences
+Future<void> _saveToCart(Product product) async {
+  final prefs = await SharedPreferences.getInstance();
+  List<String>? cartItems = prefs.getStringList('cart') ?? [];
+
+  // Update the product with adjusted price before saving to cart
+  final updatedProduct = product.copyWith(new_price: adjustedPrice);
+
+  // Add adjusted product details in a structured format
+  cartItems.add('${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)}'); // Save with adjusted price
+  await prefs.setStringList('cart', cartItems);
+}
+
 
   @override
   Widget build(BuildContext context) {
+    int s_stock = widget.product.stocks[ProductSize.S] ?? 0;
+    int m_stock = widget.product.stocks[ProductSize.M] ?? 0;
+    int l_stock = widget.product.stocks[ProductSize.L] ?? 0;
+    int xl_stock = widget.product.stocks[ProductSize.XL] ?? 0;
     return DefaultViewLayout(
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ImageCarousel(
-            //   images: widget.product.images.map((e) {
-            //     return Image.asset(e);
-            //   }).toList(),
-            // ),
-            const Gap(15),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Column(
@@ -100,7 +127,7 @@ class _ProductViewState extends State<ProductView> {
                       Padding(
                         padding: const EdgeInsets.only(right: 15),
                         child: Text(
-                          '₱${widget.product.new_price}.00',
+                        '₱${adjustedPrice.toStringAsFixed(2)}', // Display adjusted price
                           style: widget.product.discount != 0
                               ? AppTextStyles.body1.copyWith(
                                   color: AppColors.greyAD,
@@ -124,102 +151,84 @@ class _ProductViewState extends State<ProductView> {
                     overflow: TextOverflow.clip,
                     style: AppTextStyles.body2,
                   ),
-                  if (widget.product.stocks.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25),
-                      child: SizePicker(
-                      sizes: widget.product.stocks.keys.toList(), // Convert Map keys to List
-                        onSizeSelected: (value) {
-                          setState(() {
-                            _selectedSize = value;
-                          });
-                        },
+  Padding(
+    padding: const EdgeInsets.only(top: 25),
+    child: SizePicker(
+      sizes: const [
+        ProductSize.S,
+        ProductSize.M,
+        ProductSize.L,
+        ProductSize.XL,
+      ],
+      onSizeSelected: (value) {
+        setState(() {
+          _selectedSize = value; // Update selected size
+        });
+         _updateStockCount(value!); // Update the stock count based on the selected size
+      },
+    ),
+  ),const Gap(10),
+                  if (_selectedSize != null)
+                    Text(
+                      'Available stock: $_stockCount',
+                      style: AppTextStyles.body1.copyWith(
+                        color: AppColors.black,
+                        fontWeight: AppFontWeights.bold,
                       ),
                     ),
-                  const Gap(20),
-                  //For qty button
-                  Text(
-                    widget.product.description,
-                    overflow: TextOverflow.clip,
-                    style: AppTextStyles.body2,
-                  ),
-                  if (widget.product.stocks.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25),
-                      child: SizePicker(
-                      sizes: widget.product.stocks.keys.toList(), // Convert Map keys to List
-                        onSizeSelected: (value) {
-                          setState(() {
-                            _selectedSize = value;
-                          });
-                        },
-                      ),
-                    ),
-                  const Gap(20),
-                  CustomButton(
-                    disabled: _selectedSize == null && widget.product.stocks.isNotEmpty,
-                    text: "ADD TO CART",
-                    textStyle: AppTextStyles.button,
-                    command: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      
-                      // Check if user is logged in
-                      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-                      
-                      if (isLoggedIn) {
-                        // User is logged in, proceed with adding to cart
-                        context.read<CartViewModel>().addItem(widget.product);
-                        _saveToCart(widget.product); // Save to SharedPreferences
-                      } else {
-                        // User is not logged in, redirect to login page using MaterialPageRoute
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => 
-                              LoginView(
-                                onLogin: () {
-                                  final authViewModel = context.read<AuthViewModel>();
-                                  authViewModel.logins().then((_) async {
-                                    if (authViewModel.isLoggedIn) {
-                                      // Get user info from authViewModel
-                                      final userInfo = authViewModel.user; // Assuming this is where user info is stored
 
-                                      // Store user info in SharedPreferences
-                                      SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      await prefs.setString('userId', userInfo!.id); // Replace 'id' with actual field
-                                      await prefs.setString('userName', userInfo.name); // Replace 'name' with actual field
-                                      await prefs.setString('userEmail', userInfo.email); // Replace 'email' with actual field
-                                      // Add other user details as needed
+const Gap(20),
+CustomButton(
+  disabled: _selectedSize == null && widget.product.stocks.isNotEmpty,
+  text: "ADD TO CART",
+  textStyle: AppTextStyles.button,
+  command: () async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
-                                      // Redirect to HomeView after successful login
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(builder: (context) => const HomeView()),
-                                      );
-                                    }
-                                  });
-                                },
-                                
-                                onCreateAccount: () {
-                                  final authViewModel = context.read<AuthViewModel>();
-                                  // Navigate to the Signup View
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => SignupView(
-                                        onLogin: () { 
-                                          authViewModel.logins(); 
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ), // Replace with your login screen widget
-                          ),
-                        );
-                      }
-                    },
-                    height: 48,
-                    fillColor: AppColors.red,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+    if (isLoggedIn) {
+          final updatedProduct = widget.product.copyWith(new_price: adjustedPrice);
+
+     context.read<CartViewModel>().addItem(updatedProduct); // Add adjusted product to cart
+    await _saveToCart(updatedProduct); // Pass adjusted product to save function    
+      //await _saveToCart(widget.product); 
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => LoginView(
+            onLogin: () async {
+              final authViewModel = context.read<AuthViewModel>();
+              await authViewModel.logins();
+              if (authViewModel.isLoggedIn) {
+                final userInfo = authViewModel.user!;
+                await prefs.setString('userId', userInfo.id);
+                await prefs.setString('userName', userInfo.name);
+                await prefs.setString('userEmail', userInfo.email);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const HomeView()),
+                );
+              }
+            },
+            onCreateAccount: () {
+              final authViewModel = context.read<AuthViewModel>();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => SignupView(
+                    onLogin: () => authViewModel.logins(),
                   ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  },
+  height: 48,
+  fillColor: AppColors.red,
+  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+),
+
 
                   const Gap(20),
                   RichText(
@@ -352,7 +361,7 @@ class RatingWidget extends StatelessWidget {
 }
 
 class SizePicker extends StatefulWidget {
-  final List<ProductSize> sizes;
+  final List<ProductSize> sizes; // Expecting ProductSize enums (e.g., S, M, L, XL)
   final ValueChanged<ProductSize?> onSizeSelected;
 
   const SizePicker({
@@ -386,18 +395,24 @@ class _SizePickerState extends State<SizePicker> {
               onTap: () {
                 setState(() {
                   _selectedSize = widget.sizes[index];
-                  widget.onSizeSelected(_selectedSize);
+                  widget.onSizeSelected(_selectedSize); // Notify parent about the selected size
                 });
               },
               child: Container(
                 width: 40,
                 height: 40,
-                color: _selectedSize == widget.sizes[index]
-                    ? AppColors.greyAD
-                    : AppColors.lightGrey,
+                decoration: BoxDecoration(
+                  color: _selectedSize == widget.sizes[index]
+                      ? AppColors.greyAD
+                      : AppColors.lightGrey,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                    color: AppColors.black, // Optional: add border for better visibility
+                  ),
+                ),
                 child: Center(
                   child: Text(
-                    widget.sizes[index].name.toUpperCase(),
+                    widget.sizes[index].name.toUpperCase(), // Make sure to convert the enum to string properly
                     style: AppTextStyles.button.copyWith(
                       color: _selectedSize == widget.sizes[index]
                           ? AppColors.primary

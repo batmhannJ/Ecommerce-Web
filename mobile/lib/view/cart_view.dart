@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/form_styles.dart';
@@ -22,6 +23,7 @@ import 'dart:convert';
 import '../model/product.dart';
 import '../widget/buttons/custom_filled_button.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'dart:js' as js;
 
 class CartView extends StatefulWidget {
   final User? user; // Allow null to handle cases where user may not be set
@@ -34,7 +36,8 @@ class CartView extends StatefulWidget {
 }
 
 class _CartViewState extends State<CartView> {
-  
+  Map<Product, ProductSize> selectedSizes = {};
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +83,7 @@ void _checkLoginStatus() async {
     ),
   );
 }
+
 
 
   @override
@@ -164,11 +168,30 @@ void _checkLoginStatus() async {
                         },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                           child: Image.network(
-                            item.key.image as String, // Corrected: Access the single image URL from the product
-                            width: 50,
-                            fit: BoxFit.cover,
-                          ),
+                          child: item.key.image.isNotEmpty
+                          ? Image.network(
+                              'http://localhost:4000/upload/images/${item.key.image[0]}', // Fetch image from local server
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.contain,
+                              alignment: Alignment.center,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Image.asset(
+                                    'assets/images/placeholder_food.png', // Local placeholder image
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              },
+                            )
+                          : const Center(
+                              child: Text(
+                                "No image available",
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ),
                         ),
                       ),
                       title: Text(

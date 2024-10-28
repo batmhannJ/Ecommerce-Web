@@ -39,11 +39,17 @@ class ProductApiService {
               .toList() ??
           [],
       stocks: {
-        ProductSize.s: json['s_stock'] ?? 0,
-        ProductSize.m: json['m_stock'] ?? 0,
-        ProductSize.l: json['l_stock'] ?? 0,
-        ProductSize.xl: json['xl_stock'] ?? 0,
+        ProductSize.S: json['s_stock'] ?? 0,
+        ProductSize.M: json['m_stock'] ?? 0,
+        ProductSize.L: json['l_stock'] ?? 0,
+        ProductSize.XL: json['xl_stock'] ?? 0,
       },
+            adjustedPrice: json['adjustedPrice'] ?? 0,
+
+      s_stock: json['s_stock'] ?? 0,
+      m_stock: json['m_stock']?? 0,
+      l_stock: json['l_stock']?? 0,
+      xl_stock: json['xl_stock']?? 0,
       category: json['category'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
       image: json['image'] != null && json['image'] is List

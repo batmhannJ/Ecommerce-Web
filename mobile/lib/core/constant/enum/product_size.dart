@@ -1,6 +1,6 @@
 enum ProductSize {
-  s,
-  m,
-  l,
-  xl,
+  S,
+  M,
+  L,
+  XL,
 }
