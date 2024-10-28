@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
@@ -23,7 +24,6 @@ import 'package:indigitech_shop/view/checkout_result.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add this import for URL launching
 // ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
-import 'package:geolocator/geolocator.dart'; // Make sure to add geolocator package to your pubspec.yaml
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckoutView extends StatefulWidget {
@@ -138,6 +138,8 @@ class _CheckoutViewState extends State<CheckoutView> {
           List<Map<String, dynamic>>.from(
               paymentData['items'] as List), // Cast to the correct type
         );
+
+        await saveTransaction(paymentData, context);
       } else {
         // Handle the error if the URL cannot be launched
         Navigator.push(
@@ -238,6 +240,68 @@ class _CheckoutViewState extends State<CheckoutView> {
       } else {
         print('Failed to update stock: ${response.body}');
       }
+    }
+  }
+
+  Future<void> saveTransaction(
+      Map<String, dynamic> paymentData, BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+
+    // Check if userId is null
+    if (userId == null) {
+      Fluttertoast.showToast(msg: "User ID not found. Please log in.");
+      return;
+    }
+
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
+
+    // Check if userAddress is not null
+    if (userAddress == null) {
+      Fluttertoast.showToast(msg: "User address not found.");
+      return;
+    }
+
+    // Prepare transaction details
+    final transactionDetails = {
+      "transactionId": paymentData["requestReferenceNumber"],
+      "date": DateTime.now().toIso8601String(),
+      "name": authViewModel.user?.name ??
+          "Unknown User", // Using null-aware operator
+      "contact": authViewModel.user?.phone ??
+          "No contact available", // Using null-aware operator
+      "item": paymentData["items"].map((item) => item['name']).join(', '),
+      "quantity": paymentData["items"]
+          .map((item) => item['quantity'])
+          .reduce((a, b) => a + b),
+      "amount": paymentData["totalAmount"]["value"],
+      "address":
+          "${userAddress.street} ${userAddress.municipality} ${userAddress.province} ${userAddress.zip}",
+      "status": "Cart Processing",
+      "userId": userId,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'http://localhost:4000/api/transactions'), // Change localhost to your machine IP
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(transactionDetails),
+      );
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(msg: "Transaction saved successfully.");
+        print("Transaction saved: $transactionDetails");
+      } else {
+        Fluttertoast.showToast(
+            msg: "Error saving transaction. Code: ${response.statusCode}");
+        print(
+            "Error saving transaction: ${response.statusCode}, ${response.body}");
+      }
+    } catch (error) {
+      Fluttertoast.showToast(msg: "Error saving transaction: $error");
+      print("Error saving transaction: $error");
     }
   }
 

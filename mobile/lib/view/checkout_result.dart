@@ -67,7 +67,7 @@ class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Payment Successful")),
+      appBar: AppBar(title: Text("My Orders")),
       body: loading
           ? Center(child: CircularProgressIndicator())
           : orders.isNotEmpty
