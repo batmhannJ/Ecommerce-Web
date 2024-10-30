@@ -64,35 +64,43 @@ class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("My Orders")),
-      body: loading
-          ? Center(child: CircularProgressIndicator())
-          : orders.isNotEmpty
-              ? ListView.builder(
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    return ListTile(
-                      title: Text("Order ID: ${order['transactionId']}"),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Date: ${order['date']}"),
-                          Text("Item: ${order['item']}"),
-                          Text("Quantity: ${order['quantity']}"),
-                          Text("Amount: ${order['amount']}"),
-                          Text("Status: ${order['status']}"),
-                        ],
-                      ),
-                    );
-                  },
-                )
-              : Center(child: Text("No orders found")),
-    );
-  }
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(title: const Text("My Orders")),
+    body: loading
+        ? const Center(child: CircularProgressIndicator())
+        : orders.isNotEmpty
+            ? ListView.builder(
+                itemCount: orders.length,
+                itemBuilder: (context, index) {
+                  final order = orders[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    child: ExpansionTile(
+                      title: Text("Item: ${order['item']}"),
+                      children: [
+                        ListTile(
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Order ID: ${order['transactionId']}"),
+                              Text("Date: ${order['date']}"),
+                              Text("Quantity: ${order['quantity']}"),
+                              Text("Amount: ${order['amount']}"),
+                              Text("Status: ${order['status']}"),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              )
+            : const Center(child: Text("No orders found")),
+  );
+}
 }
 
 class CheckoutFailureView extends StatelessWidget {
