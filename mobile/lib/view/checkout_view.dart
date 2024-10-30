@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
-import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
@@ -9,12 +8,10 @@ import 'package:indigitech_shop/model/user.dart';
 import 'package:indigitech_shop/services/address_service.dart';
 import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
-import 'package:indigitech_shop/view_model/address_view_model.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http; // Add this import
 import 'dart:convert';
-import '../core/constant/enum/product_size.dart';
 import '../model/address.dart';
 import '../model/product.dart';
 import '../view_model/cart_view_model.dart';
@@ -25,6 +22,8 @@ import 'package:url_launcher/url_launcher.dart'; // Add this import for URL laun
 // ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
+import 'package:geolocator/geolocator.dart';
 
 class CheckoutView extends StatefulWidget {
   final User? user; // User information passed from AddressView
@@ -47,6 +46,106 @@ class _CheckoutViewState extends State<CheckoutView> {
   final AddressService _addressService =
       AddressService('https://isaacdarcilla.github.io/philippine-addresses');
   int? _stockCount;
+  double shippingFee = 0.0; // Non-nullable, default to 0.0
+
+  Future<Map<String, double>?> fetchCoordinates(String address) async {
+    const apiKey = 'c60e6af4b3421c7b225c09fa354560ec'; // Your API key
+    final url =
+        'http://api.positionstack.com/v1/forward?access_key=$apiKey&query=$address';
+
+    print("Fetching coordinates for address: $address");
+
+    try {
+      // Delay bago magpadala ng request
+      await Future.delayed(Duration(seconds: 2));
+
+      final response = await http.get(Uri.parse(url));
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['data'].isNotEmpty) {
+          print("Fetched Coordinates: ${data['data'][0]}");
+          return {
+            'latitude': data['data'][0]['latitude'],
+            'longitude': data['data'][0]['longitude'],
+          };
+        } else {
+          print("No data found for the address.");
+        }
+      } else {
+        print("Error fetching coordinates: ${response.body}");
+        if (response.statusCode == 429) {
+          Fluttertoast.showToast(
+              msg: "Too many requests. Please try again later.");
+        }
+      }
+    } catch (error) {
+      print("Error fetching coordinates: $error");
+      Fluttertoast.showToast(msg: "Error fetching coordinates.");
+    }
+    return null;
+  }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadiusKm = 6371;
+
+    final dLat = _degreesToRadians(lat2 - lat1);
+    final dLon = _degreesToRadians(lon2 - lon1);
+
+    final a = (sin(dLat / 2) * sin(dLat / 2)) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            (sin(dLon / 2) * sin(dLon / 2));
+
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadiusKm * c; // Returns distance in kilometers
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * (pi / 180);
+  }
+
+  Future<void> calculateShippingFee(BuildContext context) async {
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
+
+    if (userAddress == null) {
+      print("User address is null");
+      return;
+    }
+
+    // Get the region code from the user's address
+    final regionCode = userAddress.region;
+
+    if (regionCode == null) {
+      print("User region is null");
+      return;
+    }
+
+    print("User Region: $regionCode");
+
+    const mainOfficeLat = 14.628488; // Main office latitude
+    const mainOfficeLon = 121.03342; // Main office longitude
+
+    double distance = 0.0;
+
+    // Determine shipping fee based on the region
+    if (regionCode == 'NCR') {
+      distance = 10; // Example value; adjust as needed for NCR
+    } else {
+      // Default case for other regions; adjust as needed
+      distance = 16; // Example value for non-NCR
+    }
+
+    setState(() {
+      shippingFee = distance * 5; // Calculate the fee based on distance
+    });
+
+    print("Calculated Shipping Fee: PHP $shippingFee");
+  }
 
   Future<void> proceedToPayment(BuildContext context) async {
     final userAddress = context.read<AuthViewModel>().address;
@@ -75,27 +174,39 @@ class _CheckoutViewState extends State<CheckoutView> {
     final paymentData = {
       "totalAmount": {
         "currency": "PHP",
-        "value": subtotal.toString(),
+        "value": (subtotal + shippingFee)
+            .toString(), // Include shipping fee in total
       },
       "requestReferenceNumber":
           DateTime.now().millisecondsSinceEpoch.toString(),
-      "items": items.map((productEntry) {
-        final product = productEntry.key;
-        final quantity = productEntry.value;
-        final selectedSize = cartViewModel.getSelectedSize(product);
+      "items": [
+        ...items.map((productEntry) {
+          final product = productEntry.key;
+          final quantity = productEntry.value;
+          final selectedSize = cartViewModel.getSelectedSize(product);
 
-        return {
-          "name": product.name,
-          "size": selectedSize?.name ?? '', // Ensure size is included
-          "quantity": quantity,
-          "totalAmount": {
-            // Add totalAmount for each item
+          return {
+            "name": product.name,
+            "size": selectedSize?.name ?? '', // Ensure size is included
+            "quantity": quantity,
+            "totalAmount": {
+              "currency": "PHP",
+              "value": subtotal.toString(),
+            },
+          };
+        }).toList(),
+        {
+          "name": "Delivery Fee", // Name for delivery fee item
+          "amount": {
             "currency": "PHP",
-            "value": subtotal
-                .toString(), // Adjust based on product price and quantity
+            "value": shippingFee.toString(), // Delivery fee value
           },
-        };
-      }).toList(),
+          "totalAmount": {
+            "currency": "PHP",
+            "value": shippingFee.toString(), // Total amount for delivery fee
+          },
+        },
+      ],
     };
 
 // Debug the updated payment data structure
@@ -194,6 +305,10 @@ class _CheckoutViewState extends State<CheckoutView> {
         }
         print('Street: ${userAddress?.street}');
         print('Zip: ${userAddress?.zip}');
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          calculateShippingFee(context);
+        });
       });
     });
 
@@ -231,7 +346,6 @@ class _CheckoutViewState extends State<CheckoutView> {
           'name': name,
           'size': size,
           'quantity': quantity,
-          // No productId needed here
         }),
       );
 
@@ -309,13 +423,10 @@ class _CheckoutViewState extends State<CheckoutView> {
     try {
       regions = await _addressService.regions();
       setState(() {
-        // Clear the previous selections to avoid duplicates
         if (selectedRegion != null &&
             regions.any((region) => region['region_code'] == selectedRegion)) {
-          // Keep selectedRegion if it is still valid
           selectedRegion = selectedRegion;
         } else if (regions.isNotEmpty) {
-          // Reset selectedRegion to the first one if not valid
           selectedRegion = regions[0]['region_code'];
         } else {
           selectedRegion = null; // Handle the case when there are no regions
@@ -333,10 +444,8 @@ class _CheckoutViewState extends State<CheckoutView> {
       setState(() {
         provinces.clear(); // Clear previous provinces to avoid duplicates
         provinces.addAll(fetchedProvinces);
-        // Reset selectedProvince if it's not found in the new list
         if (provinces
             .any((province) => province['province_code'] == selectedProvince)) {
-          // If selectedProvince exists in the new provinces
           selectedProvince = selectedProvince;
         } else {
           selectedProvince = provinces.isNotEmpty
@@ -364,7 +473,6 @@ class _CheckoutViewState extends State<CheckoutView> {
               ? cities[0]['city_code']
               : null; // Default to first city
         }
-        // Fetch barangays based on the newly selected city
         if (selectedCity != null) {
           fetchBarangays(selectedCity!);
         }
@@ -381,7 +489,6 @@ class _CheckoutViewState extends State<CheckoutView> {
       setState(() {
         barangays.clear(); // Clear previous barangays to avoid duplicates
         barangays.addAll(fetchedBarangays);
-        // Reset selectedBarangay if it's not found in the new list
         if (barangays
             .any((barangay) => barangay['brgy_code'] == selectedBarangay)) {
           selectedBarangay = selectedBarangay; // Keep it as is if found
@@ -631,34 +738,52 @@ class _CheckoutViewState extends State<CheckoutView> {
         children: [
           Text(
             'Street: ${userAddress?.street ?? "Not provided"}',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           Text(
             'Barangay: ${getBarangayName(selectedBarangay)}',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           Text(
             'City: ${getCityName(selectedCity)}',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           Text(
             'Province: ${getProvinceName(selectedProvince)}',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           Text(
             'Region: ${getRegionName(selectedRegion)}',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           Text(
             'Zip: ${userAddress?.zip ?? "Not provided"}',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
         ],
       ),
     );
   }
 
+  String getFullAddress(Address userAddress,
+      {String? barangay,
+      String? municipality,
+      String? province,
+      String? region}) {
+    final street = userAddress.street ?? "";
+    final zip = userAddress.zip ?? "";
+
+    return '$street${barangay != null ? ', $barangay' : ''}'
+        '${municipality != null ? ', $municipality' : ''}'
+        '${province != null ? ', $province' : ''}'
+        '${region != null ? ', $region' : ''}'
+        '${zip.isNotEmpty ? ', $zip' : ''}';
+  }
+
   Widget orderSummaryCard(BuildContext context) {
+    final double shippingFee =
+        this.shippingFee; // Use the shippingFee from the state variable
+
     return InfoCard(
       title: "ORDER SUMMARY",
       content: Column(
@@ -689,8 +814,8 @@ class _CheckoutViewState extends State<CheckoutView> {
                 Padding(
                   padding: const EdgeInsets.only(left: 15),
                   child: Text(
-                    "Free",
-                    style: AppTextStyles.body2,
+                    "₱${shippingFee.toStringAsFixed(2)}", // Display calculated shipping fee
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
               ]),
@@ -703,11 +828,11 @@ class _CheckoutViewState extends State<CheckoutView> {
                 Padding(
                   padding: const EdgeInsets.only(left: 15),
                   child: Text(
-                    "₱${context.read<CartViewModel>().getSubtotal()}",
+                    "₱${(context.read<CartViewModel>().getSubtotal() + shippingFee).toStringAsFixed(2)}", // Sum of subtotal and shipping fee
                     style: AppTextStyles.body2.copyWith(color: Colors.green),
                   ),
                 ),
-              ])
+              ]),
             ],
           ),
           const Gap(25),

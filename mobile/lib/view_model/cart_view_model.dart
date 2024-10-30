@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:indigitech_shop/core/constant/enum/product_size.dart';
-
+import 'package:geolocator/geolocator.dart';
+import 'dart:math';
 import '../model/product.dart';
 
 class CartViewModel with ChangeNotifier {
   final Map<Product, double> _itemPrices = {}; // Store adjusted prices
   Map<Product, ProductSize> selectedSizes = {};
+  double _shippingFee = 0.0;
+
+  double get shippingFee => _shippingFee;
   Map<Product, Map<String, dynamic>> cartItems =
       {}; // Store quantity and selectedSize
   void addToCart(Product product, int quantity, String selectedSize) {
@@ -104,5 +108,38 @@ class CartViewModel with ChangeNotifier {
     ProductSize? size = selectedSizes[product];
     print("Retrieving size for ${product.name}: $size");
     return size;
+  }
+
+  void calculateShippingFee(
+      double lat1, double lon1, double lat2, double lon2) {
+    const earthRadiusKm = 6371;
+    double dLat = _degreesToRadians(lat2 - lat1);
+    double dLon = _degreesToRadians(lon2 - lon1);
+
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    double distance = earthRadiusKm * c;
+    print("Calculated distance: $distance km");
+
+    // Calculate the shipping fee based on distance
+    _shippingFee = _calculateShippingRate(distance);
+    print("Calculated shipping fee: ₱$shippingFee");
+
+    notifyListeners(); // Ensure UI updates
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
+  }
+
+  double _calculateShippingRate(double distance) {
+    if (distance < 5) return 50; // Example: ₱50 for <5 km
+    if (distance < 20) return 100; // Example: ₱100 for 5-20 km
+    return 200; // Example: ₱200 for >20 km
   }
 }

@@ -24,7 +24,7 @@ import 'dart:js' as js;
 
 class ProductView extends StatefulWidget {
   final Product product;
-    final List<Product> products;
+  final List<Product> products;
 
   const ProductView({
     super.key,
@@ -58,7 +58,7 @@ class _ProductViewState extends State<ProductView> {
     super.initState();
   }
 
-   Future<void> _updateStockCount(ProductSize size) async {
+  Future<void> _updateStockCount(ProductSize size) async {
     setState(() {
       switch (size) {
         case ProductSize.S:
@@ -67,40 +67,40 @@ class _ProductViewState extends State<ProductView> {
           break;
         case ProductSize.M:
           _stockCount = widget.product.m_stock;
-                    adjustedPrice = widget.product.new_price + 100; // Add 100 for M
+          adjustedPrice = widget.product.new_price + 100; // Add 100 for M
           break;
         case ProductSize.L:
           _stockCount = widget.product.l_stock;
-                   adjustedPrice = widget.product.new_price + 200; // Add 100 for M
- 
+          adjustedPrice = widget.product.new_price + 200; // Add 100 for M
+
           break;
         case ProductSize.XL:
           _stockCount = widget.product.xl_stock;
-                    adjustedPrice = widget.product.new_price + 300; // Add 100 for M
+          adjustedPrice = widget.product.new_price + 300; // Add 100 for M
 
           break;
       }
     });
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('stockCount', _stockCount);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('stockCount', _stockCount);
   }
 
- Future<void> _saveToCart(Product product) async {
-  final prefs = await SharedPreferences.getInstance();
-  List<String>? cartItems = prefs.getStringList('cart') ?? [];
+  Future<void> _saveToCart(Product product) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String>? cartItems = prefs.getStringList('cart') ?? [];
 
-  // Update the product with adjusted price before saving to cart
-  final updatedProduct = product.copyWith(new_price: adjustedPrice);
+    // Update the product with adjusted price before saving to cart
+    final updatedProduct = product.copyWith(new_price: adjustedPrice);
 
-  // Ensure _selectedSize is not null before accessing its name
-  if (_selectedSize != null) {
-    cartItems.add('${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name}');
-    await prefs.setStringList('cart', cartItems);
-  } else {
-    print("Error: No size selected.");
+    // Ensure _selectedSize is not null before accessing its name
+    if (_selectedSize != null) {
+      cartItems.add(
+          '${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name}');
+      await prefs.setStringList('cart', cartItems);
+    } else {
+      print("Error: No size selected.");
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -119,16 +119,16 @@ class _ProductViewState extends State<ProductView> {
                     style: AppTextStyles.headline5,
                   ),
                   const Gap(5),
-                  RatingWidget(
+                  /*RatingWidget(
                     product: widget.product,
-                  ),
+                  ),*/
                   const Gap(10),
                   Row(
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(right: 15),
                         child: Text(
-                        '₱${adjustedPrice.toStringAsFixed(2)}', // Display adjusted price
+                          '₱${adjustedPrice.toStringAsFixed(2)}', // Display adjusted price
                           style: widget.product.discount != 0
                               ? AppTextStyles.body1.copyWith(
                                   color: AppColors.greyAD,
@@ -138,7 +138,7 @@ class _ProductViewState extends State<ProductView> {
                               : AppTextStyles.body1,
                         ),
                       ),
-                      if (widget.product.discount!= 0)
+                      if (widget.product.discount != 0)
                         Text(
                           '₱${widget.product.old_price - (widget.product.new_price * widget.product.discount)}.00',
                           style: AppTextStyles.body1
@@ -152,25 +152,27 @@ class _ProductViewState extends State<ProductView> {
                     overflow: TextOverflow.clip,
                     style: AppTextStyles.body2,
                   ),
-  Padding(
-    padding: const EdgeInsets.only(top: 25),
-    child: SizePicker(
-      sizes: const [
-        ProductSize.S,
-        ProductSize.M,
-        ProductSize.L,
-        ProductSize.XL,
-      ],
-      onSizeSelected: (value) {
-        setState(() {
-          _selectedSize = value; // Update selected size
-        });
-       if (value != null) {
-        _updateStockCount(value); // Update the stock count based on selected size
-      }// Update the stock count based on the selected size
-      },
-    ),
-  ),const Gap(10),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25),
+                    child: SizePicker(
+                      sizes: const [
+                        ProductSize.S,
+                        ProductSize.M,
+                        ProductSize.L,
+                        ProductSize.XL,
+                      ],
+                      onSizeSelected: (value) {
+                        setState(() {
+                          _selectedSize = value; // Update selected size
+                        });
+                        if (value != null) {
+                          _updateStockCount(
+                              value); // Update the stock count based on selected size
+                        } // Update the stock count based on the selected size
+                      },
+                    ),
+                  ),
+                  const Gap(10),
                   if (_selectedSize != null)
                     Text(
                       'Available stock: $_stockCount',
@@ -179,67 +181,76 @@ class _ProductViewState extends State<ProductView> {
                         fontWeight: AppFontWeights.bold,
                       ),
                     ),
+                  const Gap(20),
+                  CustomButton(
+                    disabled: _selectedSize == null &&
+                        widget.product.stocks.isNotEmpty,
+                    text: "ADD TO CART",
+                    textStyle: AppTextStyles.button,
+                    command: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
-const Gap(20),
-CustomButton(
-  disabled: _selectedSize == null && widget.product.stocks.isNotEmpty,
-  text: "ADD TO CART",
-  textStyle: AppTextStyles.button,
-  command: () async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    
-    if (isLoggedIn) {
-          final updatedProduct = widget.product.copyWith(new_price: adjustedPrice);
+                      if (isLoggedIn) {
+                        final updatedProduct =
+                            widget.product.copyWith(new_price: adjustedPrice);
 
-  context.read<CartViewModel>().addItem(updatedProduct, size: _selectedSize); // Pass selected size
-     if (_selectedSize != null) {
-      await _saveToCart(updatedProduct);
-      print("Selected Size: ${_selectedSize?.name}, Adjusted Price: $adjustedPrice");
-ProductSize? selectedSize = context.read<CartViewModel>().getSelectedSize(widget.product);
-print("Retrieving size for ${widget.product.name}: ${selectedSize?.name}");
-    } else {
-      // Handle case where size is not selected
-      print("Please select a size before adding to cart.");
-    }
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => LoginView(
-            onLogin: () async {
-              final authViewModel = context.read<AuthViewModel>();
-              await authViewModel.logins();
-              if (authViewModel.isLoggedIn) {
-                final userInfo = authViewModel.user!;
-                await prefs.setString('userId', userInfo.id);
-                await prefs.setString('userName', userInfo.name);
-                await prefs.setString('userEmail', userInfo.email);
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const HomeView()),
-                );
-              }
-            },
-            onCreateAccount: () {
-              final authViewModel = context.read<AuthViewModel>();
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => SignupView(
-                    onLogin: () => authViewModel.logins(),
+                        context.read<CartViewModel>().addItem(updatedProduct,
+                            size: _selectedSize); // Pass selected size
+                        if (_selectedSize != null) {
+                          await _saveToCart(updatedProduct);
+                          print(
+                              "Selected Size: ${_selectedSize?.name}, Adjusted Price: $adjustedPrice");
+                          ProductSize? selectedSize = context
+                              .read<CartViewModel>()
+                              .getSelectedSize(widget.product);
+                          print(
+                              "Retrieving size for ${widget.product.name}: ${selectedSize?.name}");
+                        } else {
+                          // Handle case where size is not selected
+                          print("Please select a size before adding to cart.");
+                        }
+                      } else {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => LoginView(
+                              onLogin: () async {
+                                final authViewModel =
+                                    context.read<AuthViewModel>();
+                                await authViewModel.logins();
+                                if (authViewModel.isLoggedIn) {
+                                  final userInfo = authViewModel.user!;
+                                  await prefs.setString('userId', userInfo.id);
+                                  await prefs.setString(
+                                      'userName', userInfo.name);
+                                  await prefs.setString(
+                                      'userEmail', userInfo.email);
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                        builder: (context) => const HomeView()),
+                                  );
+                                }
+                              },
+                              onCreateAccount: () {
+                                final authViewModel =
+                                    context.read<AuthViewModel>();
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => SignupView(
+                                      onLogin: () => authViewModel.logins(),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    height: 48,
+                    fillColor: AppColors.red,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    }
-  },
-  height: 48,
-  fillColor: AppColors.red,
-  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-),
-
-
                   const Gap(20),
                   RichText(
                     text: TextSpan(
@@ -371,7 +382,8 @@ class RatingWidget extends StatelessWidget {
 }
 
 class SizePicker extends StatefulWidget {
-  final List<ProductSize> sizes; // Expecting ProductSize enums (e.g., S, M, L, XL)
+  final List<ProductSize>
+      sizes; // Expecting ProductSize enums (e.g., S, M, L, XL)
   final ValueChanged<ProductSize?> onSizeSelected;
 
   const SizePicker({
@@ -405,7 +417,8 @@ class _SizePickerState extends State<SizePicker> {
               onTap: () {
                 setState(() {
                   _selectedSize = widget.sizes[index];
-                  widget.onSizeSelected(_selectedSize); // Notify parent about the selected size
+                  widget.onSizeSelected(
+                      _selectedSize); // Notify parent about the selected size
                 });
               },
               child: Container(
@@ -417,12 +430,14 @@ class _SizePickerState extends State<SizePicker> {
                       : AppColors.lightGrey,
                   borderRadius: BorderRadius.circular(5),
                   border: Border.all(
-                    color: AppColors.black, // Optional: add border for better visibility
+                    color: AppColors
+                        .black, // Optional: add border for better visibility
                   ),
                 ),
                 child: Center(
                   child: Text(
-                    widget.sizes[index].name.toUpperCase(), // Make sure to convert the enum to string properly
+                    widget.sizes[index].name
+                        .toUpperCase(), // Make sure to convert the enum to string properly
                     style: AppTextStyles.button.copyWith(
                       color: _selectedSize == widget.sizes[index]
                           ? AppColors.primary

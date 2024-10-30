@@ -12,6 +12,8 @@ class Address {
   final String zip;
   final String street;
   final String region;
+  final double? latitude; // Optional latitude
+  final double? longitude; // Optional longitude
 
   Address({
     this.name = '',
@@ -22,6 +24,8 @@ class Address {
     this.zip = '',
     this.street = '',
     this.region = '',
+    this.latitude, // Initialize optional
+    this.longitude, // Initialize optional
   });
 
   factory Address.fromJson(Map<String, dynamic> json) {
