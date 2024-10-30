@@ -171,36 +171,74 @@ Future<bool> _checkUserAddress(String userId) async {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Verify OTP')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Enter the OTP sent to ${widget.email}",
-              style: const TextStyle(fontSize: 16),
-            ),
-            const Gap(20),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'OTP',
+@override
+Widget build(BuildContext context) {
+  return Material(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
+      color: Colors.white, // Set background color to white
+      child: Form(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Verify OTP",
+                style: TextStyle(
+                  fontSize: 24, // Header size
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black, // Change header color to black
+                ),
               ),
-            ),
-            const Gap(20),
-            ElevatedButton(
-              onPressed: _verifyOTP, // Verify OTP on button press
-              child: const Text('Verify'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Text(
+                "Enter the OTP sent to ${widget.email}",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black, // Change text color to black for better contrast
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _otpController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: "OTP",
+                  hintStyle: TextStyle(color: Colors.grey), // Hint text color
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey), // Border color
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue), // Focused border color
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  _verifyOTP(); // Ensure this function is called
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 177, 18, 7), // Button background color
+                  foregroundColor: Colors.white, // Button text color
+                  minimumSize: Size(double.infinity, 56), // Full-width button
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero, // Remove rounded corners
+                  ),
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                child: const Text("Verify"), // Button text
+              ),
+              const SizedBox(height: 15),
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
