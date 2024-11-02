@@ -7,6 +7,7 @@ import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/widget/form_fields/custom_text_form_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:indigitech_shop/view/auth/otp_forgot_password.dart'; // Import the OTP confirmation screen
 
 class ForgotPasswordView extends StatefulWidget {
   @override
@@ -34,13 +35,20 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Password reset link sent to your email.")),
+          const SnackBar(content: Text("OTP sent to your email.")),
+        );
+        // Navigate to OTP confirmation screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                OTPForgotPasswordView(email: email), // Pass email if needed
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text("Failed to send reset link. Please try again.")),
+              content: Text("Failed to send OTP. Please try again.")),
         );
       }
     } else {

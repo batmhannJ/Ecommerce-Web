@@ -224,24 +224,6 @@ class _SignupViewState extends State<SignupView> {
                     hintText: "Enter OTP",
                   ),
                   const Gap(15),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ForgotPasswordView(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      "Forgot Password?",
-                      style: AppTextStyles.body2.copyWith(
-                        color: AppColors.red,
-                        fontWeight: AppFontWeights.bold,
-                      ),
-                    ),
-                  ),
-                  const Gap(15),
                   Row(
                     children: [
                       Expanded(
