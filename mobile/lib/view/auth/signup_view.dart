@@ -6,6 +6,7 @@ import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
 import 'package:indigitech_shop/core/style/form_styles.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/view/auth/forgot_password_view.dart';
 import 'package:indigitech_shop/view/auth/login_view.dart';
 import 'package:indigitech_shop/view/home/home_view.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
@@ -47,18 +48,6 @@ class _SignupViewState extends State<SignupView> {
     _otpController.dispose();
     super.dispose();
   }
-
-  // Function to generate OTP
-  /*void generateOTP() {
-    setState(() {
-      _generatedOTP = (100000 +
-              (999999 - 100000) *
-                  (new DateTime.now().millisecondsSinceEpoch % 1000000))
-          .toString()
-          .substring(0, 6);
-      print("Generated OTP: $_generatedOTP");
-    });
-  }*/
 
   Future<void> requestOTP() async {
     try {
@@ -233,6 +222,24 @@ class _SignupViewState extends State<SignupView> {
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Enter OTP",
+                  ),
+                  const Gap(15),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ForgotPasswordView(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Forgot Password?",
+                      style: AppTextStyles.body2.copyWith(
+                        color: AppColors.red,
+                        fontWeight: AppFontWeights.bold,
+                      ),
+                    ),
                   ),
                   const Gap(15),
                   Row(
