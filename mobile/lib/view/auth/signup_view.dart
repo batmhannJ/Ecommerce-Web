@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/font_weights.dart';
@@ -159,6 +160,7 @@ class _SignupViewState extends State<SignupView> {
             ),
           ),
         );
+        Fluttertoast.showToast(msg: "Signup Successful. Continue to login.");
       } else {
         final responseData = jsonDecode(response.body);
         setState(() {
