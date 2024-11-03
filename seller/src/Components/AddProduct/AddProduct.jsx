@@ -138,94 +138,103 @@ export const AddProduct = () => {
   };
 
   const Add_Product = async () => {
-    // Check for empty required fields
-    const requiredFields = ['old_price', 'new_price', 'tags', 'name', 'description', 'category', 'image', 's_stock', 'm_stock','l_stock', 'xl_stock'];
-    let missingFields = [];
+    const {
+      name,
+      description,
+      old_price,
+      new_price,
+      s_stock,
+      m_stock,
+      l_stock,
+      xl_stock,
+      category,
+      tags
+    } = productDetails;
 
-    requiredFields.forEach((field) => {
-        if (!productDetails[field] || productDetails[field].trim() === '') {
-            missingFields.push(field);
-        }
-    });
-
-    if (!image) {
-        missingFields.push('image');
-    }
-
-    if (missingFields.length > 0) {
-        toast.error(`Please fill in the following fields: ${missingFields.join(', ')}`, {
-            position: "top-left",
-        });
-        return;
-    }
-
-    // Validate for existing errors
-    if (errors.old_price || errors.new_price || errors.tags) {
-        toast.error("Please fix the errors before submitting", {
-            position: "top-left",
-        });
-        return;
-    }
-
-    // Validate that the offer price is lower than the original price
     if (
-        parseFloat(productDetails.new_price) >=
-        parseFloat(productDetails.old_price)
+      !name ||
+      !description ||
+      !old_price ||
+      !new_price ||
+      (!s_stock && s_stock !== 0) ||
+      (!m_stock && m_stock !== 0) ||
+      (!l_stock && l_stock !== 0) ||
+      (!xl_stock && xl_stock !== 0) ||
+      !image ||
+      !category ||
+      !tags
     ) {
-        toast.error("Offer price must be lower than the original price", {
-            position: "top-left",
-        });
-        return;
+      toast.error("Please fill in all fields.", { position: "top-left" });
+      return;
     }
 
+    if (errors.old_price || errors.new_price || errors.tags) {
+      toast.error("Please fix the errors before submitting", {
+        position: "top-left",
+      });
+      return;
+    }
+  
+    // Validate that the offer price is not higher than the original price
+    if (
+      parseFloat(productDetails.new_price) >=
+      parseFloat(productDetails.old_price)
+    ) {
+      toast.error("Offer price must be lower than the original price", {
+        position: "top-left",
+      });
+      return;
+    }
+  
     console.log(productDetails);
     let responseData;
     let product = productDetails;
 
     let formData = new FormData();
     formData.append("product", image);
-
+  
     await fetch("http://localhost:4000/upload", {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
-        },
-        body: formData,
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+      body: formData,
     })
-    .then((resp) => resp.json())
-    .then((data) => {
+      .then((resp) => resp.json())
+      .then((data) => {
         responseData = data;
-    });
-
-    if (responseData.success) {
-        // Construct the image URL using the correct format
-        product.image = responseData.image_url; 
-        console.log(product);
-        await fetch("http://localhost:4000/addproduct", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(product),
-        })
-        .then((resp) => resp.json())
-        .then((data) => {
-            if (data.success) {
-                toast.success("Product Added", {
-                    position: "top-left",
-                });
-                setAddedProduct(product); // Set the added product details
-            } else {
-                toast.error("Failed to add product", {
-                    position: "top-left",
-                });
-            }
-        });
-    }
-};
+      });
 
   
+    if (responseData.success) {
+      // Construct the image URL using the correct format
+      product.image = responseData.image_url; 
+      console.log(product);
+      await fetch("http://localhost:4000/addproduct", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      })
+        .then((resp) => resp.json())
+        .then((data) => {
+          if (data.success) {
+            toast.success("Product Added", {
+              position: "top-left",
+            });
+            setAddedProduct(product); // Set the added product details
+          } else {
+            toast.error("Failed to add product", {
+              position: "top-left",
+            });
+          }
+        });
+    }
+  };
+  
+
   return (
     <div className="add-product">
       <div className="addproduct-itemfield">
@@ -264,7 +273,7 @@ export const AddProduct = () => {
           )}
         </div>
         <div className="addproduct-itemfield">
-          <p>Offer Price for Small Size</p>
+          <p>Offer Price</p>
           <input
             value={productDetails.new_price}
             onChange={changeHandler}
