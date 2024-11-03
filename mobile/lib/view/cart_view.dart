@@ -316,7 +316,7 @@ class _CartViewState extends State<CartView> {
                         thickness: 1.5,
                       ),
                     ),
-                    Row(
+                    /*Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
@@ -340,7 +340,7 @@ class _CartViewState extends State<CartView> {
                         height: 0,
                         thickness: 1.5,
                       ),
-                    ),
+                    ),*/
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

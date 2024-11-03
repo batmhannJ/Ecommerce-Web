@@ -138,72 +138,94 @@ export const AddProduct = () => {
   };
 
   const Add_Product = async () => {
+    // Check for empty required fields
+    const requiredFields = ['old_price', 'new_price', 'tags', 'name', 'description', 'category', 'image', 's_stock', 'm_stock','l_stock', 'xl_stock'];
+    let missingFields = [];
+
+    requiredFields.forEach((field) => {
+        if (!productDetails[field] || productDetails[field].trim() === '') {
+            missingFields.push(field);
+        }
+    });
+
+    if (!image) {
+        missingFields.push('image');
+    }
+
+    if (missingFields.length > 0) {
+        toast.error(`Please fill in the following fields: ${missingFields.join(', ')}`, {
+            position: "top-left",
+        });
+        return;
+    }
+
+    // Validate for existing errors
     if (errors.old_price || errors.new_price || errors.tags) {
-      toast.error("Please fix the errors before submitting", {
-        position: "top-left",
-      });
-      return;
+        toast.error("Please fix the errors before submitting", {
+            position: "top-left",
+        });
+        return;
     }
-  
-    // Validate that the offer price is not higher than the original price
+
+    // Validate that the offer price is lower than the original price
     if (
-      parseFloat(productDetails.new_price) >=
-      parseFloat(productDetails.old_price)
+        parseFloat(productDetails.new_price) >=
+        parseFloat(productDetails.old_price)
     ) {
-      toast.error("Offer price must be lower than the original price", {
-        position: "top-left",
-      });
-      return;
+        toast.error("Offer price must be lower than the original price", {
+            position: "top-left",
+        });
+        return;
     }
-  
+
     console.log(productDetails);
     let responseData;
     let product = productDetails;
-  
+
     let formData = new FormData();
     formData.append("product", image);
-  
+
     await fetch("http://localhost:4000/upload", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
-      body: formData,
-    })
-      .then((resp) => resp.json())
-      .then((data) => {
-        responseData = data;
-      });
-  
-    if (responseData.success) {
-      // Construct the image URL using the correct format
-      product.image = responseData.image_url; 
-      console.log(product);
-      await fetch("http://localhost:4000/addproduct", {
         method: "POST",
         headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+            Accept: "application/json",
         },
-        body: JSON.stringify(product),
-      })
+        body: formData,
+    })
+    .then((resp) => resp.json())
+    .then((data) => {
+        responseData = data;
+    });
+
+    if (responseData.success) {
+        // Construct the image URL using the correct format
+        product.image = responseData.image_url; 
+        console.log(product);
+        await fetch("http://localhost:4000/addproduct", {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(product),
+        })
         .then((resp) => resp.json())
         .then((data) => {
-          if (data.success) {
-            toast.success("Product Added", {
-              position: "top-left",
-            });
-            setAddedProduct(product); // Set the added product details
-          } else {
-            toast.error("Failed", {
-              position: "top-left",
-            });
-          }
+            if (data.success) {
+                toast.success("Product Added", {
+                    position: "top-left",
+                });
+                setAddedProduct(product); // Set the added product details
+            } else {
+                toast.error("Failed to add product", {
+                    position: "top-left",
+                });
+            }
         });
     }
-  };
-  
+};
 
+  
   return (
     <div className="add-product">
       <div className="addproduct-itemfield">
