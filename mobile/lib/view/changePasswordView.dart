@@ -189,22 +189,41 @@ Future<bool> comparePassword(String oldPassword) async {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    
-    final authViewModel = context.read<AuthViewModel>();
-
-    return DefaultViewLayout(
-      title: "Change Password",
-      content: Form(
+ @override
+Widget build(BuildContext context) {
+  return DefaultViewLayout(
+    title: "Change Password",
+    content: Container(
+      // Container for the main card style
+      decoration: BoxDecoration(
+        color: Colors.white, // White background
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1), // Subtle shadow
+            spreadRadius: 2,
+            blurRadius: 15,
+            offset: Offset(0, 4), // Shadow position
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(30), // Padding around the container
+      margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 24), // Centered with margins
+      child: Form(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12), // Adjust padding if needed
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Change Password",
-                style: AppTextStyles.subtitle2.copyWith(color: AppColors.darkGrey),
+              Center(
+                child: Text(
+                  "Change Password",
+                  style: AppTextStyles.subtitle2.copyWith(
+                    color: AppColors.black,
+                    fontSize: 28, // Title size slightly smaller for balance
+                    fontWeight: FontWeight.bold, // Bold title
+                  ),
+                ),
               ),
               const Gap(20),
 
@@ -254,13 +273,13 @@ Future<bool> comparePassword(String oldPassword) async {
                       isExpanded: true,
                       text: "Change Password",
                       textStyle: AppTextStyles.button,
-                       command: () async {
-                          String oldPassword = _oldPasswordController.text;
-                          await comparePassword(oldPassword);
-                          await _changePassword();
-                        },
+                      command: () async {
+                        String oldPassword = _oldPasswordController.text;
+                        await comparePassword(oldPassword);
+                        await _changePassword();
+                      },
                       height: 48,
-                      fillColor: AppColors.black,
+                      fillColor: Color(0xFF800000), // Maroon color for the button
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                   ),
@@ -270,6 +289,8 @@ Future<bool> comparePassword(String oldPassword) async {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
