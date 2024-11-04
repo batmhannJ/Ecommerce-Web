@@ -1291,6 +1291,37 @@ app.post('/updateStock', async (req, res) => {
   }
 });
 
+app.patch('/api/update-address/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { province, municipality, barangay, zip, street } = req.body;
+
+  try {
+    // Find the user by ID
+    const user = await Users.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update the address fields
+    user.address = {
+      province,
+      municipality,
+      barangay,
+      zip,
+      street,
+    };
+
+    // Save the updated user information
+    await user.save();
+
+    res.status(200).json({ message: 'Address updated successfully', address: user.address });
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ message: 'Failed to update address', error });
+  }
+});
+
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);
