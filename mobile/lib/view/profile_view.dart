@@ -5,6 +5,7 @@ import 'package:indigitech_shop/view/accountSetings_view.dart';
 import 'package:indigitech_shop/view/address_view.dart';
 import 'package:indigitech_shop/view/auth/auth_view.dart';
 import 'package:indigitech_shop/view/changePasswordView.dart';
+import 'package:indigitech_shop/view/checkout_result.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -16,121 +17,85 @@ class ProfileView extends StatelessWidget {
 @override
 Widget build(BuildContext context) {
   if (context.watch<AuthViewModel>().isLoggedIn) {
-    return Scaffold(
-      backgroundColor: Colors.white, // Clean white background
-      appBar: AppBar(
-        title: const Text("Profile"),
-        backgroundColor: Colors.white, // Darker background for contrast
-        elevation: 2,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile header section
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.blueGrey[50], // Light background for header
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Light neutral background
+        Container(
+          color: const Color(0xFFF4F4F4), // Soft light gray background
+        ),
+        SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome section
+              Text(
+                "Hello, User!",
+                style: AppTextStyles.headline5.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w700, // Bold for emphasis
+                ),
               ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 40, // Profile image placeholder
-                    backgroundColor: Colors.blueGrey,
-                    child: const Icon(Icons.person, size: 50, color: Colors.white),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Welcome, User!",
-                          style: AppTextStyles.headline5.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Manage your account settings",
-                          style: AppTextStyles.subtitle1.copyWith(
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
+              const Gap(25),
 
-            // Action cards with more spacing
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildActionCard(
-                    icon: Icons.settings,
-                    label: "Account Settings",
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AccountSettingsView(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildActionCard(
-                    icon: Icons.location_on,
-                    label: "Shipping Address",
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AddressView(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildActionCard(
-                    icon: Icons.lock,
-                    label: "Change Password",
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ChangePasswordView(),
-                      ),
-                    ),
-                  ),
-                ],
+              // Shipping Address card
+              _buildCardSection(
+                icon: Icons.location_pin,
+                label: "Account Settings",
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const AccountSettingsView(),
+                )),
               ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16),
-        child: CustomButton(
-          isExpanded: true,
-          text: "Logout",
-          textStyle: AppTextStyles.button.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+              const Gap(20),
+              _buildCardSection(
+                icon: Icons.location_pin,
+                label: "Shipping Address",
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const AddressView(),
+                )),
+              ),
+              const Gap(20),
+
+              // Change Password card
+              _buildCardSection(
+                icon: Icons.lock_outline,
+                label: "Change Password",
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const ChangePasswordView(),
+                )),
+              ),
+            ],
           ),
-          command: () {
-            context.read<AuthViewModel>().logout();
-          },
-          height: 48,
-          fillColor: const Color.fromARGB(255, 143, 34, 26), // Strong color for logout
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
         ),
-      ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    isExpanded: true,
+                    text: "Logout",
+                    textStyle: AppTextStyles.button.copyWith(
+                      color: Colors.white, // White text on the button
+                      fontWeight: FontWeight.w600,
+                    ),
+                    command: () {
+                      context.read<AuthViewModel>().logout();
+                    },
+                    height: 48,
+                    fillColor: Colors.blueAccent, // Modern dark blue button
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    borderRadius: 8, // Slightly rounded for a clean, modern look
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   } else {
     return const AuthView(
@@ -139,8 +104,8 @@ Widget build(BuildContext context) {
   }
 }
 
-// Action card layout
-Widget _buildActionCard({
+// Card-based layout for each action (e.g., "Shipping Address")
+Widget _buildCardSection({
   required IconData icon,
   required String label,
   required VoidCallback onPressed,
@@ -150,14 +115,14 @@ Widget _buildActionCard({
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white, // Clean white background
-        borderRadius: BorderRadius.circular(8), // Slightly rounded corners
-        border: Border.all(color: Colors.grey.withOpacity(0.2)), // Light border for definition
+        color: Colors.white, // White background for the card
+        borderRadius: BorderRadius.circular(12), // Smooth rounded corners
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.grey.withOpacity(0.15), // Light shadow for depth
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 4), // Slightly offset shadow
           ),
         ],
       ),
@@ -165,25 +130,23 @@ Widget _buildActionCard({
         children: [
           Icon(
             icon,
-            size: 30,
-            color: Colors.blueGrey, // Icon color for consistency
+            size: 24,
+            color: Colors.blueAccent, // Modern blue icon color
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              label,
-              style: AppTextStyles.subtitle1.copyWith(
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+          const Gap(20),
+          Text(
+            label,
+            style: AppTextStyles.subtitle1.copyWith(
+              fontWeight: FontWeight.w500, // Medium font weight
+              color: Colors.black87, // Neutral dark text
             ),
           ),
-          Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey), // Navigation arrow
         ],
       ),
     ),
   );
 }
+
 
 
 

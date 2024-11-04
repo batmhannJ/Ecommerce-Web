@@ -138,6 +138,36 @@ export const AddProduct = () => {
   };
 
   const Add_Product = async () => {
+    const {
+      name,
+      description,
+      old_price,
+      new_price,
+      s_stock,
+      m_stock,
+      l_stock,
+      xl_stock,
+      category,
+      tags
+    } = productDetails;
+
+    if (
+      !name ||
+      !description ||
+      !old_price ||
+      !new_price ||
+      (!s_stock && s_stock !== 0) ||
+      (!m_stock && m_stock !== 0) ||
+      (!l_stock && l_stock !== 0) ||
+      (!xl_stock && xl_stock !== 0) ||
+      !image ||
+      !category ||
+      !tags
+    ) {
+      toast.error("Please fill in all fields.", { position: "top-left" });
+      return;
+    }
+
     if (errors.old_price || errors.new_price || errors.tags) {
       toast.error("Please fix the errors before submitting", {
         position: "top-left",
@@ -159,7 +189,7 @@ export const AddProduct = () => {
     console.log(productDetails);
     let responseData;
     let product = productDetails;
-  
+
     let formData = new FormData();
     formData.append("product", image);
   
@@ -174,6 +204,7 @@ export const AddProduct = () => {
       .then((data) => {
         responseData = data;
       });
+
   
     if (responseData.success) {
       // Construct the image URL using the correct format
@@ -195,7 +226,7 @@ export const AddProduct = () => {
             });
             setAddedProduct(product); // Set the added product details
           } else {
-            toast.error("Failed", {
+            toast.error("Failed to add product", {
               position: "top-left",
             });
           }
@@ -242,7 +273,7 @@ export const AddProduct = () => {
           )}
         </div>
         <div className="addproduct-itemfield">
-          <p>Offer Price for Small Size</p>
+          <p>Offer Price</p>
           <input
             value={productDetails.new_price}
             onChange={changeHandler}
