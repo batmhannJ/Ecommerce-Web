@@ -14,7 +14,7 @@
 .hero img {
   width: 100%;
   height: auto;
-  max-height: 80vh;
+  max-height: 80vh; /* Maximum height for large screens */
   object-fit: cover;
   cursor: pointer;
   border-radius: 4px;
@@ -27,6 +27,7 @@
   transform: scale(1.02);
 }
 
+/* Media Queries for Responsive Design */
 @media (max-width: 768px) {
   .hero {
     margin-top: 40px;
@@ -35,18 +36,30 @@
   }
 
   .hero img {
-    max-height: 70vh;
+    max-height: 70vh; /* Adjusted max height for medium screens */
   }
 }
 
 @media (max-width: 480px) {
   .hero {
-    margin-top: 40px;
+    margin-top: 30px; /* Reduced margin for small screens */
     padding-bottom: 10px;
     margin-bottom: 20px;
   }
 
   .hero img {
-    max-height: 60vh;
+    max-height: 50vh; /* Further reduced max height for small screens */
+  }
+}
+
+/* Additional Media Query for Very Small Screens */
+@media (max-width: 320px) {
+  .hero {
+    margin-top: 20px; /* Further reduced margin for very small screens */
+    margin-bottom: 15px;
+  }
+
+  .hero img {
+    max-height: 40vh; /* Minimum height for very small screens */
   }
 }

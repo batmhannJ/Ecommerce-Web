@@ -163,67 +163,82 @@ class _SignupViewState extends State<SignupView> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
-          color: AppColors.primary,
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: AppColors.primary,
+    ),
+    body: Center(
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        color: AppColors.primary,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
           child: Form(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Sign Up",
-                    style: AppTextStyles.headline4,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Sign Up", style: AppTextStyles.headline4),
+                    ],
                   ),
-                  const Gap(20),
+                  const SizedBox(height: 20),
                   if (_errorMessage != null) ...[
                     Text(
                       _errorMessage!,
                       style: const TextStyle(color: Colors.red),
                     ),
-                    const Gap(10),
+                    const SizedBox(height: 10),
                   ],
                   CustomTextFormField(
                     controller: _nameController,
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Your Name",
+                     icon: Icon(Icons.person, color: Colors.grey), // Password icon
                   ),
-                  const Gap(15),
+                  const SizedBox(height: 15),
                   CustomTextFormField(
                     controller: _emailController,
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Email Address",
+                     icon: Icon(Icons.email, color: Colors.grey), // Password icon
                   ),
-                  const Gap(15),
+                  const SizedBox(height: 15),
                   CustomTextFormField(
                     controller: _phoneController,
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Phone Number",
+                     icon: Icon(Icons.phone, color: Colors.grey), // Password icon
                   ),
-                  const Gap(15),
+                  const SizedBox(height: 15),
                   CustomTextFormField(
-                    obscureText: true,
-                    controller: _passwordController,
-                    formStyle: AppFormStyles.authFormStyle,
-                    height: 48,
-                    hintText: "Password",
-                  ),
-                  const Gap(15),
+                  obscureText: true,
+                  controller: _passwordController,
+                  formStyle: AppFormStyles.authFormStyle,
+                  height: 48,
+                  hintText: "Password",
+                icon: Icon(Icons.email, color: Colors.grey), // Password icon
+                ),
+                  const SizedBox(height: 15),
                   CustomTextFormField(
                     controller: _otpController,
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Enter OTP",
-                  ),
-                  const Gap(15),
+                     icon: Icon(Icons.email, color: Colors.grey), // Password icon
+                    ),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
@@ -239,16 +254,39 @@ class _SignupViewState extends State<SignupView> {
                               const EdgeInsets.symmetric(horizontal: 12),
                         ),
                       ),
-                      const Gap(10),
+                      const SizedBox(width: 10),
                       TextButton(
                         onPressed: requestOTP,
-                        child: const Text("Get OTP",
-                            style: TextStyle(color: AppColors.red)),
+                        child: const Text(
+                          "Get OTP",
+                          style: TextStyle(color: AppColors.red),
+                        ),
                       ),
                     ],
                   ),
-                  const Gap(15),
+                  const SizedBox(height: 20),
+                  CheckboxListTile(
+                    activeColor: AppColors.black,
+                    value: _doAgreeToTerms,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    title: Text(
+                      "By continuing, I agree to the terms of use & privacy policy.",
+                      style: AppTextStyles.body2,
+                      overflow: TextOverflow.clip,
+                    ),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _doAgreeToTerms = value;
+                        });
+                      }
+                    },
+                  ),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         "Already have an account? ",
@@ -271,32 +309,13 @@ class _SignupViewState extends State<SignupView> {
                       ),
                     ],
                   ),
-                  CheckboxListTile(
-                    activeColor: AppColors.black,
-                    value: _doAgreeToTerms,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    title: Text(
-                      "By continuing, I agree to the terms of use & privacy policy.",
-                      style: AppTextStyles.body2,
-                      overflow: TextOverflow.clip,
-                    ),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _doAgreeToTerms = value;
-                        });
-                      }
-                    },
-                  ),
                 ],
               ),
             ),
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ),
+  );
+}
 }

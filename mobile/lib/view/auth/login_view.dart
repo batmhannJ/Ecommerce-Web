@@ -93,180 +93,168 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Center(
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         color: AppColors.primary,
-        child: Form(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Login", style: AppTextStyles.headline4),
-                const Gap(20),
-                CustomTextFormField(
-                  controller: _emailController,
-                  formStyle: AppFormStyles.authFormStyle,
-                  height: 48,
-                  hintText: "Email Address",
-                ),
-                const Gap(15),
-                CustomTextFormField(
-                  obscureText: true,
-                  controller: _passwordController,
-                  formStyle: AppFormStyles.authFormStyle,
-                  height: 48,
-                  hintText: "Password",
-                ),
-                const Gap(15),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ForgotPasswordView(),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "Forgot Password?",
-                    style: AppTextStyles.body2.copyWith(
-                      color: AppColors.red,
-                      fontWeight: AppFontWeights.bold,
-                    ),
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+          child: Form(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("Login", style: AppTextStyles.headline4),
+                  const SizedBox(height: 20),
+                  CustomTextFormField(
+                    controller: _emailController,
+                    formStyle: AppFormStyles.authFormStyle,
+                    height: 48,
+                    hintText: "Email Address",
+                    icon: Icon(Icons.email, color: Colors.grey), // Email icon
                   ),
-                ),
-                const Gap(15),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomButton(
-                        disabled: !_doAgreeToTerms,
-                        isExpanded: true,
-                        text: "Continue",
-                        textStyle: AppTextStyles.button,
-                        command: () async {
-                          String email = _emailController.text;
-                          String password = _passwordController.text;
-
-                          if (email.isNotEmpty && password.isNotEmpty) {
-                            // Call your login API to validate credentials
-                            final response = await http.post(
-                              Uri.parse(
-                                  'http://localhost:4000/login'), // Your API URL for login
-                              headers: {
-                                'Content-Type': 'application/json',
-                              },
-                              body: json.encode(
-                                  {'email': email, 'password': password}),
-                            );
-
-                            if (response.statusCode == 200) {
-                              final data = json.decode(response.body);
-
-                              if (data['success']) {
-                                // Now send OTP after successful login
-                                bool otpSent = await _sendOTP(email);
-
-                                if (otpSent) {
-                                  // Navigate to OTP Verification Screen if OTP is sent
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          OTPVerificationScreen(
-                                        email: email,
-                                        onOTPVerified: widget
-                                            .onLogin, // Proceed to login after OTP verification
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  // Handle failure to send OTP
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            "Failed to send OTP. Please try again.")),
-                                  );
-                                }
-                              } else {
-                                // Handle login error (e.g., wrong email or password)
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(data['errors'])),
-                                );
-                              }
-                            } else {
-                              // Handle server error
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        "Failed to log in. Please try again.")),
-                              );
-                            }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      "Please enter both email and password.")),
-                            );
-                          }
-                        },
-                        height: 48,
-                        fillColor: AppColors.red,
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12),
-                      ),
-                    ),
-                  ],
-                ),
-                const Gap(15),
-                Row(
-                  children: [
-                    Text("Create an account? ", style: AppTextStyles.body2),
-                    TextButton(
-                      onPressed: widget.onCreateAccount,
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: EdgeInsets.zero,
-                      ),
+                  const SizedBox(height: 15),
+                  CustomTextFormField(
+                    obscureText: true,
+                    controller: _passwordController,
+                    formStyle: AppFormStyles.authFormStyle,
+                    height: 48,
+                    hintText: "Password", // Keep this as is
+                    icon: Icon(Icons.lock, color: Colors.grey), // Password icon
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ForgotPasswordView(),
+                          ),
+                        );
+                      },
                       child: Text(
-                        "Click here",
+                        "Forgot Password?",
                         style: AppTextStyles.body2.copyWith(
                           color: AppColors.red,
                           fontWeight: AppFontWeights.bold,
                         ),
                       ),
-                    )
-                  ],
-                ),
-                CheckboxListTile(
-                  activeColor: AppColors.black,
-                  value: _doAgreeToTerms,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  title: Text(
-                    "By continuing, I agree to the terms of use & privacy policy.",
-                    style: AppTextStyles.body2,
-                    overflow: TextOverflow.clip,
+                    ),
                   ),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _doAgreeToTerms = value;
-                      });
-                    }
-                  },
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  CustomButton(
+                    disabled: !_doAgreeToTerms,
+                    isExpanded: true,
+                    text: "Continue",
+                    textStyle: AppTextStyles.button,
+                    command: () async {
+                      String email = _emailController.text;
+                      String password = _passwordController.text;
+                      if (email.isNotEmpty && password.isNotEmpty) {
+                        final response = await http.post(
+                          Uri.parse('http://localhost:4000/login'),
+                          headers: {'Content-Type': 'application/json'},
+                          body: json.encode({'email': email, 'password': password}),
+                        );
+                        if (response.statusCode == 200) {
+                          final data = json.decode(response.body);
+                          if (data['success']) {
+                            bool otpSent = await _sendOTP(email);
+                            if (otpSent) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OTPVerificationScreen(
+                                    email: email,
+                                    onOTPVerified: widget.onLogin,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Failed to send OTP. Please try again.")),
+                              );
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(data['errors'])),
+                            );
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Failed to log in. Please try again.")),
+                          );
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please enter both email and password.")),
+                        );
+                      }
+                    },
+                    height: 48,
+                    fillColor: AppColors.red,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  const SizedBox(height: 20),
+                  CheckboxListTile(
+                    activeColor: AppColors.black,
+                    value: _doAgreeToTerms,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    title: Text(
+                      "By continuing, I agree to the terms of use & privacy policy.",
+                      style: AppTextStyles.body2,
+                      overflow: TextOverflow.clip,
+                    ),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _doAgreeToTerms = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Create an account? ", style: AppTextStyles.body2),
+                      TextButton(
+                        onPressed: widget.onCreateAccount,
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: Text(
+                          "Click here",
+                          style: AppTextStyles.body2.copyWith(
+                            color: AppColors.red,
+                            fontWeight: AppFontWeights.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 }

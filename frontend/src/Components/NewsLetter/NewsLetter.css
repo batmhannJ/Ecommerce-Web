@@ -1,6 +1,6 @@
 .newsletter {
   width: 100%;
-  height: 70vh;
+  height: 70vh; /* Adjust as needed for smaller screens */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -119,7 +119,7 @@
 
 @media (max-width: 506px) {
   .newsletter {
-    height: 70vh;
+    height: auto; /* Change to auto for better flexibility on small screens */
     padding: 0 10px;
     margin-bottom: 40px;
   }
@@ -135,8 +135,8 @@
   }
 
   .newsletter img {
-    width: 60vh;
-    height: 18vh;
+    width: 100%; /* Ensure the image takes full width */
+    height: auto; /* Set height to auto for aspect ratio */
   }
 
   .newsletter button {

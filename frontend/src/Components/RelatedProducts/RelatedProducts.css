@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  height: 90vh;
+  height: auto; /* Changed to auto for better flexibility */
   margin-top: 10%;
   overflow-y: auto;
 }
@@ -32,9 +32,10 @@
   width: 100%;
 }
 
+/* Media Queries for Responsive Design */
 @media (max-width: 1280px) {
   .relatedproducts {
-    height: 70vh;
+    height: auto; /* Allow content to dictate height */
   }
 
   .relatedproducts h1 {
@@ -53,10 +54,6 @@
 }
 
 @media (max-width: 1024px) {
-  .relatedproducts {
-    height: 60vh;
-  }
-
   .relatedproducts h1 {
     font-size: 30px;
   }
@@ -73,11 +70,6 @@
 }
 
 @media (max-width: 768px) {
-  .relatedproducts {
-    height: 50vh;
-    gap: 6px;
-  }
-
   .relatedproducts h1 {
     font-size: 20px;
   }
@@ -87,7 +79,7 @@
   }
 
   .relatedproducts-item {
-    gap: 5px;
+    gap: 10px;
   }
 }
 
@@ -98,7 +90,16 @@
 
   .relatedproducts-item {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr); /* Two columns layout */
+    gap: 20px; /* Adjusted gap for small screens */
+  }
+}
+
+/* Additional media query for wider screens */
+@media (min-width: 501px) and (max-width: 768px) {
+  .relatedproducts-item {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two columns for medium screens */
+    gap: 15px; /* Slightly smaller gap */
   }
 }

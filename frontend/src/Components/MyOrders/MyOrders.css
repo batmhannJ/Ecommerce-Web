@@ -5,57 +5,69 @@
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+  max-width: 1200px;
+  margin: 20px auto; /* Center the container on larger screens */
 }
 
+/* Heading */
 .my-order-container h1 {
-  font-size: 24px;
+  font-size: 26px;
   margin-bottom: 20px;
   color: #333;
+  text-align: center; /* Center the heading for a modern look */
 }
 
+/* Search bar */
 .order-search {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 20px;
+  gap: 10px; /* Space between search input and button */
 }
 
+/* Search input */
 .order-search input {
-  padding: 8px;
-  font-size: 14px;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  margin-right: 10px;
-  width: 300px;
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  max-width: 320px; /* Limit the width on larger screens */
 }
 
+/* Search button */
 .order-search button {
-  padding: 8px 16px;
+  padding: 10px 18px;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 5px;
+  font-size: 15px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
+/* Button hover effect */
 .order-search button:hover {
   background-color: #0056b3;
 }
 
+/* Order table */
 .order-table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 20px;
 }
 
 .order-table th,
 .order-table td {
   border: 1px solid #ddd;
-  padding: 12px;
+  padding: 14px;
   text-align: left;
 }
 
 .order-table th {
-  background-color: #f4f4f4;
+  background-color: #f8f9fa;
   font-weight: bold;
 }
 
@@ -63,14 +75,15 @@
   color: #333;
 }
 
+/* Action button styles */
 .action-button {
   border: none;
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
-  margin-right: 8px;
   font-weight: 600;
+  transition: opacity 0.3s ease;
 }
 
 .action-button.view {
@@ -89,5 +102,111 @@
 }
 
 .action-button:hover {
-  opacity: 0.9;
+  opacity: 0.85;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .my-order-container {
+    padding: 15px;
+  }
+
+  .my-order-container h1 {
+    font-size: 24px;
+  }
+
+  .order-search {
+    flex-direction: column; /* Stack search input and button vertically */
+    align-items: stretch;
+  }
+
+  .order-search input {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .order-table th,
+  .order-table td {
+    padding: 10px;
+  }
+
+  .action-button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .my-order-container {
+    margin: 10px;
+    padding: 12px;
+  }
+
+  .my-order-container h1 {
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+
+  .order-search input {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .order-search button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .order-table th,
+  .order-table td {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .action-button {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .my-order-container {
+    margin: 5px;
+    padding: 10px;
+  }
+
+  .my-order-container h1 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  .order-search {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .order-search input {
+    width: 100%;
+    max-width: none; /* Remove max-width for small screens */
+    padding: 7px;
+    font-size: 13px;
+  }
+
+  .order-search button {
+    width: 100%;
+    padding: 7px 12px;
+    font-size: 13px;
+    margin-top: 5px;
+  }
+
+  .order-table th,
+  .order-table td {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .action-button {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
 }
