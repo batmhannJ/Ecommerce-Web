@@ -22,6 +22,9 @@ class _OTPVerificationViewState extends State<OTPForgotPasswordView> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+   bool _isNewPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   Future<void> _resetPassword() async {
     String otp = _otpController.text;
     String newPassword = _newPasswordController.text;
@@ -65,58 +68,97 @@ class _OTPVerificationViewState extends State<OTPForgotPasswordView> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Verify OTP"),
-        backgroundColor: AppColors.primary,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Verify OTP and Reset Password",
-                style: AppTextStyles.headline4),
-            const Gap(20),
-            CustomTextFormField(
-              controller: _otpController,
-              formStyle: AppFormStyles.authFormStyle,
-              height: 48,
-              hintText: "OTP",
-            ),
-            const Gap(20),
-            CustomTextFormField(
-              controller: _newPasswordController,
-              formStyle: AppFormStyles.authFormStyle,
-              height: 48,
-              hintText: "New Password",
-              obscureText: true,
-            ),
-            const Gap(20),
-            CustomTextFormField(
-              controller: _confirmPasswordController,
-              formStyle: AppFormStyles.authFormStyle,
-              height: 48,
-              hintText: "Confirm Password",
-              obscureText: true,
-            ),
-            const Gap(20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _resetPassword,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: Text("Reset Password", style: AppTextStyles.button),
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text("Verify OTP"),
+      backgroundColor: AppColors.primary,
+    ),
+    body: Center(
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        color: AppColors.primary,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("Reset Password", style: AppTextStyles.headline4),
+              const SizedBox(height: 20),
+              CustomTextFormField(
+                controller: _otpController,
+                formStyle: AppFormStyles.authFormStyle,
+                height: 48,
+                hintText: "OTP",
+                icon: const Icon(Icons.security, color: Colors.grey), // Use an appropriate icon
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              CustomTextFormField(
+                controller: _newPasswordController,
+                formStyle: AppFormStyles.authFormStyle,
+                height: 48,
+                hintText: "New Password",
+                obscureText: !_isNewPasswordVisible,
+                icon: const Icon(Icons.lock, color: Colors.grey), // Optional prefix icon
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isNewPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isNewPasswordVisible = !_isNewPasswordVisible;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 15),
+              CustomTextFormField(
+                controller: _confirmPasswordController,
+                formStyle: AppFormStyles.authFormStyle,
+                height: 48,
+                hintText: "Confirm Password",
+                obscureText: !_isConfirmPasswordVisible,
+                icon: const Icon(Icons.lock, color: Colors.grey), // Optional prefix icon
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _resetPassword,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    minimumSize: const Size.fromHeight(55),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                  child: Text("Reset Password", style: AppTextStyles.button),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

@@ -67,7 +67,12 @@ class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
  @override
 Widget build(BuildContext context) {
   return Scaffold(
-    appBar: AppBar(title: const Text("My Orders")),
+    appBar: AppBar(
+      title: const Text("My Orders", style: TextStyle(color: Colors.black)),
+      backgroundColor: Colors.white,
+      iconTheme: const IconThemeData(color: Colors.black),
+      elevation: 1,
+    ),
     body: loading
         ? const Center(child: CircularProgressIndicator())
         : orders.isNotEmpty
@@ -76,20 +81,31 @@ Widget build(BuildContext context) {
                 itemBuilder: (context, index) {
                   final order = orders[index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
+                    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 3,
                     child: ExpansionTile(
-                      title: Text("Item: ${order['item']}"),
+                      tilePadding: const EdgeInsets.all(16),
+                      title: Text(
+                        "Item: ${order['item']}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
                       children: [
-                        ListTile(
-                          title: Column(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Order ID: ${order['transactionId']}"),
-                              Text("Date: ${order['date']}"),
-                              Text("Quantity: ${order['quantity']}"),
-                              Text("Amount: ${order['amount']}"),
-                              Text("Status: ${order['status']}"),
+                              _buildOrderDetail("Order ID:", "${order['transactionId']}"),
+                              _buildOrderDetail("Date:", "${order['date']}"),
+                              _buildOrderDetail("Quantity:", "${order['quantity']}"),
+                              _buildOrderDetail("Amount:", "\$${order['amount']}", isAmount: true),
+                              _buildOrderDetail("Status:", "${order['status']}", isStatus: true),
                             ],
                           ),
                         ),
@@ -99,6 +115,26 @@ Widget build(BuildContext context) {
                 },
               )
             : const Center(child: Text("No orders found")),
+  );
+}
+
+// Helper method to build order details
+Widget _buildOrderDetail(String label, String value, {bool isAmount = false, bool isStatus = false}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isAmount ? Colors.green : isStatus ? Colors.blue : Colors.black,
+          ),
+        ),
+      ],
+    ),
   );
 }
 }

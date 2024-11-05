@@ -33,6 +33,9 @@ class _LoginViewState extends State<LoginView> {
   final _passwordController = TextEditingController();
   bool _doAgreeToTerms = false;
 
+  bool _isNewPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -118,16 +121,27 @@ Widget build(BuildContext context) {
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Email Address",
-                    icon: Icon(Icons.email, color: Colors.grey), // Email icon
+                    icon: const Icon(Icons.email, color: Colors.grey), // Email icon
                   ),
                   const SizedBox(height: 15),
                   CustomTextFormField(
-                    obscureText: true,
                     controller: _passwordController,
+                     obscureText: !_isConfirmPasswordVisible,
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Password", // Keep this as is
-                    icon: Icon(Icons.lock, color: Colors.grey), // Password icon
+                    icon: const Icon(Icons.lock, color: Colors.grey), // Password icon
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                         _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                        });
+                      },
+                    ),
                   ),
                   Align(
                     alignment: Alignment.centerRight,

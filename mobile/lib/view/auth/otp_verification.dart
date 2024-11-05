@@ -173,72 +173,90 @@ Future<bool> _checkUserAddress(String userId) async {
 
 @override
 Widget build(BuildContext context) {
-  return Material(
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
-      color: Colors.white, // Set background color to white
-      child: Form(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Verify OTP",
-                style: TextStyle(
-                  fontSize: 24, // Header size
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black, // Change header color to black
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Enter the OTP sent to ${widget.email}",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black, // Change text color to black for better contrast
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _otpController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: "OTP",
-                  hintStyle: TextStyle(color: Colors.grey), // Hint text color
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey), // Border color
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text("Verify OTP"), // Title for the AppBar
+      backgroundColor: Colors.white, // AppBar background color
+      foregroundColor: Colors.black, // AppBar text color
+    ),
+    body: Center(
+      child: Card(
+        elevation: 5, // Card shadow elevation
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Rounded corners for the card
+        ),
+        color: Colors.white, // Card background color
+        margin: const EdgeInsets.symmetric(horizontal: 20), // Card margin
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36), // Padding inside the card
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center, // Center align text
+              children: [
+                Text(
+                  "Verify OTP", // Header text
+                  style: TextStyle(
+                    fontSize: 30, // Reduced font size for header
+                    fontWeight: FontWeight.normal, // Normal font weight
+                    color: Colors.black, // Header color
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue), // Focused border color
-                  ),
+                  textAlign: TextAlign.center, // Center align header text
                 ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  _verifyOTP(); // Ensure this function is called
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 177, 18, 7), // Button background color
-                  foregroundColor: Colors.white, // Button text color
-                  minimumSize: Size(double.infinity, 56), // Full-width button
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero, // Remove rounded corners
+                const SizedBox(height: 20), // Space between header and next text
+                Text(
+                  "Enter the OTP sent to ${widget.email}", // Instruction text
+                  style: TextStyle(
+                    fontSize: 16, // Instruction text font size
+                    color: Colors.black, // Instruction text color
                   ),
-                  textStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  textAlign: TextAlign.center, // Center align instruction text
+                ),
+                const SizedBox(height: 20), // Space between instruction and input
+                TextField(
+                  controller: _otpController, // Controller for OTP input
+                  keyboardType: TextInputType.number, // Numeric keyboard for OTP
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(), // Border for the text field
+                    hintText: "OTP", // Hint text for the text field
+                    hintStyle: TextStyle(color: Colors.grey), // Hint text color
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey), // Border color when not focused
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Border color when focused
+                    ),
                   ),
                 ),
-                child: const Text("Verify"), // Button text
-              ),
-              const SizedBox(height: 15),
-            ],
+                const SizedBox(height: 20), // Space between input and button
+                SizedBox(
+                  width: double.infinity, // Full-width button
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _verifyOTP(); // Call the verify function
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 177, 18, 7), // Button background color
+                      foregroundColor: Colors.white, // Button text color
+                      minimumSize: Size(double.infinity, 50), // Reduced button height
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero, // No rounded corners
+                      ),
+                      textStyle: TextStyle(
+                           fontWeight: FontWeight.bold, // Button text weight
+                        fontSize: 14, // Reduced button text size
+                      ),
+                    ),
+                    child: const Text("Verify"), // Button text
+                  ),
+                ),
+                const SizedBox(height: 15), // Space below the button
+              ],
+            ),
           ),
         ),
       ),
     ),
   );
 }
+
 }

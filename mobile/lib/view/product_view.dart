@@ -102,226 +102,272 @@ class _ProductViewState extends State<ProductView> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return DefaultViewLayout(
-      content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.product.name,
-                    style: AppTextStyles.headline5,
+@override
+Widget build(BuildContext context) {
+  return DefaultViewLayout(
+    content: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Name
+                Text(
+                  widget.product.name,
+                  style: AppTextStyles.headline4.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  const Gap(5),
-                  /*RatingWidget(
-                    product: widget.product,
-                  ),*/
-                  const Gap(10),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 15),
-                        child: Text(
-                          '₱${adjustedPrice.toStringAsFixed(2)}', // Display adjusted price
-                          style: widget.product.discount != 0
-                              ? AppTextStyles.body1.copyWith(
-                                  color: AppColors.greyAD,
-                                  decoration: TextDecoration.lineThrough,
-                                  decorationColor: AppColors.greyAD,
-                                )
-                              : AppTextStyles.body1,
+                ),
+                const Gap(5),
+                // Product Image
+                if (widget.product.image.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        'http://localhost:4000/upload/images/${widget.product.image[0]}',
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.contain, // Changed to BoxFit.contain
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Image.asset(
+                              'assets/images/placeholder_food.png',
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                
+                // Price Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '₱${adjustedPrice.toStringAsFixed(2)}',
+                      style: widget.product.discount != 0
+                          ? AppTextStyles.body1.copyWith(
+                              color: AppColors.greyAD,
+                              decoration: TextDecoration.lineThrough,
+                              decorationColor: AppColors.greyAD,
+                            )
+                          : AppTextStyles.body1,
+                    ),
+                    if (widget.product.discount != 0)
+                      Text(
+                        '₱${(widget.product.old_price - (widget.product.new_price * widget.product.discount)).toStringAsFixed(2)}',
+                        style: AppTextStyles.body1.copyWith(
+                          color: AppColors.red,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (widget.product.discount != 0)
-                        Text(
-                          '₱${widget.product.old_price - (widget.product.new_price * widget.product.discount)}.00',
-                          style: AppTextStyles.body1
-                              .copyWith(color: AppColors.red),
-                        ),
-                    ],
+                  ],
+                ),
+                const Gap(20),
+                
+                // Product Description
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200], // Changed to a lighter grey
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const Gap(20),
-                  Text(
+                  child: Text(
                     widget.product.description,
                     overflow: TextOverflow.clip,
                     style: AppTextStyles.body2,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25),
-                    child: SizePicker(
-                      sizes: const [
-                        ProductSize.S,
-                        ProductSize.M,
-                        ProductSize.L,
-                        ProductSize.XL,
-                      ],
-                      onSizeSelected: (value) {
-                        setState(() {
-                          _selectedSize = value; // Update selected size
-                        });
-                        if (value != null) {
-                          _updateStockCount(
-                              value); // Update the stock count based on selected size
-                        } // Update the stock count based on the selected size
-                      },
-                    ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Size Picker Section
+                Text(
+                  'Select Size:',
+                  style: AppTextStyles.body1.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 255, 255, 255),
                   ),
-                  const Gap(10),
-                  if (_selectedSize != null)
-                    Text(
+                ),
+                const Gap(10),
+                SizePicker(
+                  sizes: const [
+                    ProductSize.S,
+                    ProductSize.M,
+                    ProductSize.L,
+                    ProductSize.XL,
+                  ],
+                  onSizeSelected: (value) {
+                    setState(() {
+                      _selectedSize = value;
+                    });
+                    if (value != null) {
+                      _updateStockCount(value);
+                    }
+                  },
+                ),
+                const Gap(10),
+                
+                // Stock Count Display
+                if (_selectedSize != null)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.green),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
                       'Available stock: $_stockCount',
                       style: AppTextStyles.body1.copyWith(
-                        color: AppColors.black,
-                        fontWeight: AppFontWeights.bold,
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  const Gap(20),
-                  CustomButton(
-                    disabled: _selectedSize == null &&
-                        widget.product.stocks.isNotEmpty,
-                    text: "ADD TO CART",
-                    textStyle: AppTextStyles.button,
-                    command: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+                  ),
+                const Gap(20),
+                
+                // Add to Cart Button
+                CustomButton(
+                  // Disable button if there is no stock for the selected size or if no size is selected
+                  disabled: _selectedSize == null || _stockCount == 0,
+                  text: "ADD TO CART",
+                  textStyle: AppTextStyles.button.copyWith(fontSize: 14),
+                  command: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
-                      if (isLoggedIn) {
-                        final updatedProduct =
-                            widget.product.copyWith(new_price: adjustedPrice);
-
-                        context.read<CartViewModel>().addItem(updatedProduct,
-                            size: _selectedSize); // Pass selected size
-                        if (_selectedSize != null) {
-                          await _saveToCart(updatedProduct);
-                          print(
-                              "Selected Size: ${_selectedSize?.name}, Adjusted Price: $adjustedPrice");
-                          ProductSize? selectedSize = context
-                              .read<CartViewModel>()
-                              .getSelectedSize(widget.product);
-                          print(
-                              "Retrieving size for ${widget.product.name}: ${selectedSize?.name}");
-                        } else {
-                          // Handle case where size is not selected
-                          print("Please select a size before adding to cart.");
-                        }
-                      } else {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => LoginView(
-                              onLogin: () async {
-                                final authViewModel =
-                                    context.read<AuthViewModel>();
-                                await authViewModel.logins();
-                                if (authViewModel.isLoggedIn) {
-                                  final userInfo = authViewModel.user!;
-                                  await prefs.setString('userId', userInfo.id);
-                                  await prefs.setString(
-                                      'userName', userInfo.name);
-                                  await prefs.setString(
-                                      'userEmail', userInfo.email);
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        builder: (context) => const HomeView()),
-                                  );
-                                }
-                              },
-                              onCreateAccount: () {
-                                final authViewModel =
-                                    context.read<AuthViewModel>();
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => SignupView(
-                                      onLogin: () => authViewModel.logins(),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        );
+                    if (isLoggedIn) {
+                      final updatedProduct = widget.product.copyWith(new_price: adjustedPrice);
+                      context.read<CartViewModel>().addItem(updatedProduct, size: _selectedSize);
+                      if (_selectedSize != null) {
+                        await _saveToCart(updatedProduct);
                       }
-                    },
-                    height: 48,
-                    fillColor: AppColors.red,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  ),
-                  const Gap(20),
-                  RichText(
-                    text: TextSpan(
-                      text: "Category: ",
-                      style: AppTextStyles.body1
-                          .copyWith(fontWeight: AppFontWeights.bold),
-                      children: [
-                        TextSpan(
-                          text: widget.product.category.capitalize(),
-                          style: const TextStyle(
-                              fontWeight: AppFontWeights.regular),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(10),
-                  RichText(
-                    text: TextSpan(
-                      text: "Tags: ",
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: AppFontWeights.bold,
-                        overflow: TextOverflow.clip,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: widget.product.tags
-                              .map((e) => e.capitalize())
-                              .join(", "),
-                          style: const TextStyle(
-                              fontWeight: AppFontWeights.regular),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (_relatedProducts.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Text(
-                              "Related Products",
-                              style: AppTextStyles.headline5,
-                            ),
-                            const SizedBox(
-                              width: 100,
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 10),
-                                child: Divider(
-                                  color: AppColors.black,
-                                  height: 0,
-                                  thickness: 2.5,
+                    } else {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => LoginView(
+                            onLogin: () async {
+                              final authViewModel = context.read<AuthViewModel>();
+                              await authViewModel.logins();
+                              if (authViewModel.isLoggedIn) {
+                                final userInfo = authViewModel.user!;
+                                await prefs.setString('userId', userInfo.id);
+                                await prefs.setString('userName', userInfo.name);
+                                await prefs.setString('userEmail', userInfo.email);
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (context) => const HomeView()),
+                                );
+                              }
+                            },
+                            onCreateAccount: () {
+                              final authViewModel = context.read<AuthViewModel>();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => SignupView(
+                                    onLogin: () => authViewModel.logins(),
+                                  ),
                                 ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  height: 48,
+                  fillColor: AppColors.red,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                ),
+                const Gap(20),
+                Divider(color: Colors.grey, thickness: 1),
+                const Gap(10),
+                
+                // Category
+                RichText(
+                  text: TextSpan(
+                    text: "Category: ",
+                    style: AppTextStyles.body1.copyWith(fontWeight: AppFontWeights.bold),
+                    children: [
+                      TextSpan(
+                        text: widget.product.category.capitalize(),
+                        style: const TextStyle(fontWeight: AppFontWeights.regular),
+                      ),
+                    ],
+                  ),
+                ),
+                const Gap(10),
+                
+                // Tags
+                RichText(
+                  text: TextSpan(
+                    text: "Tags: ",
+                    style: AppTextStyles.body1.copyWith(fontWeight: AppFontWeights.bold),
+                    children: [
+                      TextSpan(
+                        text: widget.product.tags.map((e) => e.capitalize()).join(", "),
+                        style: const TextStyle(fontWeight: AppFontWeights.regular),
+                      ),
+                    ],
+                  ),
+                ),
+                const Gap(20),
+                
+                // Related Products
+                if (_relatedProducts.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            "Related Products",
+                            style: AppTextStyles.headline5,
+                          ),
+                          const SizedBox(
+                            width: 100,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: Divider(
+                                color: AppColors.black,
+                                height: 0,
+                                thickness: 2.5,
                               ),
                             ),
-                            ProductList(
-                              products: _relatedProducts,
-                            ),
-                          ],
-                        ),
+                          ),
+                          ProductList(
+                            products: _relatedProducts,
+                          ),
+                        ],
                       ),
-                    )
-                ],
-              ),
-            )
-          ],
-        ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
+}
+
 
 class RatingWidget extends StatelessWidget {
   final Product product;

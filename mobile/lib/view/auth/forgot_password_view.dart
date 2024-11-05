@@ -58,49 +58,69 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Forgot Password"),
-        backgroundColor: AppColors.primary,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Reset Your Password", style: AppTextStyles.headline4),
-            const Gap(20),
-            Text(
-              "Enter your email address below and we’ll send you a link to reset your password.",
-              style: AppTextStyles.body1,
-            ),
-            const Gap(20),
-            CustomTextFormField(
-              controller: _emailController,
-              formStyle: AppFormStyles.authFormStyle,
-              height: 48,
-              hintText: "Email Address",
-            ),
-            const Gap(20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _requestPasswordReset,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text("Forgot Password"),
+      backgroundColor: Colors.white,
+    ),
+    body: Center(
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        color: AppColors.primary,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text("Email Verification", style: AppTextStyles.headline4),
+                const SizedBox(height: 20),
+                Text(
+                  "Enter your email for a password reset code.",
+                  style: AppTextStyles.body1,
+                  textAlign: TextAlign.center,
                 ),
-                child: Text(
-                  "Send Reset Link",
-                  style: AppTextStyles.button,
+                const SizedBox(height: 20),
+                CustomTextFormField(
+                  controller: _emailController,
+                  formStyle: AppFormStyles.authFormStyle,
+                  height: 48,
+                  hintText: "Email Address",
+                  icon: Icon(Icons.email, color: Colors.grey),
                 ),
-              ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _requestPasswordReset,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      minimumSize: const Size.fromHeight(55), // Sets button height
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                    child: Text(
+                      "Send Reset Link",
+                      style: AppTextStyles.button,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 }

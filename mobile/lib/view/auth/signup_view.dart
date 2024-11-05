@@ -35,6 +35,9 @@ class _SignupViewState extends State<SignupView> {
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
 
+
+  bool _isNewPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   bool _doAgreeToTerms = false;
   String _generatedOTP = '';
   String? _errorMessage;
@@ -163,13 +166,16 @@ class _SignupViewState extends State<SignupView> {
     }
   }
 
- @override
+  @override
 Widget build(BuildContext context) {
   return Scaffold(
-    appBar: AppBar(
-      backgroundColor: AppColors.primary,
-    ),
-    body: Center(
+    body: Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/Featured_item.png'), // Replace with your asset path
+          fit: BoxFit.cover, // This will cover the entire screen
+        ),
+      ),
       child: Card(
         elevation: 5,
         shape: RoundedRectangleBorder(
@@ -203,7 +209,7 @@ Widget build(BuildContext context) {
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Your Name",
-                     icon: Icon(Icons.person, color: Colors.grey), // Password icon
+                    icon: Icon(Icons.person, color: Colors.grey),
                   ),
                   const SizedBox(height: 15),
                   CustomTextFormField(
@@ -211,7 +217,7 @@ Widget build(BuildContext context) {
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Email Address",
-                     icon: Icon(Icons.email, color: Colors.grey), // Password icon
+                    icon: Icon(Icons.email, color: Colors.grey),
                   ),
                   const SizedBox(height: 15),
                   CustomTextFormField(
@@ -219,25 +225,35 @@ Widget build(BuildContext context) {
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Phone Number",
-                     icon: Icon(Icons.phone, color: Colors.grey), // Password icon
+                    icon: Icon(Icons.phone, color: Colors.grey),
                   ),
                   const SizedBox(height: 15),
                   CustomTextFormField(
-                  obscureText: true,
-                  controller: _passwordController,
-                  formStyle: AppFormStyles.authFormStyle,
-                  height: 48,
-                  hintText: "Password",
-                icon: Icon(Icons.email, color: Colors.grey), // Password icon
-                ),
+                    obscureText: !_isNewPasswordVisible,
+                    controller: _passwordController,
+                    formStyle: AppFormStyles.authFormStyle,
+                    height: 48,
+                    hintText: "Password",
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isNewPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isNewPasswordVisible = !_isNewPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 15),
                   CustomTextFormField(
                     controller: _otpController,
                     formStyle: AppFormStyles.authFormStyle,
                     height: 48,
                     hintText: "Enter OTP",
-                     icon: Icon(Icons.email, color: Colors.grey), // Password icon
-                    ),
+                    icon: Icon(Icons.email, color: Colors.grey),
+                  ),
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -250,8 +266,7 @@ Widget build(BuildContext context) {
                           command: onSignup,
                           height: 48,
                           fillColor: AppColors.red,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -316,6 +331,7 @@ Widget build(BuildContext context) {
         ),
       ),
     ),
-  );
+    );
+  }
 }
-}
+
