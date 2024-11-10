@@ -41,7 +41,7 @@ class _ProductViewState extends State<ProductView> {
   ProductSize? _selectedSize;
   int _stockCount = 0;
   double adjustedPrice = 0.0;
-
+  int _selectedQuantity = 1;
   @override
   void initState() {
     _relatedProducts = widget.products
@@ -92,10 +92,10 @@ class _ProductViewState extends State<ProductView> {
     // Update the product with adjusted price before saving to cart
     final updatedProduct = product.copyWith(new_price: adjustedPrice);
 
-    // Ensure _selectedSize is not null before accessing its name
     if (_selectedSize != null) {
+      // Save the quantity to the cart
       cartItems.add(
-          '${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name}');
+          '${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name},$_selectedQuantity');
       await prefs.setStringList('cart', cartItems);
     } else {
       print("Error: No size selected.");
@@ -224,6 +224,18 @@ Widget build(BuildContext context) {
                   },
                 ),
                 const Gap(10),
+
+                // Quantity Selector
+                if (_selectedSize != null)
+                  QuantitySelector(
+                      initialQuantity: _selectedQuantity, // Start with selected quantity
+                      stockCount: _stockCount,
+                      onQuantityChanged: (quantity) {
+                        setState(() {
+                          _selectedQuantity = quantity; // Update quantity
+                        });
+                      },
+                    ),
                 
                 // Stock Count Display
                 if (_selectedSize != null)
@@ -255,7 +267,7 @@ Widget build(BuildContext context) {
 
                     if (isLoggedIn) {
                       final updatedProduct = widget.product.copyWith(new_price: adjustedPrice);
-                      context.read<CartViewModel>().addItem(updatedProduct, size: _selectedSize);
+                      context.read<CartViewModel>().addItem(updatedProduct, size: _selectedSize,  quantity: _selectedQuantity);
                       if (_selectedSize != null) {
                         await _saveToCart(updatedProduct);
                       }
@@ -368,65 +380,6 @@ Widget build(BuildContext context) {
 }
 }
 
-
-class RatingWidget extends StatelessWidget {
-  final Product product;
-  const RatingWidget({
-    super.key,
-    required this.product,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    double rating = product.getRatingAverage();
-    double decimal = rating % 1;
-
-    return Row(
-      children: [
-        ...List.generate(
-          rating.truncate(),
-          (index) {
-            return const Icon(
-              Symbols.star,
-              fill: 1,
-              color: AppColors.orange,
-            );
-          },
-        ),
-        if (decimal > 0)
-          ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) {
-              return LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [AppColors.orange, AppColors.orange.withOpacity(.5)],
-                stops: [decimal, 0],
-              ).createShader(bounds);
-            },
-            child: const Icon(
-              Symbols.star,
-              fill: 1,
-            ),
-          ),
-        ...List.generate(
-          5 - rating.truncate() - (decimal > 0 ? 1 : 0),
-          (index) => Icon(
-            Symbols.star,
-            fill: 1,
-            color: AppColors.orange.withOpacity(.5),
-          ),
-        ),
-        const Gap(5),
-        Text(
-          "(${product.reviews.length})",
-          style: AppTextStyles.body2,
-        )
-      ],
-    );
-  }
-}
-
 class SizePicker extends StatefulWidget {
   final List<ProductSize>
       sizes; // Expecting ProductSize enums (e.g., S, M, L, XL)
@@ -495,6 +448,70 @@ class _SizePickerState extends State<SizePicker> {
             );
           }),
         )
+      ],
+    );
+  }
+}
+
+class QuantitySelector extends StatefulWidget {
+  final int initialQuantity;
+  final int stockCount;
+  final ValueChanged<int> onQuantityChanged;
+
+  const QuantitySelector({
+    Key? key,
+    required this.initialQuantity,
+    required this.stockCount,
+    required this.onQuantityChanged,
+  }) : super(key: key);
+
+  @override
+  State<QuantitySelector> createState() => _QuantitySelectorState();
+}
+
+class _QuantitySelectorState extends State<QuantitySelector> {
+  int _quantity = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _quantity = widget.initialQuantity;
+  }
+
+  void _increaseQuantity() {
+    if (_quantity < widget.stockCount) {
+      setState(() {
+        _quantity++;
+      });
+      widget.onQuantityChanged(_quantity);
+    }
+  }
+
+  void _decreaseQuantity() {
+    if (_quantity > 1) {
+      setState(() {
+        _quantity--;
+      });
+      widget.onQuantityChanged(_quantity);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(Icons.remove, color: AppColors.black),
+          onPressed: _decreaseQuantity,
+        ),
+        Text(
+          '$_quantity',
+          style: AppTextStyles.body1,
+        ),
+        IconButton(
+          icon: Icon(Icons.add, color: AppColors.black),
+          onPressed: _increaseQuantity,
+        ),
       ],
     );
   }

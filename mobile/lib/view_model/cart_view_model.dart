@@ -13,10 +13,17 @@ class CartViewModel with ChangeNotifier {
   Map<Product, Map<String, dynamic>> cartItems =
       {}; // Store quantity and selectedSize
   void addToCart(Product product, int quantity, String selectedSize) {
-    cartItems[product] = {
-      'quantity': quantity,
-      'selectedSize': selectedSize,
-    };
+    // Check if product is already in the cart
+    if (cartItems.containsKey(product)) {
+      // Update quantity if the product already exists in the cart
+      cartItems[product]!['quantity'] = quantity;
+    } else {
+      // Add new product to the cart
+      cartItems[product] = {
+        'quantity': quantity,
+        'selectedSize': selectedSize,
+      };
+    }
     notifyListeners();
   }
 
@@ -44,19 +51,18 @@ class CartViewModel with ChangeNotifier {
     return price * _items[item]!;
   }
 
-  void addItem(Product item, {ProductSize? size}) {
+  // Add an item to the cart and adjust the quantity if already added
+  void addItem(Product item, {ProductSize? size, int quantity = 1}) {
     if (_items.containsKey(item)) {
-      _items[item] = _items[item]! + 1;
+      _items[item] = _items[item]! + quantity; // Add quantity to existing product
     } else {
-      _items[item] = 1; // Save adjusted price
+      _items[item] = quantity; // Save adjusted price with initial quantity
       if (size != null) {
         selectedSizes[item] = size; // Set selected size for the new item
-        _itemPrices[item] =
-            item.new_price; // Initialize adjusted price if needed
+        _itemPrices[item] = item.new_price; // Initialize adjusted price
         print("Saving size: ${size} for product: ${item.name}");
       }
     }
-
     notifyListeners();
   }
 
