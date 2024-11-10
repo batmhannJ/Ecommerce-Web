@@ -85,22 +85,51 @@ class _ProductViewState extends State<ProductView> {
     await prefs.setInt('stockCount', _stockCount);
   }
 
-  Future<void> _saveToCart(Product product) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String>? cartItems = prefs.getStringList('cart') ?? [];
+ Future<void> _saveToCart(Product product) async {
+  final prefs = await SharedPreferences.getInstance();
+  List<String>? cartItems = prefs.getStringList('cart') ?? [];
 
-    // Update the product with adjusted price before saving to cart
-    final updatedProduct = product.copyWith(new_price: adjustedPrice);
+  // Check if the selected size is null (validation)
+  if (_selectedSize == null) {
+    print("Error: No size selected.");
+    return;
+  }
 
-    if (_selectedSize != null) {
-      // Save the quantity to the cart
-      cartItems.add(
-          '${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name},$_selectedQuantity');
-      await prefs.setStringList('cart', cartItems);
-    } else {
-      print("Error: No size selected.");
+  // Prepare the updated product details
+  final updatedProduct = product.copyWith(new_price: adjustedPrice);
+  final cartItemString = '${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name},$_selectedQuantity';
+
+  bool itemExists = false;
+  
+  // Check if the item already exists in the cart
+  for (int i = 0; i < cartItems.length; i++) {
+    final cartItem = cartItems[i];
+    final parts = cartItem.split(',');
+
+    // Debugging: Print the cart item and check the comparison
+    print("Comparing: ${updatedProduct.name} with ${parts[0]} and ${_selectedSize!.name} with ${parts[2]}");
+
+    if (parts[0].trim() == updatedProduct.name.trim() && parts[2].trim() == _selectedSize!.name.trim()) {
+      // If item with same name and size exists, update the quantity
+      final existingQuantity = int.parse(parts[3]);
+      final newQuantity = existingQuantity + _selectedQuantity; // Add new quantity to the existing one
+
+      // Update the cart item with the new quantity
+      cartItems[i] = '${parts[0]},${parts[1]},${parts[2]},$newQuantity';
+      itemExists = true;
+      break;
     }
   }
+
+  // If item doesn't exist, add it to the cart
+  if (!itemExists) {
+    cartItems.add(cartItemString);
+  }
+
+  // Save the updated cart back to SharedPreferences
+  await prefs.setStringList('cart', cartItems);
+  print('Cart updated: $cartItems'); // For debugging
+}
 
 @override
 Widget build(BuildContext context) {
