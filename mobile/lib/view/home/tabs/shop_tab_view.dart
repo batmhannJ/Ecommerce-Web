@@ -351,11 +351,14 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
 
   void _filterProducts(String query) {
     setState(() {
-      _searchQuery = query;
-      _filteredProducts = widget.products
-          .where((product) =>
-              product.name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      _searchQuery = query.toLowerCase();
+      _filteredProducts = widget.products.where((product) {
+        // Check if the query matches the product name or any of the tags
+        final matchesName = product.name.toLowerCase().contains(_searchQuery);
+        final matchesTags =
+            product.tags.any((tag) => tag.toLowerCase().contains(_searchQuery));
+        return matchesName || matchesTags;
+      }).toList();
     });
   }
 
@@ -366,7 +369,7 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
         TextField(
           onChanged: _filterProducts,
           decoration: const InputDecoration(
-            labelText: 'Search Products',
+            labelText: 'Search Products or Tags',
             prefixIcon: Icon(Icons.search),
             border: OutlineInputBorder(),
           ),
