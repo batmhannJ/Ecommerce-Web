@@ -179,34 +179,26 @@ class _CheckoutViewState extends State<CheckoutView> {
       },
       "requestReferenceNumber":
           DateTime.now().millisecondsSinceEpoch.toString(),
-      "items": [
-        ...items.map((productEntry) {
-          final product = productEntry.key;
-          final quantity = productEntry.value;
-          final selectedSize = cartViewModel.getSelectedSize(product);
+      "items": items.map((productEntry) {
+        final product = productEntry.key;
+        final quantity = productEntry.value;
+        final selectedSize = cartViewModel.getSelectedSize(product);
 
-          return {
-            "name": product.name,
-            "size": selectedSize?.name ?? '', // Ensure size is included
-            "quantity": quantity,
-            "totalAmount": {
-              "currency": "PHP",
-              "value": subtotal.toString(),
-            },
-          };
-        }).toList(),
-        {
-          "name": "Delivery Fee", // Name for delivery fee item
-          "amount": {
-            "currency": "PHP",
-            "value": shippingFee.toString(), // Delivery fee value
-          },
+        return {
+          "name": product.name,
+          "size": selectedSize?.name ?? '', // Ensure size is included
+          "quantity": quantity,
           "totalAmount": {
             "currency": "PHP",
-            "value": shippingFee.toString(), // Total amount for delivery fee
+            "value": subtotal.toString(), // Calculate item total
           },
-        },
-      ],
+        };
+      }).toList(),
+      "deliveryFee": {
+        // Separate field for the delivery fee
+        "currency": "PHP",
+        "value": shippingFee.toString(),
+      },
     };
 
 // Debug the updated payment data structure
@@ -360,46 +352,56 @@ class _CheckoutViewState extends State<CheckoutView> {
   Future<void> saveTransaction(
       Map<String, dynamic> paymentData, BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    final authViewModel = context.read<AuthViewModel>();
     final userId = prefs.getString('userId');
 
-    // Check if userId is null
+    // Fetch user details and address
+    await authViewModel.fetchUserDetails();
+    final currentUser = authViewModel.user;
+    final userAddress = authViewModel.address;
+
     if (userId == null) {
       Fluttertoast.showToast(msg: "User ID not found. Please log in.");
       return;
     }
 
-    final authViewModel = context.read<AuthViewModel>();
-    final userAddress = authViewModel.address;
+    if (currentUser == null) {
+      Fluttertoast.showToast(msg: "User details not found. Please log in.");
+      return;
+    }
 
-    // Check if userAddress is not null
     if (userAddress == null) {
       Fluttertoast.showToast(msg: "User address not found.");
       return;
     }
 
+    // Get the names for the selected region, province, city, and barangay
+    final regionName = getRegionName(userAddress.region);
+    final provinceName = getProvinceName(userAddress.province);
+    final cityName = getCityName(userAddress.municipality);
+    final barangayName = getBarangayName(userAddress.barangay);
+
     // Prepare transaction details
     final transactionDetails = {
       "transactionId": paymentData["requestReferenceNumber"],
       "date": DateTime.now().toIso8601String(),
-      "name": authViewModel.user?.name ??
-          "Unknown User", // Using null-aware operator
-      "contact": authViewModel.user?.phone ??
-          "No contact available", // Using null-aware operator
+      "name": currentUser.name ?? "Unknown User",
+      "contact": currentUser.phone ?? "No contact available",
       "item": paymentData["items"].map((item) => item['name']).join(', '),
       "quantity": paymentData["items"]
           .map((item) => item['quantity'])
           .reduce((a, b) => a + b),
       "amount": paymentData["totalAmount"]["value"],
       "address":
-          "${userAddress.street} ${userAddress.municipality} ${userAddress.province} ${userAddress.zip}",
+          "${userAddress.street}, $barangayName, $cityName, $provinceName, ${userAddress.zip}",
       "status": "Cart Processing",
       "userId": userId,
     };
 
+    // Save the transaction
     try {
       final response = await http.post(
-        Uri.parse(
-            'http://localhost:4000/api/transactions'), // Change localhost to your machine IP
+        Uri.parse('http://localhost:4000/api/transactions'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(transactionDetails),
       );
@@ -601,279 +603,295 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-Widget orderDetailsCard() {
-  // Get the current date and format it
-  String formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
+  Widget orderDetailsCard() {
+    // Get the current date and format it
+    String formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
 
-  return Container(
-    padding: const EdgeInsets.all(16), // Padding inside the container
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12), // Rounded corners
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.3), // Subtle shadow
-          blurRadius: 4,
-          offset: const Offset(0, 2), // Shadow position
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "ORDER DETAILS",
-          style: AppTextStyles.headline4.copyWith(
-            fontWeight: AppFontWeights.bold,
-            fontSize: 18,
+    return Container(
+      padding: const EdgeInsets.all(16), // Padding inside the container
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3), // Subtle shadow
+            blurRadius: 4,
+            offset: const Offset(0, 2), // Shadow position
           ),
-        ),
-        const SizedBox(height: 16), // Space below title
-        _buildDetailRow(Icons.calendar_today, "Date", formattedDate),
-        const SizedBox(height: 10), // Space between rows
-        _buildDetailRow(Icons.confirmation_number, "Order Number", "072102"),
-      ],
-    ),
-  );
-}
-
-// Helper method to build detail rows with black icons
-Widget _buildDetailRow(IconData icon, String title, String value) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12), // Row padding
-    decoration: BoxDecoration(
-      color: Colors.grey.shade100, // Light background color for row
-      borderRadius: BorderRadius.circular(8), // Rounded corners for row
-    ),
-    child: Row(
-      children: [
-        Icon(icon, color: Colors.black), // Black icon
-        const SizedBox(width: 10), // Space between icon and title
-        Expanded( // Use Expanded to take available space
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: AppTextStyles.body2.copyWith(
-                  fontWeight: AppFontWeights.semiBold,
-                ),
-              ),
-              Text(
-                value,
-                style: AppTextStyles.body2,
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
- Widget itemsOrderedCard(BuildContext context) {
-  final cartViewModel = Provider.of<CartViewModel>(context);
-
-  List<MapEntry<Product, int>> items =
-      context.select<CartViewModel, List<MapEntry<Product, int>>>(
-    (value) => value.items,
-  );
-
-  return Card(
-    elevation: 4, // Adds shadow
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12), // Rounded corners
-    ),
-    margin: const EdgeInsets.symmetric(vertical: 10), // Card margin
-    child: Padding(
-      padding: const EdgeInsets.all(16), // Card padding
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "ITEMS ORDERED",
+            "ORDER DETAILS",
             style: AppTextStyles.headline4.copyWith(
               fontWeight: AppFontWeights.bold,
               fontSize: 18,
             ),
           ),
-          const SizedBox(height: 10), // Space between title and content
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              MapEntry<Product, int> item = items[index];
-              final productEntry = cartViewModel.items[index];
-              final product = productEntry.key;
-              final selectedSize = cartViewModel.getSelectedSize(product);
+          const SizedBox(height: 16), // Space below title
+          _buildDetailRow(Icons.calendar_today, "Date", formattedDate),
+          const SizedBox(height: 10), // Space between rows
+          //_buildDetailRow(Icons.confirmation_number, "Order Number", "072102"),
+        ],
+      ),
+    );
+  }
 
-              return Padding(
-                padding: EdgeInsets.only(top: index != 0 ? 20 : 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10), // Rounded image
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.greyAD),
-                        ),
-                        child: item.key.image.isNotEmpty
-                            ? Image.network(
-                                'http://localhost:4000/upload/images/${item.key.image[0]}',
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Center(
-                                    child: Image.asset(
-                                      'assets/images/placeholder_food.png',
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  );
-                                },
-                              )
-                            : const Center(
-                                child: Text(
-                                  "No image available",
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 10), // Spacing between image and text
-                    Expanded( // Use Expanded to prevent overflow
-                      child: SizedBox(
-                        height: 80,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              item.key.name,
-                              style: AppTextStyles.body2.copyWith(
-                                fontWeight: AppFontWeights.bold,
-                                fontSize: 16, // Adjusted size
-                              ),
-                            ),
-                            Text(
-                              'Size: ${selectedSize != null ? selectedSize.name : 'N/A'}',
-                              style: AppTextStyles.subtitle2.copyWith(
-                                color: AppColors.greyAD, // Lighter color for size
-                              ),
-                            ),
-                            RichText(
-                              text: TextSpan(
-                                style: AppTextStyles.subtitle2,
-                                text: "Quantity:  ",
-                                children: [
-                                  TextSpan(
-                                    text: "${item.value}",
-                                    style: const TextStyle(
-                                      fontWeight: AppFontWeights.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+// Helper method to build detail rows with black icons
+  Widget _buildDetailRow(IconData icon, String title, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          vertical: 8, horizontal: 12), // Row padding
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100, // Light background color for row
+        borderRadius: BorderRadius.circular(8), // Rounded corners for row
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.black), // Black icon
+          const SizedBox(width: 10), // Space between icon and title
+          Expanded(
+            // Use Expanded to take available space
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.body2.copyWith(
+                    fontWeight: AppFontWeights.semiBold,
+                  ),
                 ),
-              );
-            },
+                Text(
+                  value,
+                  style: AppTextStyles.body2,
+                ),
+              ],
+            ),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
+  Widget itemsOrderedCard(BuildContext context) {
+    final cartViewModel = Provider.of<CartViewModel>(context);
 
-Widget shippingInformationCard(BuildContext context) {
-  final authViewModel = context.read<AuthViewModel>();
-  final userAddress = authViewModel.address;
+    List<MapEntry<Product, int>> items =
+        context.select<CartViewModel, List<MapEntry<Product, int>>>(
+      (value) => value.items,
+    );
 
-  return Container(
-    padding: const EdgeInsets.all(16), // Padding inside the container
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12), // Rounded corners
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.3), // Subtle shadow
-          blurRadius: 4,
-          offset: const Offset(0, 2), // Shadow position
+    return Card(
+      elevation: 4, // Adds shadow
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 10), // Card margin
+      child: Padding(
+        padding: const EdgeInsets.all(16), // Card padding
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "ITEMS ORDERED",
+              style: AppTextStyles.headline4.copyWith(
+                fontWeight: AppFontWeights.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 10), // Space between title and content
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                MapEntry<Product, int> item = items[index];
+                final productEntry = cartViewModel.items[index];
+                final product = productEntry.key;
+                final selectedSize = cartViewModel.getSelectedSize(product);
+
+                return Padding(
+                  padding: EdgeInsets.only(top: index != 0 ? 20 : 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(10), // Rounded image
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.greyAD),
+                          ),
+                          child: item.key.image.isNotEmpty
+                              ? Image.network(
+                                  'http://localhost:4000/upload/images/${item.key.image[0]}',
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Image.asset(
+                                        'assets/images/placeholder_food.png',
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: Text(
+                                    "No image available",
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(
+                          width: 10), // Spacing between image and text
+                      Expanded(
+                        // Use Expanded to prevent overflow
+                        child: SizedBox(
+                          height: 80,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                item.key.name,
+                                style: AppTextStyles.body2.copyWith(
+                                  fontWeight: AppFontWeights.bold,
+                                  fontSize: 16, // Adjusted size
+                                ),
+                              ),
+                              Text(
+                                'Size: ${selectedSize != null ? selectedSize.name : 'N/A'}',
+                                style: AppTextStyles.subtitle2.copyWith(
+                                  color: AppColors
+                                      .greyAD, // Lighter color for size
+                                ),
+                              ),
+                              RichText(
+                                text: TextSpan(
+                                  style: AppTextStyles.subtitle2,
+                                  text: "Quantity:  ",
+                                  children: [
+                                    TextSpan(
+                                      text: "${item.value}",
+                                      style: const TextStyle(
+                                        fontWeight: AppFontWeights.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "SHIPPING INFORMATION",
-          style: AppTextStyles.headline4.copyWith(
-            fontWeight: AppFontWeights.bold,
-            fontSize: 18,
+      ),
+    );
+  }
+
+  Widget shippingInformationCard(BuildContext context) {
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
+
+    return Container(
+      padding: const EdgeInsets.all(16), // Padding inside the container
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3), // Subtle shadow
+            blurRadius: 4,
+            offset: const Offset(0, 2), // Shadow position
           ),
-        ),
-        const SizedBox(height: 16), // Space below title
-        _buildShippingRow(Icons.home, 'Street', userAddress?.street ?? "Not provided"),
-        const SizedBox(height: 10), // Space between rows
-        _buildShippingRow(Icons.location_city, 'Barangay', getBarangayName(selectedBarangay)),
-        const SizedBox(height: 10), // Space between rows
-        _buildShippingRow(Icons.location_on, 'City', getCityName(selectedCity)),
-        const SizedBox(height: 10), // Space between rows
-        _buildShippingRow(Icons.map, 'Province', getProvinceName(selectedProvince)),
-        const SizedBox(height: 10), // Space between rows
-        _buildShippingRow(Icons.flag, 'Region', getRegionName(selectedRegion)),
-        const SizedBox(height: 10), // Space between rows
-        _buildShippingRow(Icons.mail, 'Zip', userAddress?.zip ?? "Not provided"),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "SHIPPING INFORMATION",
+            style: AppTextStyles.headline4.copyWith(
+              fontWeight: AppFontWeights.bold,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 16), // Space below title
+          _buildShippingRow(
+              Icons.home, 'Street', userAddress?.street ?? "Not provided"),
+          const SizedBox(height: 10), // Space between rows
+          _buildShippingRow(Icons.location_city, 'Barangay',
+              getBarangayName(selectedBarangay)),
+          const SizedBox(height: 10), // Space between rows
+          _buildShippingRow(
+              Icons.location_on, 'City', getCityName(selectedCity)),
+          const SizedBox(height: 10), // Space between rows
+          _buildShippingRow(
+              Icons.map, 'Province', getProvinceName(selectedProvince)),
+          const SizedBox(height: 10), // Space between rows
+          _buildShippingRow(
+              Icons.flag, 'Region', getRegionName(selectedRegion)),
+          const SizedBox(height: 10), // Space between rows
+          _buildShippingRow(
+              Icons.mail, 'Zip', userAddress?.zip ?? "Not provided"),
+        ],
+      ),
+    );
+  }
 
 // Helper method to build shipping information rows with icons
-Widget _buildShippingRow(IconData icon, String title, String value) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12), // Row padding
-    decoration: BoxDecoration(
-      color: Colors.grey.shade100, // Light background color for row
-      borderRadius: BorderRadius.circular(8), // Rounded corners for row
-    ),
-    child: Row(
-      children: [
-        Icon(icon, color: Colors.black), // Black icon
-        const SizedBox(width: 10), // Space between icon and title
-        Expanded( // Use Expanded to take available space
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600, // Semi-bold for the title
-                  fontSize: 16,
+  Widget _buildShippingRow(IconData icon, String title, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          vertical: 10, horizontal: 12), // Row padding
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100, // Light background color for row
+        borderRadius: BorderRadius.circular(8), // Rounded corners for row
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.black), // Black icon
+          const SizedBox(width: 10), // Space between icon and title
+          Expanded(
+            // Use Expanded to take available space
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600, // Semi-bold for the title
+                    fontSize: 16,
+                  ),
                 ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(fontSize: 14, color: Colors.grey), // Slightly smaller and grey for the value
-              ),
-            ],
+                Text(
+                  value,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors
+                          .grey), // Slightly smaller and grey for the value
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   String getFullAddress(Address userAddress,
       {String? barangay,
@@ -890,91 +908,97 @@ Widget _buildShippingRow(IconData icon, String title, String value) {
         '${zip.isNotEmpty ? ', $zip' : ''}';
   }
 
-Widget orderSummaryCard(BuildContext context) {
-  final double shippingFee = this.shippingFee; // Use the shippingFee from the state variable
-  final subtotal = context.read<CartViewModel>().getSubtotal();
-  final total = subtotal + shippingFee;
+  Widget orderSummaryCard(BuildContext context) {
+    final double shippingFee =
+        this.shippingFee; // Use the shippingFee from the state variable
+    final subtotal = context.read<CartViewModel>().getSubtotal();
+    final total = subtotal + shippingFee;
 
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.2),
-          blurRadius: 6,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "ORDER SUMMARY",
-          style: AppTextStyles.headline4.copyWith(
-            fontWeight: AppFontWeights.bold,
-            fontSize: 20,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
-        ),
-        const SizedBox(height: 16),
-        Divider(color: Colors.grey.shade300), // Divider for separation
-        const SizedBox(height: 8),
-        _buildSummaryRow("Subtotal:", "₱${subtotal.toStringAsFixed(2)}", Icons.monetization_on),
-        _buildSummaryRow("Shipping:", "₱${shippingFee.toStringAsFixed(2)}", Icons.local_shipping),
-        Divider(color: Colors.grey.shade300), // Divider for total section
-        _buildSummaryRow("Total:", "₱${total.toStringAsFixed(2)}", Icons.payment, isTotal: true),
-        const SizedBox(height: 25),
-        Row(
-          children: [
-            Expanded(
-              child: CustomButton(
-                isExpanded: true,
-                text: "Proceed to Payment",
-                textStyle: AppTextStyles.button.copyWith(color: Colors.white),
-                command: () => proceedToPayment(context),
-                height: 48,
-                fillColor: AppColors.red,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "ORDER SUMMARY",
+            style: AppTextStyles.headline4.copyWith(
+              fontWeight: AppFontWeights.bold,
+              fontSize: 20,
             ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
+          ),
+          const SizedBox(height: 16),
+          Divider(color: Colors.grey.shade300), // Divider for separation
+          const SizedBox(height: 8),
+          _buildSummaryRow("Subtotal:", "₱${subtotal.toStringAsFixed(2)}",
+              Icons.monetization_on),
+          _buildSummaryRow("Shipping:", "₱${shippingFee.toStringAsFixed(2)}",
+              Icons.local_shipping),
+          Divider(color: Colors.grey.shade300), // Divider for total section
+          _buildSummaryRow(
+              "Total:", "₱${total.toStringAsFixed(2)}", Icons.payment,
+              isTotal: true),
+          const SizedBox(height: 25),
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  isExpanded: true,
+                  text: "Proceed to Payment",
+                  textStyle: AppTextStyles.button.copyWith(color: Colors.white),
+                  command: () => proceedToPayment(context),
+                  height: 48,
+                  fillColor: AppColors.red,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
 // Helper method to build summary rows with icons
-Widget _buildSummaryRow(String label, String value, IconData icon, {bool isTotal = false}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: isTotal ? Colors.green : Colors.black54),
-            const SizedBox(width: 8), // Space between icon and text
-            Text(
-              label,
-              style: AppTextStyles.subtitle2.copyWith(
-                fontWeight: isTotal ? AppFontWeights.bold : FontWeight.normal,
+  Widget _buildSummaryRow(String label, String value, IconData icon,
+      {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: isTotal ? Colors.green : Colors.black54),
+              const SizedBox(width: 8), // Space between icon and text
+              Text(
+                label,
+                style: AppTextStyles.subtitle2.copyWith(
+                  fontWeight: isTotal ? AppFontWeights.bold : FontWeight.normal,
+                ),
               ),
-            ),
-          ],
-        ),
-        Text(
-          value,
-          style: AppTextStyles.body2.copyWith(
-            color: isTotal ? Colors.green : Colors.black54,
+            ],
           ),
-        ),
-      ],
-    ),
-  );
-}
+          Text(
+            value,
+            style: AppTextStyles.body2.copyWith(
+              color: isTotal ? Colors.green : Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class InfoCard extends StatelessWidget {
