@@ -45,6 +45,7 @@ class Address {
     return {
       'name': name,
       'phone': phone, // Include in JSON serialization
+      'region': region,
       'province': province,
       'municipality': municipality,
       'barangay': barangay,

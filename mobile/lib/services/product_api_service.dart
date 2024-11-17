@@ -25,6 +25,7 @@ class ProductApiService {
     double discount = old_price > 0 ? ((old_price - new_price) / old_price) : 0;
 
     return Product(
+      id: json['cartItemId'] ?? '',
       name: json['name'] ?? '',
       old_price: old_price,
       new_price: new_price,
@@ -44,19 +45,20 @@ class ProductApiService {
         ProductSize.L: json['l_stock'] ?? 0,
         ProductSize.XL: json['xl_stock'] ?? 0,
       },
-            adjustedPrice: json['adjustedPrice'] ?? 0,
+      adjustedPrice: json['adjustedPrice'] ?? 0,
 
       s_stock: json['s_stock'] ?? 0,
-      m_stock: json['m_stock']?? 0,
-      l_stock: json['l_stock']?? 0,
-      xl_stock: json['xl_stock']?? 0,
+      m_stock: json['m_stock'] ?? 0,
+      l_stock: json['l_stock'] ?? 0,
+      xl_stock: json['xl_stock'] ?? 0,
       category: json['category'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
       image: json['image'] != null && json['image'] is List
-        ? List<String>.from(json['image'])
-        : [json['image']], // Assuming you have a fallback for single images
+          ? List<String>.from(json['image'])
+          : [json['image']], // Assuming you have a fallback for single images
       available: json['available'] ?? false,
-      isNew: DateTime.now().difference(DateTime.parse(json['date'])).inDays <= 30, // Check if it's recent
+      isNew: DateTime.now().difference(DateTime.parse(json['date'])).inDays <=
+          30, // Check if it's recent
     );
   }
 }

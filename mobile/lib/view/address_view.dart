@@ -29,8 +29,7 @@ class _AddressViewState extends State<AddressView> {
   List<dynamic> provinces = [];
   List<dynamic> cities = [];
   List<dynamic> barangays = [];
-  bool isLoading = true;
-  bool hasError = false;
+
   final _fullNameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   final _emailController = TextEditingController();
@@ -45,31 +44,42 @@ class _AddressViewState extends State<AddressView> {
   @override
   void initState() {
     super.initState();
-    loadUserData();
-    fetchRegions();
-  }
-
-  void loadUserData() {
     final authViewModel = context.read<AuthViewModel>();
+
+    // Fetch and display user details
     authViewModel.fetchUserDetails().then((_) {
       setState(() {
         final currentUser = authViewModel.user;
-        _fullNameController.text = currentUser?.name ?? '';
-        _phoneNumberController.text = currentUser?.phone ?? '';
-        _emailController.text = currentUser?.email ?? '';
+
+        _fullNameController.text =
+            currentUser?.name ?? ''; // Safe handling of null
+        _phoneNumberController.text =
+            currentUser?.phone ?? ''; // Safe handling of null
+        _emailController.text =
+            currentUser?.email ?? ''; // Safe handling of null
+
+        print('Name: ${currentUser?.name}');
+        print('Phone: ${currentUser?.phone}');
+        print('Email: ${currentUser?.email}');
       });
     });
 
+    // Fetch and display user address
     authViewModel.fetchUserAddress().then((_) {
       setState(() {
         final userAddress = authViewModel.address;
-        _streetController.text = userAddress?.street ?? '';
-        _zipController.text = userAddress?.zip ?? '';
+
+        _streetController.text =
+            userAddress?.street ?? ''; // Safe handling of null
+        _zipController.text = userAddress?.zip ?? ''; // Safe handling of null
+
+        // Update drop-downs for region, province, city, and barangay
         selectedRegion = userAddress?.region;
         selectedProvince = userAddress?.province;
         selectedCity = userAddress?.municipality;
         selectedBarangay = userAddress?.barangay;
 
+        // Fetch corresponding provinces, cities, and barangays based on address
         if (selectedRegion != null) {
           fetchProvinces(selectedRegion!);
         }
@@ -79,149 +89,141 @@ class _AddressViewState extends State<AddressView> {
         if (selectedCity != null) {
           fetchBarangays(selectedCity!);
         }
+        print('Street: ${userAddress?.street}');
+        print('Zip: ${userAddress?.zip}');
       });
     });
+
+    // Fetch regions initially
+    fetchRegions();
   }
 
   Future<void> fetchRegions() async {
-    setState(() {
-      isLoading = true;
-      hasError = false;
-      selectedRegion = null;
-      selectedProvince = null;
-      selectedCity = null;
-      selectedBarangay = null;
-      provinces.clear();
-      cities.clear();
-      barangays.clear(); // Reset all dropdown values
-    });
     try {
       regions = await _addressService.regions();
-      if (regions.isNotEmpty) {
-        selectedRegion = regions[0]['region_code'];
-        fetchProvinces(selectedRegion!);
-      }
+      setState(() {
+        // Clear the previous selections to avoid duplicates
+        if (selectedRegion != null &&
+            regions.any((region) => region['region_code'] == selectedRegion)) {
+          // Keep selectedRegion if it is still valid
+          selectedRegion = selectedRegion;
+        } else if (regions.isNotEmpty) {
+          // Reset selectedRegion to the first one if not valid
+          selectedRegion = regions[0]['region_code'];
+        } else {
+          selectedRegion = null; // Handle the case when there are no regions
+        }
+      });
     } catch (error) {
-      setState(() {
-        hasError = true;
-      });
       print("Error fetching regions: $error");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
   Future<void> fetchProvinces(String regionCode) async {
-    setState(() {
-      isLoading = true;
-      selectedProvince = null;
-      provinces.clear(); // Clear previous values
-      cities.clear(); // Clear related dropdowns
-      barangays.clear();
-      selectedCity = null;
-      selectedBarangay = null;
-    });
     try {
-      provinces = await _addressService.provinces(regionCode);
-      if (provinces.isNotEmpty) {
-        selectedProvince = provinces[0]['province_code'];
-        fetchCities(selectedProvince!);
-      }
-    } catch (error) {
+      List<dynamic> fetchedProvinces =
+          await _addressService.provinces(regionCode);
       setState(() {
-        hasError = true;
+        provinces.clear(); // Clear previous provinces to avoid duplicates
+        provinces.addAll(fetchedProvinces);
+        // Reset selectedProvince if it's not found in the new list
+        if (provinces
+            .any((province) => province['province_code'] == selectedProvince)) {
+          // If selectedProvince exists in the new provinces
+          selectedProvince = selectedProvince;
+        } else {
+          selectedProvince = provinces.isNotEmpty
+              ? provinces[0]['province_code']
+              : null; // Default to first province
+        }
       });
+    } catch (error) {
       print("Error fetching provinces: $error");
-    } finally {
-      setState(() => isLoading = false);
     }
   }
 
   Future<void> fetchCities(String provinceCode) async {
-    setState(() {
-      isLoading = true;
-      selectedCity = null;
-      cities.clear(); // Clear previous values
-      barangays.clear();
-      selectedBarangay = null;
-    });
     try {
-      cities = await _addressService.cities(provinceCode);
-      if (cities.isNotEmpty) {
-        selectedCity = cities[0]['city_code'];
-        fetchBarangays(selectedCity!);
-      }
-    } catch (error) {
+      List<dynamic> fetchedCities = await _addressService.cities(provinceCode);
       setState(() {
-        hasError = true;
+        cities.clear(); // Clear previous cities to avoid duplicates
+        cities.addAll(fetchedCities);
+        // Reset selectedCity if it's not found in the new list
+        if (cities.any((city) => city['city_code'] == selectedCity)) {
+          // If selectedCity exists in the new cities
+          selectedCity = selectedCity;
+        } else {
+          selectedCity = cities.isNotEmpty
+              ? cities[0]['city_code']
+              : null; // Default to first city
+        }
+        // Fetch barangays based on the newly selected city
+        if (selectedCity != null) {
+          fetchBarangays(selectedCity!);
+        }
       });
+    } catch (error) {
       print("Error fetching cities: $error");
-    } finally {
-      setState(() => isLoading = false);
     }
   }
 
   Future<void> fetchBarangays(String cityCode) async {
-    setState(() {
-      isLoading = true;
-      selectedBarangay = null;
-      barangays.clear(); // Clear previous values
-    });
     try {
-      barangays = await _addressService.barangays(cityCode);
-      if (barangays.isNotEmpty) {
-        selectedBarangay = barangays[0]['brgy_code'];
-      }
-    } catch (error) {
+      List<dynamic> fetchedBarangays =
+          await _addressService.barangays(cityCode);
       setState(() {
-        hasError = true;
+        barangays.clear(); // Clear previous barangays to avoid duplicates
+        barangays.addAll(fetchedBarangays);
+        // Reset selectedBarangay if it's not found in the new list
+        if (barangays
+            .any((barangay) => barangay['brgy_code'] == selectedBarangay)) {
+          selectedBarangay = selectedBarangay; // Keep it as is if found
+        } else {
+          selectedBarangay = barangays.isNotEmpty
+              ? barangays[0]['brgy_code']
+              : null; // Default to first barangay
+        }
       });
+    } catch (error) {
       print("Error fetching barangays: $error");
-    } finally {
-      setState(() => isLoading = false);
     }
   }
 
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _phoneNumberController.dispose();
-    _emailController.dispose();
-    _zipController.dispose();
-    _streetController.dispose();
-    super.dispose();
-  }
+  void _proceedToPayment() {
+    final authViewModel = context.read<AuthViewModel>();
+    final currentUser = authViewModel.user;
+    final userAddress = authViewModel.address;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    loadUserData(); // Reload data when re-entering the view
-  }
+    authViewModel.isLoggedIn = true; // Gamitin ang setter para sa isLoggedIn
 
-  Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    // Fetch the cart items from your CartViewModel or wherever you're managing cart state
+    final cartItems = context.read<CartViewModel>().items.map((entry) {
+      Product product =
+          entry.key; // Assuming this maps correctly to your data structure
+      int quantity = entry.value;
+      String selectedSize = ""; // Adjust according to your app's logic
+      return {
+        'name': product.name,
+        'selectedSize': selectedSize,
+        'quantity': quantity,
+      };
+    }).toList();
 
-    if (hasError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text("An error occurred while fetching data."),
-            ElevatedButton(
-              onPressed: () {
-                fetchRegions(); // Retry fetching regions on error
-              },
-              child: const Text("Retry"),
-            ),
-          ],
+    // Navigate to CheckoutView with the required parameters
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutView(
+          user: currentUser,
+          address: userAddress,
+          cartItems: cartItems, // Ensure cartItems is correctly passed
         ),
-      );
-    }
+      ),
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return DefaultViewLayout(
       title: "Address",
       content: Form(
@@ -366,6 +368,7 @@ class _AddressViewState extends State<AddressView> {
 
                     // Update address details
                     context.read<AuthViewModel>().updateAddress(
+                          region: selectedRegion ?? '',
                           province: selectedProvince ??
                               '', // Ensure province is a non-null value
                           municipality: selectedCity ??
@@ -390,6 +393,18 @@ class _AddressViewState extends State<AddressView> {
                 },
                 child: const Text("Update Address"),
               ),
+              // Proceed to Payment Button
+              /*const Gap(15),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed:
+                    _proceedToPayment, // Call the method to navigate to payment
+                child: const Text("Proceed to Payment"),
+              ),*/
             ],
           ),
         ),

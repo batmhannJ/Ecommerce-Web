@@ -41,15 +41,21 @@ class _CartViewState extends State<CartView> {
   void initState() {
     super.initState();
     _checkLoginStatus();
+    _fetchUserCart();
+  }
+
+  Future<String?> getUserIdFromPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId');
   }
 
   void _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
     if (!isLoggedIn) {
       final authViewModel =
-          context.watch<AuthViewModel>(); // Get the AuthViewModel instance
+          context.watch<AuthViewModel>(); // Get AuthViewModel instance
 
       // Redirect to LoginView if not logged in
       Navigator.pushReplacement(
@@ -57,23 +63,182 @@ class _CartViewState extends State<CartView> {
         MaterialPageRoute(
           builder: (context) => LoginView(
             onLogin: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('isLoggedIn', true); // Save login state
+              // Save login state to SharedPreferences
+              await prefs.setBool('isLoggedIn', true);
+
+              // Fetch userId after successful login
+              String? userId =
+                  prefs.getString('userId'); // Ensure userId is stored
+              if (userId != null) {
+                await _fetchUserCart(); // Call the method to fetch cart items
+              }
+
+              // Navigate to the next screen
               _navigateToCheckout(authViewModel.address);
             },
             onCreateAccount: () {
-              // Navigate to the Signup View
+              // Navigate to Signup View
               Navigator.of(context).push(
                 MaterialPageRoute(
-                    builder: (context) => SignupView(onLogin: () {
-                          _navigateToCheckout(authViewModel
-                              .address); // Redirect after account creation
-                        })),
+                  builder: (context) => SignupView(
+                    onLogin: () {
+                      // After account creation, proceed
+                      _navigateToCheckout(authViewModel.address);
+                    },
+                  ),
+                ),
               );
             },
           ),
         ),
       );
+    } else {
+      // If already logged in, fetch the cart directly
+      String? userId = prefs.getString('userId'); // Ensure userId is stored
+      if (userId != null) {
+        await _fetchUserCart(); // Call the method to fetch cart items
+      }
+    }
+  }
+
+  Future<void> _fetchUserCart() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId');
+
+      if (userId == null) {
+        print("No userId found in SharedPreferences.");
+        return;
+      }
+
+      print("Fetched userId: $userId");
+
+      final apiUrl = 'http://localhost:4000/api/cart/$userId';
+      final response = await http.get(Uri.parse(apiUrl));
+      print("Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['cartItems'] != null && data['cartItems'] is List) {
+          final cartItems = List<Map<String, dynamic>>.from(data['cartItems']);
+          print("Cart items fetched: $cartItems");
+
+          final cartViewModel = context.read<CartViewModel>();
+          Map<Product, Map<String, dynamic>> updatedCartItems =
+              {}; // Store updated cart items
+
+          for (var item in cartItems) {
+            print("Processing item: $item");
+
+            if (item != null) {
+              try {
+                String productId =
+                    item['productId'].toString(); // Correct productId usage
+                String productName = item['name'] ??
+                    "Unknown Product"; // Default if not available
+                double adjustedPrice = (item['adjustedPrice'] ?? 0).toDouble();
+                double oldPrice = (item['old_price'] ?? 0).toDouble();
+                double newPrice = (item['new_price'] ?? 0).toDouble();
+                double discount = (item['discount'] ?? 0).toDouble();
+                String description =
+                    item['description'] ?? "No description available";
+                List<String> tags =
+                    item['tags'] != null ? List<String>.from(item['tags']) : [];
+                List<String> image = item['image'] != null
+                    ? List<String>.from(item['image'])
+                    : [];
+
+                // Fetch product details using the correct productId
+                final productResponse = await http.get(
+                    Uri.parse('http://localhost:4000/api/products/$productId'));
+                if (productResponse.statusCode == 200) {
+                  final productData = json.decode(productResponse.body);
+                  productName = productData['name'] ?? productName;
+                  description = productData['description'] ?? description;
+                  oldPrice = productData['old_price']?.toDouble() ?? oldPrice;
+                  newPrice = productData['new_price']?.toDouble() ?? newPrice;
+                  adjustedPrice =
+                      productData['new_price']?.toDouble() ?? adjustedPrice;
+                  discount = productData['discount']?.toDouble() ?? discount;
+
+                  // Log fetched product data to confirm
+                  print("Fetched product data: $productData");
+                } else {
+                  print(
+                      "Failed to fetch product details for productId: $productId");
+                }
+
+                // Instantiate Product object with updated details
+                Product product = Product(
+                  id: productId,
+                  name: productName,
+                  adjustedPrice: adjustedPrice,
+                  old_price: oldPrice,
+                  new_price: newPrice,
+                  discount: discount,
+                  description: description,
+                  reviews: [], // Add reviews if available
+                  stocks: {}, // Add stock data if available
+                  s_stock: item['s_stock'] ?? 0,
+                  m_stock: item['m_stock'] ?? 0,
+                  l_stock: item['l_stock'] ?? 0,
+                  xl_stock: item['xl_stock'] ?? 0,
+                  category: item['category'] ?? "Uncategorized",
+                  tags: tags,
+                  image: image,
+                  available: item['available'] ?? false,
+                  isNew: item['isNew'] ?? false,
+                );
+
+                int quantity = item['quantity'] ?? 1;
+                String size = item['selectedSize'] ?? "Unknown";
+
+                // Update cart items directly in the ViewModel
+                updatedCartItems[product] = {
+                  'quantity': quantity,
+                  'selectedSize': size,
+                };
+              } catch (e) {
+                print("Error processing cart item: $e");
+              }
+            }
+          }
+
+          // Update the CartViewModel's cartItems with the fetched data
+          cartViewModel.updateCartItems(updatedCartItems);
+        } else {
+          print("No items found in cart data.");
+        }
+      } else {
+        print("Failed to fetch cart: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching cart: $e");
+    }
+  }
+
+// Function to fetch item name based on cartItemId (productId)
+  Future<String> _fetchItemName(String productId) async {
+    try {
+      final apiUrl =
+          'http://localhost:4000/api/products/$productId'; // Assuming endpoint for fetching product details
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data != null && data['name'] != null) {
+          return data['name']; // Assuming 'name' is the field for item name
+        } else {
+          return 'Unknown Product';
+        }
+      } else {
+        print('Failed to fetch item name: ${response.statusCode}');
+        return 'Unknown Product';
+      }
+    } catch (e) {
+      print('Error fetching item name: $e');
+      return 'Unknown Product';
     }
   }
 
@@ -102,8 +267,6 @@ class _CartViewState extends State<CartView> {
       ),
     );
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -368,7 +531,8 @@ class _CartViewState extends State<CartView> {
                       text: "PROCEED TO CHECKOUT",
                       textStyle: AppTextStyles.button,
                       height: 50,
-                      fillColor: Color(0xFF778C62), // Maroon color for the button
+                      fillColor:
+                          Color(0xFF778C62), // Maroon color for the button
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 14),
                       command: () async {

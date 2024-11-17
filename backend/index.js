@@ -1293,7 +1293,7 @@ app.post('/updateStock', async (req, res) => {
 
 app.patch('/api/update-address/:userId', async (req, res) => {
   const { userId } = req.params;
-  const { province, municipality, barangay, zip, street } = req.body;
+  const { region, province, municipality, barangay, zip, street } = req.body;
 
   try {
     // Find the user by ID
@@ -1305,6 +1305,7 @@ app.patch('/api/update-address/:userId', async (req, res) => {
 
     // Update the address fields
     user.address = {
+      region,
       province,
       municipality,
       barangay,
@@ -1321,6 +1322,25 @@ app.patch('/api/update-address/:userId', async (req, res) => {
     res.status(500).json({ message: 'Failed to update address', error });
   }
 });
+
+app.get('/api/products/:productId', async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    // Use the 'id' field to find the product
+    const product = await Product.findOne({ id: productId });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);

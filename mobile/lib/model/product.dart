@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Product {
+  final String id;
   final String name;
   final double old_price;
   final double new_price;
@@ -24,6 +25,7 @@ class Product {
   final double adjustedPrice; // Added to store adjusted price
 
   Product({
+    required this.id,
     required this.name,
     required this.old_price,
     required this.new_price,
@@ -67,6 +69,7 @@ class Product {
   // Convert a Product object into a JSON map.
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'old_price': old_price,
       'new_price': new_price,
@@ -94,34 +97,39 @@ class Product {
   // Create a Product object from a JSON map.
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      name: json['name'],
-      old_price: json['old_price'],
-      new_price: json['new_price'],
-      discount: json['discount'],
-      description: json['description'],
-      reviews: List<Review>.from(json['reviews'].map((reviewJson) =>
-          Review.fromJson(reviewJson))), // Assuming Review has fromJson
-      stocks: Map<ProductSize, int>.from(json['stocks'].map((key, value) {
-        // Convert String back to Enum
-        ProductSize size = ProductSize.values
-            .firstWhere((e) => e.toString() == 'ProductSize.$key');
-        return MapEntry(size, value);
-      })),
-      category: json['category'],
-      adjustedPrice: json['adjustedPrice'],
-
-      s_stock: json['s_stock'],
-      m_stock: json['m_stock'],
-      l_stock: json['l_stock'],
-      xl_stock: json['xl_stock'],
-      tags: List<String>.from(json['tags']),
-      image: List<String>.from(json['image']),
-      available: json['available'],
-      isNew: json['isNew'],
+      id: json['cartItemId'] ?? '', // Provide default string
+      name: json['name'] ?? 'Unknown Product', // Default string
+      old_price: (json['old_price'] ?? 0).toDouble(), // Default double
+      new_price: (json['new_price'] ?? 0).toDouble(),
+      adjustedPrice: (json['adjustedPrice'] ?? 0).toDouble(),
+      discount: (json['discount'] ?? 0).toDouble(),
+      description: json['description'] ?? 'No description available',
+      reviews: json['reviews'] != null
+          ? List<Review>.from(
+              json['reviews'].map((reviewJson) => Review.fromJson(reviewJson)))
+          : [],
+      stocks: json['stocks'] != null
+          ? Map<ProductSize, int>.from(json['stocks'].map((key, value) {
+              ProductSize size = ProductSize.values.firstWhere(
+                  (e) => e.toString() == 'ProductSize.$key',
+                  orElse: () => ProductSize.S);
+              return MapEntry(size, value ?? 0); // Default stock to 0
+            }))
+          : {},
+      category: json['category'] ?? 'Uncategorized',
+      s_stock: json['s_stock'] ?? 0,
+      m_stock: json['m_stock'] ?? 0,
+      l_stock: json['l_stock'] ?? 0,
+      xl_stock: json['xl_stock'] ?? 0,
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
+      image: json['image'] != null ? List<String>.from(json['image']) : [],
+      available: json['available'] ?? false,
+      isNew: json['isNew'] ?? false,
     );
   }
 
   Product copyWith({
+    String? id,
     String? name,
     double? new_price,
     double? adjustedPrice,
@@ -141,6 +149,7 @@ class Product {
     bool? isNew,
   }) {
     return Product(
+      id: id ?? this.id,
       name: name ?? this.name,
       adjustedPrice: adjustedPrice ?? this.adjustedPrice,
       new_price: new_price ?? this.new_price,

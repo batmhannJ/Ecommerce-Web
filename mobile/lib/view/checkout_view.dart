@@ -17,13 +17,10 @@ import '../model/product.dart';
 import '../view_model/cart_view_model.dart';
 import '../widget/buttons/custom_filled_button.dart';
 import 'package:indigitech_shop/view/checkout_result.dart';
-// ignore: depend_on_referenced_packages
-import 'package:url_launcher/url_launcher.dart'; // Add this import for URL launching
-// ignore: depend_on_referenced_packages
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
-import 'package:geolocator/geolocator.dart';
 
 class CheckoutView extends StatefulWidget {
   final User? user; // User information passed from AddressView
@@ -117,7 +114,6 @@ class _CheckoutViewState extends State<CheckoutView> {
       return;
     }
 
-    // Get the region code from the user's address
     final regionCode = userAddress.region;
 
     if (regionCode == null) {
@@ -132,11 +128,9 @@ class _CheckoutViewState extends State<CheckoutView> {
 
     double distance = 0.0;
 
-    // Determine shipping fee based on the region
     if (regionCode == 'NCR') {
       distance = 10; // Example value; adjust as needed for NCR
     } else {
-      // Default case for other regions; adjust as needed
       distance = 16; // Example value for non-NCR
     }
 
@@ -201,20 +195,17 @@ class _CheckoutViewState extends State<CheckoutView> {
       },
     };
 
-// Debug the updated payment data structure
     print("Payment Data: ${json.encode(paymentData)}");
 
-    const publicKey =
-        'pk-NCLk7JeDbX1m22ZRMDYO9bEPowNWT5J4aNIKIbcTy2a'; // Replace with your public key
-    const secretKey =
-        '8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi'; // Replace with your secret key
+    const publicKey = 'pk-NCLk7JeDbX1m22ZRMDYO9bEPowNWT5J4aNIKIbcTy2a';
+    const secretKey = '8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi';
     final auth = base64Encode(utf8.encode('$publicKey:$secretKey'));
 
     final response = await http.post(
       Uri.parse("https://pg-sandbox.paymaya.com/checkout/v1/checkouts"),
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Basic $auth", // Set Authorization header
+        "Authorization": "Basic $auth",
       },
       body: json.encode(paymentData),
     );
@@ -244,7 +235,6 @@ class _CheckoutViewState extends State<CheckoutView> {
 
         await saveTransaction(paymentData, context);
       } else {
-        // Handle the error if the URL cannot be launched
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => CheckoutFailureView()),
@@ -252,7 +242,6 @@ class _CheckoutViewState extends State<CheckoutView> {
         print('Could not launch $checkoutUrl');
       }
     } else {
-      // Handle failure - navigate to CheckoutFailureView
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => CheckoutFailureView()),
@@ -279,13 +268,11 @@ class _CheckoutViewState extends State<CheckoutView> {
       setState(() {
         final userAddress = authViewModel.address;
 
-        // Update drop-downs for region, province, city, and barangay
         selectedRegion = userAddress?.region;
         selectedProvince = userAddress?.province;
         selectedCity = userAddress?.municipality;
         selectedBarangay = userAddress?.barangay;
 
-        // Fetch corresponding provinces, cities, and barangays based on address
         if (selectedRegion != null) {
           fetchProvinces(selectedRegion!);
         }
@@ -304,7 +291,6 @@ class _CheckoutViewState extends State<CheckoutView> {
       });
     });
 
-    // Fetch regions initially
     fetchRegions();
     _loadStockCount();
   }
@@ -375,13 +361,11 @@ class _CheckoutViewState extends State<CheckoutView> {
       return;
     }
 
-    // Get the names for the selected region, province, city, and barangay
     final regionName = getRegionName(userAddress.region);
     final provinceName = getProvinceName(userAddress.province);
     final cityName = getCityName(userAddress.municipality);
     final barangayName = getBarangayName(userAddress.barangay);
 
-    // Prepare transaction details
     final transactionDetails = {
       "transactionId": paymentData["requestReferenceNumber"],
       "date": DateTime.now().toIso8601String(),
@@ -398,7 +382,6 @@ class _CheckoutViewState extends State<CheckoutView> {
       "userId": userId,
     };
 
-    // Save the transaction
     try {
       final response = await http.post(
         Uri.parse('http://localhost:4000/api/transactions'),
@@ -604,7 +587,6 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Widget orderDetailsCard() {
-    // Get the current date and format it
     String formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
 
     return Container(
@@ -632,14 +614,12 @@ class _CheckoutViewState extends State<CheckoutView> {
           ),
           const SizedBox(height: 16), // Space below title
           _buildDetailRow(Icons.calendar_today, "Date", formattedDate),
-          const SizedBox(height: 10), // Space between rows
-          //_buildDetailRow(Icons.confirmation_number, "Order Number", "072102"),
+          const SizedBox(height: 10),
         ],
       ),
     );
   }
 
-// Helper method to build detail rows with black icons
   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -753,7 +733,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                       const SizedBox(
                           width: 10), // Spacing between image and text
                       Expanded(
-                        // Use Expanded to prevent overflow
                         child: SizedBox(
                           height: 80,
                           child: Column(
@@ -853,7 +832,6 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-// Helper method to build shipping information rows with icons
   Widget _buildShippingRow(IconData icon, String title, String value) {
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -969,7 +947,6 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-// Helper method to build summary rows with icons
   Widget _buildSummaryRow(String label, String value, IconData icon,
       {bool isTotal = false}) {
     return Padding(

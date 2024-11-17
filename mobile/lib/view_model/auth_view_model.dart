@@ -115,6 +115,7 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<bool> updateAddress({
+    required String region,
     required String province,
     required String municipality,
     required String barangay,
@@ -124,6 +125,7 @@ class AuthViewModel extends ChangeNotifier {
     // Validate that user is logged in
     if (_user != null) {
       final newAddress = Address(
+        region: region,
         province: province,
         municipality: municipality,
         barangay: barangay,

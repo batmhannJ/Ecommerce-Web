@@ -12,20 +12,68 @@ class CartViewModel with ChangeNotifier {
   double get shippingFee => _shippingFee;
   Map<Product, Map<String, dynamic>> cartItems =
       {}; // Store quantity and selectedSize
+
   void addToCart(Product product, int quantity, String selectedSize) {
-    // Check if product and size already exist in the cart
-    if (cartItems.containsKey(product) &&
-        cartItems[product]!['selectedSize'] == selectedSize) {
-      // Update the quantity for existing product and selected size
-      cartItems[product]!['quantity'] += quantity;
+    final Product? existingProduct = cartItems.keys.firstWhere(
+      (item) => item.id == product.id,
+      orElse: () => null as Product, // Explicitly cast null to Product?
+    );
+
+    if (existingProduct != null &&
+        cartItems[existingProduct]!['selectedSize'] == selectedSize) {
+      cartItems[existingProduct]!['quantity'] += quantity;
     } else {
-      // If product or size is new, add it to the cart
       cartItems[product] = {
         'quantity': quantity,
         'selectedSize': selectedSize,
       };
     }
-    notifyListeners(); // Notify listeners to update UI
+
+    notifyListeners();
+  }
+
+  void updateCartItems(Map<Product, Map<String, dynamic>> newItems) {
+    cartItems = newItems;
+    notifyListeners();
+  }
+
+  void updateCartItemsFromDatabase(List<dynamic> fetchedCartItems) {
+    // Clear existing cartItems
+    cartItems.clear();
+
+    for (var item in fetchedCartItems) {
+      final Product product = Product(
+        id: item['productId'],
+        name: item['name'],
+        adjustedPrice: item['adjustedPrice'],
+        old_price: item['old_price'],
+        new_price: item['new_price'],
+        discount: item['discount'],
+        description: item['description'],
+        reviews: [], // Add reviews if available
+        stocks: {}, // Add stock data if available
+        s_stock: item['s_stock'] ?? 0,
+        m_stock: item['m_stock'] ?? 0,
+        l_stock: item['l_stock'] ?? 0,
+        xl_stock: item['xl_stock'] ?? 0,
+        category: item['category'] ?? "Uncategorized",
+        tags: item['tags'],
+        image: item['image'],
+        available: item['available'] ?? false,
+        isNew: item['isNew'] ?? false,
+      );
+
+      cartItems[product] = {
+        'quantity': item['quantity'],
+        'selectedSize': item['selectedSize'],
+      };
+    }
+
+    notifyListeners();
+  }
+
+  List<MapEntry<Product, Map<String, dynamic>>> get cartItemsList {
+    return cartItems.entries.toList();
   }
 
   final Map<Product, int> _items = {};
@@ -53,39 +101,39 @@ class CartViewModel with ChangeNotifier {
   }
 
   // Add an item to the cart and adjust the quantity if already added
- void addItem(Product item, {ProductSize? size, int quantity = 1}) {
-  if (size == null) {
-    print("Error: Size must be selected for the product.");
-    return;
+  void addItem(Product item, {ProductSize? size, int quantity = 1}) {
+    if (size == null) {
+      print("Error: Size must be selected for the product.");
+      return;
+    }
+
+    // Create a unique key for each product by combining the name and size
+    final itemKey = '${item.name}-${size.name}';
+
+    // Check if the item already exists in the cart by checking the unique key
+    bool itemExists = _items.keys.any((existingItem) =>
+        '${existingItem.name}-${selectedSizes[existingItem]?.name}' == itemKey);
+
+    if (itemExists) {
+      // Find the exact product and increase its quantity
+      _items.forEach((existingItem, existingQuantity) {
+        if ('${existingItem.name}-${selectedSizes[existingItem]?.name}' ==
+            itemKey) {
+          _items[existingItem] = existingQuantity + quantity;
+          return; // Exit after updating the quantity
+        }
+      });
+    } else {
+      // If the item doesn't exist, add it to the cart
+      _items[item] = quantity; // Save the quantity for the product
+      selectedSizes[item] = size; // Save the selected size for the item
+      _itemPrices[item] = item.new_price; // Store the price for this item
+      print("Saving size: ${size.name} for product: ${item.name}");
+    }
+
+    // Notify listeners to update the UI
+    notifyListeners();
   }
-
-  // Create a unique key for each product by combining the name and size
-  final itemKey = '${item.name}-${size.name}';
-
-  // Check if the item already exists in the cart by checking the unique key
-  bool itemExists = _items.keys.any((existingItem) =>
-      '${existingItem.name}-${selectedSizes[existingItem]?.name}' == itemKey);
-
-  if (itemExists) {
-    // Find the exact product and increase its quantity
-    _items.forEach((existingItem, existingQuantity) {
-      if ('${existingItem.name}-${selectedSizes[existingItem]?.name}' == itemKey) {
-        _items[existingItem] = existingQuantity + quantity;
-        return; // Exit after updating the quantity
-      }
-    });
-  } else {
-    // If the item doesn't exist, add it to the cart
-    _items[item] = quantity; // Save the quantity for the product
-    selectedSizes[item] = size; // Save the selected size for the item
-    _itemPrices[item] = item.new_price; // Store the price for this item
-    print("Saving size: ${size.name} for product: ${item.name}");
-  }
-
-  // Notify listeners to update the UI
-  notifyListeners();
-}
-
 
   void subtractItem(Product item) {
     if (_items.containsKey(item)) {
