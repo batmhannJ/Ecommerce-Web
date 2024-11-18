@@ -235,7 +235,7 @@ Widget build(BuildContext context) {
                       _verifyOTP(); // Call the verify function
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 177, 18, 7), // Button background color
+                      backgroundColor: const Color(0xFF778C62), // Logout button color
                       foregroundColor: Colors.white, // Button text color
                       minimumSize: Size(double.infinity, 50), // Reduced button height
                       shape: RoundedRectangleBorder(

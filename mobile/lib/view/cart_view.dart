@@ -368,7 +368,7 @@ class _CartViewState extends State<CartView> {
                       text: "PROCEED TO CHECKOUT",
                       textStyle: AppTextStyles.button,
                       height: 50,
-                      fillColor: AppColors.red,
+                      fillColor: Color(0xFF778C62), // Maroon color for the button
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 14),
                       command: () async {

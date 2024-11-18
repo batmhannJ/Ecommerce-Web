@@ -157,7 +157,14 @@ Future<bool> comparePassword(String oldPassword) async {
   }
 }
 
+// Old Password Field
+bool _isOldPasswordVisible = false;
 
+// New Password Field
+bool _isNewPasswordVisible = false;
+
+// Confirm New Password Field
+bool _isConfirmPasswordVisible = false;
 
   @override
   void initState() {
@@ -227,36 +234,66 @@ Widget build(BuildContext context) {
               ),
               const Gap(20),
 
-              // Old Password Field
               CustomTextFormField(
-                controller: _oldPasswordController,
-                formStyle: AppFormStyles.defaultFormStyle,
-                height: 48,
-                hintText: "Old Password",
-                obscureText: true,
-              ),
-              const Gap(20),
+  controller: _oldPasswordController,
+  formStyle: AppFormStyles.defaultFormStyle,
+  height: 48,
+  hintText: "Old Password",
+  obscureText: !_isOldPasswordVisible,
+  suffixIcon: IconButton(
+    icon: Icon(
+      _isOldPasswordVisible ? Icons.visibility : Icons.visibility_off,
+      color: Colors.grey,
+    ),
+    onPressed: () {
+      setState(() {
+        _isOldPasswordVisible = !_isOldPasswordVisible;
+      });
+    },
+  ),
+),
+const Gap(20),
 
-              // New Password Field
+             CustomTextFormField(
+  controller: _newPasswordController,
+  formStyle: AppFormStyles.defaultFormStyle,
+  height: 48,
+  hintText: "New Password",
+  obscureText: !_isNewPasswordVisible,
+  suffixIcon: IconButton(
+    icon: Icon(
+      _isNewPasswordVisible ? Icons.visibility : Icons.visibility_off,
+      color: Colors.grey,
+    ),
+    onPressed: () {
+      setState(() {
+        _isNewPasswordVisible = !_isNewPasswordVisible;
+      });
+    },
+  ),
+),
+const Gap(20),
+
+
               CustomTextFormField(
-                controller: _newPasswordController,
-                formStyle: AppFormStyles.defaultFormStyle,
-                height: 48,
-                hintText: "New Password",
-                obscureText: true,
-              ),
-              const Gap(20),
-
-              // Confirm New Password Field
-              CustomTextFormField(
-                controller: _confirmPasswordController,
-                formStyle: AppFormStyles.defaultFormStyle,
-                height: 48,
-                hintText: "Confirm New Password",
-                obscureText: true,
-              ),
-              const Gap(20),
-
+  controller: _confirmPasswordController,
+  formStyle: AppFormStyles.defaultFormStyle,
+  height: 48,
+  hintText: "Confirm New Password",
+  obscureText: !_isConfirmPasswordVisible,
+  suffixIcon: IconButton(
+    icon: Icon(
+      _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+      color: Colors.grey,
+    ),
+    onPressed: () {
+      setState(() {
+        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+      });
+    },
+  ),
+),
+const Gap(20),
               // Display any error messages
               if (errorMessage != null)
                 Text(
@@ -279,7 +316,7 @@ Widget build(BuildContext context) {
                         await _changePassword();
                       },
                       height: 48,
-                      fillColor: Color(0xFF800000), // Maroon color for the button
+                      fillColor: Color(0xFF778C62), // Maroon color for the button
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                   ),

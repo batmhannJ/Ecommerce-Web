@@ -100,7 +100,7 @@ Widget build(BuildContext context) {
                   child: ElevatedButton(
                     onPressed: _requestPasswordReset,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.red,
+                      backgroundColor: const Color(0xFF778C62), // Logout button color
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       minimumSize: const Size.fromHeight(55), // Sets button height
                       shape: RoundedRectangleBorder(

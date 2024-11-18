@@ -170,12 +170,6 @@ class _SignupViewState extends State<SignupView> {
 Widget build(BuildContext context) {
   return Scaffold(
     body: Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/Featured_item.png'), // Replace with your asset path
-          fit: BoxFit.cover, // This will cover the entire screen
-        ),
-      ),
       child: Card(
         elevation: 5,
         shape: RoundedRectangleBorder(
@@ -265,7 +259,7 @@ Widget build(BuildContext context) {
                           textStyle: AppTextStyles.button,
                           command: onSignup,
                           height: 48,
-                          fillColor: AppColors.red,
+                          fillColor: Color(0xFF778C62), // Maroon color for the button
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                         ),
                       ),

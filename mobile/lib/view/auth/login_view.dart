@@ -214,7 +214,7 @@ Widget build(BuildContext context) {
                       }
                     },
                     height: 48,
-                    fillColor: AppColors.red,
+                    fillColor: Color(0xFF778C62), // Maroon color for the button
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                   const SizedBox(height: 20),

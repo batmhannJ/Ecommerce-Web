@@ -14,108 +14,106 @@ import '../widget/buttons/custom_filled_button.dart';
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    if (context.watch<AuthViewModel>().isLoggedIn) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          // Light neutral background
-          Container(
-            color: const Color(0xFFF4F4F4), // Soft light gray background
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Welcome section
-                Text(
-                  "Hello, User!",
-                  style: AppTextStyles.headline5.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w700, // Bold for emphasis
-                  ),
-                ),
-                const Gap(25),
+ @override
+Widget build(BuildContext context) {
+  final isLoggedIn = context.watch<AuthViewModel>().isLoggedIn;
 
-                // Shipping Address card
-                _buildCardSection(
-                  icon: Icons.location_pin,
-                  label: "Account Settings",
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const AccountSettingsView(),
-                  )),
-                ),
-                const Gap(20),
-                _buildCardSection(
-                  icon: Icons.location_pin,
-                  label: "Shipping Address",
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const AddressView(),
-                  )),
-                ),
-                const Gap(20),
-
-                // Change Password card
-                _buildCardSection(
-                  icon: Icons.lock_outline,
-                  label: "Change Password",
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const ChangePasswordView(),
-                  )),
-                ),
-                const Gap(20),
-
-                // Change Password card
-                _buildCardSection(
-                  icon: Icons.lock_outline,
-                  label: "My Orders",
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => CheckoutSuccessView(),
-                  )),
-                ),
-              ],
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
+  return Scaffold(
+    body: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color.fromARGB(255, 243, 231, 231), Color.fromARGB(255, 217, 221, 221)], // Cool gradient background
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: isLoggedIn
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: CustomButton(
-                      isExpanded: true,
-                      text: "Logout",
-                      textStyle: AppTextStyles.button.copyWith(
-                        color: Colors.white, // White text on the button
-                        fontWeight: FontWeight.w600,
-                      ),
-                      command: () {
-                        context.read<AuthViewModel>().logout();
-                      },
-                      height: 48,
-                      fillColor: Colors.blueAccent, // Modern dark blue button
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      borderRadius:
-                          8, // Slightly rounded for a clean, modern look
+                  // Header section
+                  Text(
+                    "Welcome Back!",
+                    style: AppTextStyles.headline4.copyWith(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  const Gap(10),
+                  Text(
+                    "Manage your account and preferences below.",
+                    style: AppTextStyles.subtitle1.copyWith(
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const Gap(40),
+
+                  // Cards section
+                  _buildCardSection(
+                    icon: Icons.account_circle,
+                    label: "Account Settings",
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const AccountSettingsView(),
+                    )),
+                  ),
+                  const Gap(20),
+                  _buildCardSection(
+                    icon: Icons.location_on,
+                    label: "Shipping Address",
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const AddressView(),
+                    )),
+                  ),
+                  const Gap(20),
+                  _buildCardSection(
+                    icon: Icons.lock,
+                    label: "Change Password",
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const ChangePasswordView(),
+                    )),
+                  ),
+                  const Gap(20),
+                  _buildCardSection(
+                    icon: Icons.shopping_cart,
+                    label: "My Orders",
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => CheckoutSuccessView(),
+                    )),
                   ),
                 ],
               ),
+            )
+          : const AuthView(fromProfile: true),
+    ),
+    bottomNavigationBar: isLoggedIn
+        ? Container(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<AuthViewModel>().logout();
+              },
+              style: ElevatedButton.styleFrom(
+               backgroundColor: const Color(0xFF778C62), // Logout button color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                  minimumSize: const Size.fromHeight(50), // Increased button height
+              ),
+              child: Text(
+                "Logout",
+                style: AppTextStyles.button.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-        ],
-      );
-    } else {
-      return const AuthView(
-        fromProfile: true,
-      );
-    }
-  }
-
+          )
+        : null,
+  );
+}
 // Card-based layout for each action (e.g., "Shipping Address")
   Widget _buildCardSection({
     required IconData icon,
@@ -143,7 +141,7 @@ class ProfileView extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: Colors.blueAccent, // Modern blue icon color
+              color: const Color.fromARGB(255, 0, 0, 0), // Modern blue icon color
             ),
             const Gap(20),
             Text(

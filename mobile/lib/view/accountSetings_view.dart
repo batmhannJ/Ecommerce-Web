@@ -149,7 +149,7 @@ Widget build(BuildContext context) {
                         Navigator.of(context).pop();
                       },
                       height: 48,
-                      fillColor: Color(0xFF800000), // Maroon color for the button
+                      fillColor: Color(0xFF778C62), // Maroon color for the button
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                   ),
