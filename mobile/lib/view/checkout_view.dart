@@ -153,14 +153,19 @@ class _CheckoutViewState extends State<CheckoutView> {
               Text("Please set your address before proceeding to payment."),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                return; // Prevent proceeding to payment
+              },
               child: Text("OK"),
             ),
           ],
         ),
       );
-      return; // Stop if no address is set
+      return; // Immediately return if address is not provided, stop execution
     }
+
+    // Proceed to payment only if address is set
     final cartViewModel = context.read<CartViewModel>();
     final subtotal = cartViewModel.getSubtotal();
     final items = cartViewModel.items;
@@ -197,8 +202,8 @@ class _CheckoutViewState extends State<CheckoutView> {
 
     print("Payment Data: ${json.encode(paymentData)}");
 
-    const publicKey = 'pk-NCLk7JeDbX1m22ZRMDYO9bEPowNWT5J4aNIKIbcTy2a';
-    const secretKey = '8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi';
+    const publicKey = 'pk-Z0OSzLvIcOI2UIvDhdTGVVfRSSeiGStnceqwUE7n0Ah';
+    const secretKey = 'sk-8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi';
     final auth = base64Encode(utf8.encode('$publicKey:$secretKey'));
 
     final response = await http.post(
@@ -213,26 +218,18 @@ class _CheckoutViewState extends State<CheckoutView> {
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
       final checkoutUrl =
-          responseData['redirectUrl']; // Extract the redirect URl
+          responseData['redirectUrl']; // Extract the redirect URL
 
-      if (await canLaunch(checkoutUrl)) {
-        await launch(checkoutUrl);
+      if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
+        await launchUrl(Uri.parse(checkoutUrl));
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
         );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  CheckoutSuccessView()), // Navigate on successful payment
-        );
         await _updateStockInDatabase(
           widget.cartItems,
-          List<Map<String, dynamic>>.from(
-              paymentData['items'] as List), // Cast to the correct type
+          List<Map<String, dynamic>>.from(paymentData['items'] as List),
         );
-
         await saveTransaction(paymentData, context);
       } else {
         Navigator.push(
