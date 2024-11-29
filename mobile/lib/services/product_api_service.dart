@@ -9,7 +9,7 @@ class ProductApiService {
       'http://localhost:4000'; // Use your actual backend URL
 
   static Future<List<Product>> fetchProducts() async {
-    final response = await http.get(Uri.parse('$baseUrl/allproducts'));
+    final response = await http.get(Uri.parse('$baseUrl/newproducts'));
 
     if (response.statusCode == 200) {
       List<dynamic> productsJson = json.decode(response.body);
@@ -18,6 +18,23 @@ class ProductApiService {
       throw Exception('Failed to load products');
     }
   }
+
+  /*static Future<List<Product>> fetchLatestProducts() async {
+    final response =
+        await http.get(Uri.parse('http://localhost:4000/newproducts'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = jsonDecode(response.body);
+
+      if (jsonData is List) {
+        return jsonData.map((data) => Product.fromJson(data)).toList();
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } else {
+      throw Exception('Failed to fetch latest products');
+    }
+  }*/
 
   static Product _parseProduct(Map<String, dynamic> json) {
     double old_price = (json['old_price'] ?? 0).toDouble();

@@ -143,7 +143,8 @@ class _ShopTabViewState extends State<ShopTabView>
                       ),
                       command: _scrollToNewCollections,
                       height: 48,
-                      fillColor: Color(0xFF778C62), // Maroon color for the button
+                      fillColor:
+                          Color(0xFF778C62), // Maroon color for the button
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 30),
                       borderRadius: 30,

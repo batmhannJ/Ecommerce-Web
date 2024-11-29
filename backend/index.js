@@ -1340,7 +1340,16 @@ app.get('/api/products/:productId', async (req, res) => {
   }
 });
 
-
+app.get('/newproducts', async (req, res) => {
+  try {
+    const products = await Product.find({ available: true })
+      .sort({ date: -1 }) // Sort by date in descending order (latest first)
+      .limit(8); // Limit to 8 items
+    res.json(products); // Send the products as JSON
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+});
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
