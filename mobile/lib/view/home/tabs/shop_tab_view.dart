@@ -77,7 +77,7 @@ class _ShopTabViewState extends State<ShopTabView>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
+            /*Center(
               child: Text(
                 "WELCOME TO",
                 style: AppTextStyles.subtitle1.copyWith(
@@ -87,7 +87,7 @@ class _ShopTabViewState extends State<ShopTabView>
                 ),
               ),
             ),
-            const Gap(10),
+            const Gap(10),*/
             Stack(
               alignment: Alignment.center,
               children: [
@@ -95,7 +95,7 @@ class _ShopTabViewState extends State<ShopTabView>
                   "assets/images/bg_img.jpg",
                   fit: BoxFit.cover,
                 ),
-                Positioned(
+                /*Positioned(
                   bottom: 10,
                   child: Text(
                     "TIENDA",
@@ -111,7 +111,7 @@ class _ShopTabViewState extends State<ShopTabView>
                       ],
                     ),
                   ),
-                ),
+                ),*/
               ],
             ),
             const Gap(20),
