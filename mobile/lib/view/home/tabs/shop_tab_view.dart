@@ -92,7 +92,7 @@ class _ShopTabViewState extends State<ShopTabView>
               alignment: Alignment.center,
               children: [
                 Image.asset(
-                  "assets/images/featured_item.png",
+                  "assets/images/bg_img.jpg",
                   fit: BoxFit.cover,
                 ),
                 Positioned(
