@@ -481,31 +481,6 @@ class _CartViewState extends State<CartView> {
                         thickness: 1.5,
                       ),
                     ),
-                    /*Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Shipping Fee",
-                          style: AppTextStyles.body2.copyWith(fontSize: 14),
-                        ),
-                        Text(
-                          "Free",
-                          style: AppTextStyles.body2.copyWith(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Divider(
-                        color: AppColors.greyAD.withAlpha(100),
-                        height: 0,
-                        thickness: 1.5,
-                      ),
-                    ),*/
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

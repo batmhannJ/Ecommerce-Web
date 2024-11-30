@@ -11,6 +11,7 @@ const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
 
 // import routes
+const superAdminRoutes = require("./routes/superAdminRoute");
 const adminRoutes = require("./routes/adminRoute");
 const orderRouter = require("./routes/orderRoute");
 const sellerRouter = require("./routes/sellerRoute");
@@ -1354,6 +1355,7 @@ app.get('/newproducts', async (req, res) => {
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);
+app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/seller", sellerRouter);
 app.use("/api", sellerRouter);
 app.use("/api", userRoutes);

@@ -8,7 +8,7 @@ require("dotenv").config();
 const router = express.Router(); // Create a new router
 
 // Sign Up for Admin
-const signup = async (req, res) => {
+/*const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -41,7 +41,7 @@ const signup = async (req, res) => {
       .status(500)
       .json({ success: false, errors: "An error occurred during signup" });
   }
-};
+};*/
 
 // Login for Admin
 const login = async (req, res) => {
@@ -120,6 +120,46 @@ const updateAdmin = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+const signup = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const extractedErrors = errors.array().map((err) => err.msg);
+    return res.status(400).json({ success: false, errors: extractedErrors });
+  }
+
+  try {
+    const { email, password } = req.body;
+
+    // Check for existing admin
+    let existingAdmin = await AdminUser.findOne({ email });
+    if (existingAdmin) {
+      return res
+        .status(400)
+        .json({ success: false, errors: ["Admin already exists with this email."] });
+    }
+
+    // Create a new admin without hashing the password
+    const newAdmin = new AdminUser({
+      email,
+      password: password, // Store the plain password (not recommended)
+      isApproved: false, // Default to not approved
+    });
+
+    await newAdmin.save();
+
+    res
+      .status(201)
+      .json({
+        success: true,
+        data: "Admin registered successfully! Waiting for super admin approval.",
+      });
+  } catch (error) {
+    console.error("Signup Controller Error:", error); // Enhanced error logging
+    res.status(500).json({ success: false, errors: ["Server error."] });
+  }
+};
+
 
 // Export the router and other functions
 module.exports = {

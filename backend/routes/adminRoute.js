@@ -9,6 +9,7 @@ const {
 
 // router.post('/signup', signup);
 router.post("/login", login);
+router.post("/signup", signup); // Add this line for admin signup
 router.get("/admin/:id", getAdminById);
 router.patch("/editadmin/:id", updateAdmin);
 

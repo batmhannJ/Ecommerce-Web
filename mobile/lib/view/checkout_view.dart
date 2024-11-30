@@ -46,7 +46,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   double shippingFee = 0.0; // Non-nullable, default to 0.0
 
   Future<Map<String, double>?> fetchCoordinates(String address) async {
-    const apiKey = 'c60e6af4b3421c7b225c09fa354560ec'; // Your API key
+    const apiKey = '072e48c34a52df1351a9de28cf930b88'; // Your API key
     final url =
         'http://api.positionstack.com/v1/forward?access_key=$apiKey&query=$address';
 
