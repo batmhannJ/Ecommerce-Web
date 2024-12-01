@@ -4,7 +4,7 @@ const adminUserSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false, 
     },
     phone: {
       type: String,

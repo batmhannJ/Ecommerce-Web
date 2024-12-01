@@ -28,7 +28,7 @@ function SellerRequest() {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:4000/api/seller/pending",
+        "http://localhost:4000/api/superadmin/pending",
         {
           headers: {
             Authorization: `Bearer ${adminToken}`,
@@ -39,22 +39,22 @@ function SellerRequest() {
       setSellers(fetchedSellers);
       setOriginalSellers(fetchedSellers); // Save the original list for filtering
     } catch (error) {
-      console.error("Error fetching pending sellers:", error);
-      setError("Failed to fetch pending sellers.");
-      toast.error("Failed to fetch pending sellers.");
+      console.error("Error fetching pending admin:", error);
+      setError("Failed to fetch pending admin.");
+      toast.error("Failed to fetch pending admin.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleApproveSeller = async (id) => {
-    if (!window.confirm("Are you sure you want to approve this seller?"))
+    if (!window.confirm("Are you sure you want to approve this admin?"))
       return;
 
     setApproving(true);
     try {
       const response = await axios.patch(
-        `http://localhost:4000/api/seller/${id}/approve`, // Ensure this route matches your backend
+        `http://localhost:4000/api/superadmin/${id}/approve`, // Ensure this route matches your backend
         {},
         {
           headers: {
@@ -65,7 +65,7 @@ function SellerRequest() {
 
       if (response.data.success) {
         toast.success(
-          `Seller ${response.data.seller.name} approved successfully.`
+          `Admin ${response.data.admin.name} approved successfully.`
         );
         // Remove the approved seller from the list
         setSellers(sellers.filter((seller) => seller._id !== id));
@@ -73,22 +73,22 @@ function SellerRequest() {
           originalSellers.filter((seller) => seller._id !== id)
         );
       } else {
-        toast.error("Failed to approve seller.");
+        toast.error("Failed to approve admin.");
       }
     } catch (error) {
-      console.error("Error approving seller:", error);
-      toast.error("Error approving seller.");
+      console.error("Error approving admin:", error);
+      toast.error("Error approving admin.");
     } finally {
       setApproving(false);
     }
   };
 
   const handleDeleteSeller = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this seller?")) return;
+    if (!window.confirm("Are you sure you want to delete this admin?")) return;
 
     try {
       const response = await axios.delete(
-        `http://localhost:4000/api/seller/${id}`,
+        `http://localhost:4000/api/admin/${id}`,
         {
           headers: {
             Authorization: `Bearer ${adminToken}`,
@@ -97,14 +97,14 @@ function SellerRequest() {
       );
 
       if (response.data.success) {
-        toast.success("Seller deleted successfully.");
+        toast.success("Admin deleted successfully.");
         fetchPendingSellers();
       } else {
-        toast.error("Failed to delete seller.");
+        toast.error("Failed to delete admin.");
       }
     } catch (error) {
-      console.error("Error deleting seller:", error);
-      toast.error("Error deleting seller.");
+      console.error("Error deleting admin:", error);
+      toast.error("Error deleting admin.");
     }
   };
 
@@ -114,21 +114,19 @@ function SellerRequest() {
 
   return (
     <div className="seller-management-container">
-      <h1>Manage Seller Requests</h1>
+      <h1>Manage Admin Requests</h1>
       <SellerSearchBar sellers={originalSellers} onSearch={handleSearch} />{" "}
       {/* Pass sellers and search handler */}
       {loading ? (
-        <p>Loading pending sellers...</p>
+        <p>Loading pending admins...</p>
       ) : sellers.length === 0 ? (
-        <p>No pending seller requests.</p>
+        <p>No pending admin requests.</p>
       ) : (
         <table className="seller-table">
           <thead>
             <tr>
               <th>Id</th>
-              <th>Name</th>
               <th>Email</th>
-              <th>Valid ID</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -136,15 +134,15 @@ function SellerRequest() {
             {sellers.map((seller) => (
               <tr key={seller._id}>
                 <td>{seller._id}</td>
-                <td>{seller.name}</td>
+                {/*<td>{seller.name}</td>*/}
                 <td>{seller.email}</td>
-                <td>
+                {/*<td>
                   <img
                     src={`http://localhost:4000/upload/${seller.idPicture}`} // Adjust this path to match your server's setup
                     alt="ID Picture"
                     style={{ width: "100px", height: "auto" }} // You can adjust the size as needed
                   />
-                </td>
+                </td>*/}
                 {/* Ensure 'idProfile' exists in Seller model */}
                 <td>
                   <button
@@ -158,7 +156,7 @@ function SellerRequest() {
                     className="action-button delete"
                     onClick={() => handleDeleteSeller(seller._id)}
                   >
-                    Delete
+                    Decline
                   </button>
                 </td>
               </tr>

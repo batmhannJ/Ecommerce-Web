@@ -5,6 +5,7 @@ const SuperAdminUser = require("../models/superAdminModel");
 const authMiddleware = require("../middleware/auth");
 require("dotenv").config();
 const { ObjectId } = require('mongodb');
+const AdminUser = require("../models/adminUserModel");
 
 const router = express.Router(); // Create a new router
 
@@ -117,10 +118,23 @@ const approveAdmin = async (req, res) => {
       res.status(500).json({ message: "Server error" });
     }
   };
+
+  
+const getPendingAdmins = async (req, res) => {
+  try {
+    // Fetch all sellers where 'isApproved' is false
+    const pendingSellers = await AdminUser.find({ isApproved: false });
+    res.status(200).json(pendingSellers);
+  } catch (error) {
+    console.error("Error fetching pending admin:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
   
   module.exports = {
     login,
     approveAdmin, // Export the router so it can be used in the routes
     getsuperAdminById,
     updateSuperAdmin,
+    getPendingAdmins,
   };

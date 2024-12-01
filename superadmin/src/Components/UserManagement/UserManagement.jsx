@@ -89,40 +89,46 @@ function UserManagement() {
       <h1>Manage Users</h1>
       <UserSearchBar onSearch={handleSearch} />
       <table className="user-table">
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Contact</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user, index) => (
-            <tr key={user._id}>
-              <td>{user._id}</td>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>{user.phone}</td>
-              <td>
-                <button
-                  className="action-button view"
-                  onClick={() => handleViewUser(index)}
-                >
-                  View
-                </button>
-                <button
-                  className="action-button delete"
-                  onClick={() => handleDeleteUser(user._id, index)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Contact</th>
+      {/*<th>Status</th>*/}
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {users.map((user, index) => (
+      <tr key={user._id}>
+        <td>{user._id}</td>
+        <td>{user.name}</td>
+        <td>{user.email}</td>
+        <td>{user.phone}</td>
+        {/*<td>
+          {/* Conditional rendering of status 
+          {user.isApproved ? 'Approved' : 'Rejected'}
+        </td>*/}
+        <td>
+          <button
+            className="action-button view"
+            onClick={() => handleViewUser(index)}
+          >
+            View
+          </button>
+          <button
+            className="action-button delete"
+            onClick={() => handleDeleteUser(user._id, index)}
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
 
       {editingUser !== null && (
         <div className="edit-form-overlay">

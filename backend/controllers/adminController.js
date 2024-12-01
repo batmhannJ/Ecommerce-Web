@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const AdminUser = require("../models/adminUserModel");
 const authMiddleware = require("../middleware/auth");
 require("dotenv").config();
+const { validationResult } = require("express-validator");
 
 const router = express.Router(); // Create a new router
 
@@ -54,6 +55,13 @@ const login = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, errors: "Invalid email or password" });
+    }
+
+    // Check if admin is approved
+    if (!admin.isApproved) {
+      return res
+        .status(400)
+        .json({ success: false, errors: "Admin is not approved yet" });
     }
 
     // Check if the provided password matches the stored password (plain text comparison)
