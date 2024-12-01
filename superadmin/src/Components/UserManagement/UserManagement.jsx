@@ -17,10 +17,10 @@ function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/users");
+      const response = await axios.get("http://localhost:4000/api/admins");
       setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching admin:", error);
     }
   };
 
@@ -56,7 +56,7 @@ function UserManagement() {
 
   const handleDeleteUser = async (id, index) => {
     try {
-      await axios.delete(`http://localhost:4000/api/deleteuser/${id}`);
+      await axios.delete(`http://localhost:4000/api/deleteadmin/${id}`);
       setUsers(users.filter((_, idx) => idx !== index));
       toast.success("User deleted successfully.");
     } catch (error) {
@@ -76,7 +76,7 @@ function UserManagement() {
 
   const handleSearch = async (searchTerm) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/users/search?term=${searchTerm}`);
+      const response = await axios.get(`http://localhost:4000/api/admin/search?term=${searchTerm}`);
       setUsers(response.data);  // Update users state with search results
     } catch (error) {
       console.error("Error fetching data: ", error);
@@ -191,7 +191,7 @@ function UserManagement() {
               <strong>Email:</strong> {viewUser.email}
             </div>
             <div className="user-detail">
-              <strong>Password:</strong> {viewUser.password}
+            <strong>Password:</strong> {viewUser.password && '*'.repeat(viewUser.password.length)}
             </div>
           </div>
         </div>

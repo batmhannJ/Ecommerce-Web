@@ -160,6 +160,38 @@ const signup = async (req, res) => {
   }
 };
 
+const getAdmins = async (req, res) => {
+  try {
+    const term = req.query.term || ""; // Get search term from query or default to empty string
+
+    // Example search logic (case-insensitive)
+    const users = await AdminUser.find({
+      $or: [{ name: new RegExp(term, "i") }, { email: new RegExp(term, "i") }],
+    });
+
+    res.json(users); // Send the found users
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Error fetching users" });
+  }
+};
+
+const searchAdmin = async (req, res) => {
+  try {
+    const term = req.query.term || ""; // Get search term from query or default to empty string
+
+    // Example search logic (case-insensitive)
+    const users = await AdminUser.find({
+      $or: [{ name: new RegExp(term, "i") }, { email: new RegExp(term, "i") }],
+    });
+
+    res.json(users); // Send the found users
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Error fetching users" });
+  }
+};
+
 
 // Export the router and other functions
 module.exports = {
@@ -167,4 +199,6 @@ module.exports = {
   signup,
   getAdminById,
   updateAdmin, // Export the router so it can be used in the routes
+  getAdmins,
+  searchAdmin,
 };
