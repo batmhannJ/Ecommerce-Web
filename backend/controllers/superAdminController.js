@@ -90,9 +90,37 @@ const approveAdmin = async (req, res) => {
       res.status(500).json({ message: "Server error" });
     }
   };
+
+  const updateSuperAdmin = async (req, res) => {
+    const { name, email, phone, password } = req.body;
+    try {
+      // Create an object to hold the update fields
+      const updateFields = { name, email, phone };
+  
+      // Only add password if it exists in the request body
+      if (password) {
+        updateFields.password = password; // Handle password hashing if needed
+      }
+  
+      const updatedAdmin = await SuperAdminUser.findByIdAndUpdate(
+        req.params.id,
+        updateFields, // Use the constructed object
+        { new: true } // This option returns the updated document
+      );
+  
+      if (!updatedAdmin) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+      res.json(updatedAdmin);
+    } catch (error) {
+      console.error("Error updating admin:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
   
   module.exports = {
     login,
     approveAdmin, // Export the router so it can be used in the routes
     getsuperAdminById,
+    updateSuperAdmin,
   };

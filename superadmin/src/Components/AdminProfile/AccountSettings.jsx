@@ -101,7 +101,7 @@ const AccountSettings = () => {
 
       try {
         const response = await axios.patch(
-          `http://localhost:4000/api/editadmin/${adminId}`, // Ensure this is correct
+          `http://localhost:4000/api/editsuperadmin/${adminId}`, // Ensure this is correct
           updateData, // Send only the data we want to update
           {
             headers: {
