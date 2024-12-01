@@ -18,7 +18,9 @@ function UserManagement() {
   const fetchUsers = async () => {
     try {
       const response = await axios.get("http://localhost:4000/api/admins");
-      setUsers(Array.isArray(response.data) ? response.data : []);
+      const approvedUsers = response.data.filter(user => user.isApproved === true);
+      setUsers(approvedUsers); // Set only approved users in state
+
     } catch (error) {
       console.error("Error fetching admin:", error);
     }
