@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginSignup from './Components/LoginSignUp/LoginSignup';
+import AdminManagement from './Components/UserManagement/UserManagement';
 import Dashboard from './Components/Dashboard/Dashboard';
 import Admin from './Pages/Admin/Admin';
 import Navbar from './Components/Navbar/Navbar';
@@ -12,9 +13,9 @@ const App = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={!isAuthenticated ? <LoginSignup /> : <Navigate to="/admin/dashboard" />} />
+      <Route path="/login" element={!isAuthenticated ? <LoginSignup /> : <Navigate to="/superadmin/usermanagement" />} />
       <Route
-        path="/admin/*"
+        path="/superadmin/*"
         element={
           isAuthenticated ? (
             <>
@@ -29,7 +30,7 @@ const App = () => {
 
       <Route path="/verify" element={<Verify />} />
       <Route path="*" element={<Navigate to="/login" />} />      
-      <Route path="/admin/accountsettings" element={<AccountSettings />} />
+      <Route path="/superadmin/accountsettings" element={<AccountSettings />} />
     </Routes>
   );
 };

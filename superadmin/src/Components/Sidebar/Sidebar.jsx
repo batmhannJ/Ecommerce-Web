@@ -8,40 +8,16 @@ import user_management_icon from '../../assets/user_management_icon.png'; // Add
 export const Sidebar = () => {
   return (
     <div className='sidebar'>
-      <Link to='/admin/dashboard' style={{ textDecoration: 'none' }}>
-        <div className="sidebar-item">
-          <img src={list_product_icon} alt="Product List Icon" />
-          <p>Dasboard</p>
-        </div>
-      </Link>
-      <Link to='/admin/listproduct' style={{ textDecoration: 'none' }}>
-        <div className="sidebar-item">
-          <img src={list_product_icon} alt="Product List Icon" />
-          <p>Product List</p>
-        </div>
-      </Link>
-      <Link to='/admin/orderproduct' style={{ textDecoration: 'none' }}>
-        <div className="sidebar-item">
-          <img src={order_product_icon} alt="Orders List Icon" />
-          <p>Orders List</p>
-        </div>
-      </Link>
-      <Link to='/admin/usermanagement' style={{ textDecoration: 'none' }}>
+      <Link to='/superadmin/usermanagement' style={{ textDecoration: 'none' }}>
         <div className="sidebar-item">
           <img src={user_management_icon} alt="User Management Icon" />
-          <p>User Manager</p>
+          <p>Admin Manager</p>
         </div>
       </Link>
-      <Link to='/admin/transactionmanagement' style={{ textDecoration: 'none' }}>
+      <Link to='/superadmin/sellerrequest' style={{ textDecoration: 'none' }}>
         <div className="sidebar-item">
           <img src={user_management_icon} alt="User Management Icon" />
-          <p>Transactions</p>
-        </div>
-      </Link>
-      <Link to='/admin/sellerrequest' style={{ textDecoration: 'none' }}>
-        <div className="sidebar-item">
-          <img src={user_management_icon} alt="User Management Icon" />
-          <p>Requests</p>
+          <p>Admin Requests</p>
         </div>
       </Link>
     </div>

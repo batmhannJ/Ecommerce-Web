@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const SuperAdminUser = require("../models/superAdminModel");
 const authMiddleware = require("../middleware/auth");
 require("dotenv").config();
+const { ObjectId } = require('mongodb');
 
 const router = express.Router(); // Create a new router
 
@@ -28,32 +29,39 @@ const approveAdmin = async (req, res) => {
 
   const login = async (req, res) => {
     try {
-      const { email, password } = req.body; // Get email and password from the request body
-      const admin = await SuperAdminUser.findOne({ email }); // Find the admin by email
+      const { email, password } = req.body;
   
-      // Check if admin exists
+      console.log("Email from request:", email);
+      console.log("Sanitized email:", email.trim());
+
+      console.log("Password from request:", password);
+  
+      // Search for admin in the database
+      const admin = await SuperAdminUser.findOne({
+        email: { $regex: `^${email.trim()}$`, $options: "i" }
+      });
+      
+      console.log("Admin Retrieved:", admin);
+  
       if (!admin) {
         return res
           .status(400)
           .json({ success: false, errors: "Invalid email or password" });
       }
   
-      // Check if the provided password matches the stored password (plain text comparison)
       if (password !== admin.password) {
         return res
           .status(400)
           .json({ success: false, errors: "Invalid email or password" });
       }
   
-      // Generate a JWT token if login is successful
       const token = jwt.sign(
         { id: admin._id, role: admin.role },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
-      console.log({ success: true, token, adminId: admin._id });
+  
       res.json({ success: true, token, adminId: admin._id });
-      // Send admin ID back to client
     } catch (error) {
       console.error("Login Error:", error);
       res
@@ -61,9 +69,30 @@ const approveAdmin = async (req, res) => {
         .json({ success: false, errors: "An error occurred during login" });
     }
   };
-
+  
+  
+  const getsuperAdminById = async (req, res) => {
+    const userId = req.params.id;
+    
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    
+    try {
+      // Correct way to create an ObjectId instance
+      const admin = await SuperAdminUser.findById(new ObjectId(userId));
+      if (!admin) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+      res.json(admin);
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
   
   module.exports = {
     login,
     approveAdmin, // Export the router so it can be used in the routes
+    getsuperAdminById,
   };

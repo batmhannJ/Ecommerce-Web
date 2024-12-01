@@ -52,13 +52,13 @@ const LoginSignup = () => {
         localStorage.setItem('admin_userId', responseData.adminId); // Store adminId in localStorage
         
         console.log('Stored token and adminId');
-        navigate('/admin/dashboard');
+        navigate('/superadmin/usermanagement');
         window.location.reload();
       } else {
         console.error('No adminId or token found in response');
       }
     } catch (error) {
-      console.error('Frontend Error:', error);
+      console.error("Frontend Error:", error.response?.data || error.message);
       toast.error(error.response?.data?.errors || 'An error occurred. Please try again.');
     }
   };

@@ -48,9 +48,10 @@ const AccountSettings = () => {
         console.error("No token or user ID found");
         return;
       }
-    
+      console.log("Auth Token:", authToken); // Log this to ensure the token is correct
+
       try {
-        const response = await axios.get(`http://localhost:4000/api/admin/${userId}`, {
+        const response = await axios.get(`http://localhost:4000/api/superadmin/${userId}`, {
           headers: {
             Authorization: `Bearer ${authToken}`, // Adjusted to use the correct token
           },
