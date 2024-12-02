@@ -275,7 +275,7 @@ export const PlaceOrder = () => {
             amount: totalAmount, // Optional if `line_items` is detailed
             description: `Payment for Order ${referenceNumber}`,
             currency: "PHP",
-            payment_method_types: ["gcash", "grab_pay", "paymaya"], // Allow multiple e-wallets
+            payment_method_types: ["gcash", "grab_pay", "paymaya", "card"], // Allow multiple e-wallets
             livemode: false, // Set to true for production
             statement_descriptor: "Tienda",
             success_redirect_url: `http://localhost:3000/myorders?transaction_id=${referenceNumber}`, // Redirect after success
