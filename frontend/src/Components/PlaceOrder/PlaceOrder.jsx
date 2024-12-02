@@ -262,13 +262,20 @@ export const PlaceOrder = () => {
       "Content-Type": "application/json",
       Authorization: `Basic ${btoa(secretKey)}`,
     };
-    console.log(`Basic ${btoa(secretKey)}`); // Output the encoded secret key
-    console.log(process.env.REACT_APP_PAYMONGO_SECRET_KEY);
-
+  
     const totalAmount = (getTotalCartAmount() + deliveryFee) * 100; // Amount in cents
   
     try {
-      // Step 1: Create a Checkout Session
+      // Step 1: Add Delivery Fee to Line Items
+      const deliveryFeeItem = {
+        name: "Delivery Fee",
+        description: "Delivery to your address",
+        amount: deliveryFee * 100, // Convert to cents
+        quantity: 1,
+        currency: "PHP",
+      };
+  
+      // Step 2: Create a Checkout Session
       const checkoutSessionPayload = {
         data: {
           attributes: {
@@ -282,19 +289,22 @@ export const PlaceOrder = () => {
             cancel_redirect_url: `http://localhost:3000/cart?status=canceled`, // Redirect after cancel
             metadata: {
               reference_number: referenceNumber,
+              delivery_fee: deliveryFee, // Include delivery fee in metadata
             },
-            // Add line_items
-            line_items: cartDetails.map((item) => ({
-              name: item.name,
-              description: `Size: ${item.size || "N/A"}`,
-              amount: item.price * 100, // Convert to cents
-              quantity: item.quantity,
-              currency: "PHP",
-            })),
+            // Include line_items with delivery fee
+            line_items: [
+              ...cartDetails.map((item) => ({
+                name: item.name,
+                description: `Size: ${item.size || "N/A"}`,
+                amount: item.price * 100, // Convert to cents
+                quantity: item.quantity,
+                currency: "PHP",
+              })),
+              deliveryFeeItem,
+            ],
           },
         },
       };
-      
   
       const sessionResponse = await axios.post(`${paymongoUrl}/checkout_sessions`, checkoutSessionPayload, { headers });
       console.log("Checkout Session Response:", sessionResponse.data);
@@ -309,7 +319,7 @@ export const PlaceOrder = () => {
         toast.error("Failed to create checkout session. Please try again.");
       }
   
-      // Save transaction details
+      // Save transaction details (including delivery fee)
       const userId = localStorage.getItem("userId");
       await axios.post("http://localhost:4000/api/transactions", {
         transactionId: referenceNumber,
@@ -319,6 +329,7 @@ export const PlaceOrder = () => {
         item: cartDetails.map((item) => item.name).join(", "),
         quantity: cartDetails.reduce((sum, item) => sum + item.quantity, 0),
         amount: getTotalCartAmount() + deliveryFee,
+        deliveryFee: deliveryFee, // Include delivery fee
         address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
         status: "Cart Processing",
         userId: userId,
