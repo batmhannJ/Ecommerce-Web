@@ -229,190 +229,134 @@ export const PlaceOrder = () => {
     setData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  // async function submitOrder(orderData) {
-  //   try {
-  //     const response = await axios.post(
-  //       `http://localhost:4000/api/orderedItems/`,
-  //       orderData
-  //     );
-  //     console.log("Order created successfully:", response.data);
-  //   } catch (error) {
-  //     console.error("Error creating order:", error);
-  //   }
-  // }
-
   const handleProceedToCheckout = async (event) => {
-    event.preventDefault(); // Prevent form's native submission behavior
-    // Check if the address fields are filled
+    event.preventDefault();
+  
     if (!data.street || !data.city || !data.state || !data.zipcode) {
-      toast.error(
-        "Please provide your complete address to proceed with checkout. You can set up or edit your address in the Profile menu."
-      );
-      return; // Prevent proceeding to checkout if validation fails
+      toast.error("Please provide your complete address to proceed with checkout.");
+      return;
     }
-
-    if (token) {
-      const requestReferenceNumber = generateReferenceNumber(); // This is your transaction ID
-      console.log("Generated Transaction ID:", requestReferenceNumber);
-      const cartDetails = itemDetails.map((item) => ({
-        id: item.id, // Now this will be defined
-        name: item.name,
-        price: item.price || item.adjustedPrice, // Use either the product's price or the adjustedPrice
-        quantity: item.quantity,
-        size: item.size,
-      }));
-
-      console.log("Cart Details:", itemDetails); // Ensure this logs correctly
-
-      const mayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
-
-      const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
-      if (!secretKey) {
-        toast.error(
-          "Missing API Key. Please check the environment configuration."
-        );
-        return;
-      }
-
-      const encodedKey = btoa(`${secretKey}:`);
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${encodedKey}`,
-      };
-
-      const requestBody = {
-        totalAmount: {
-          value: getTotalCartAmount() + deliveryFee,
-          currency: "PHP",
-        },
-        buyer: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          contact: {
-            email: data.email,
-            phone: data.phone,
-          },
-        },
-        items: [
-          ...cartDetails.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            amount: {
-              value: item.price,
-            },
-            totalAmount: {
-              value: item.price * item.quantity,
-            },
-          })),
-          {
-            name: "Delivery Fee", // Name for delivery fee item
-            amount: {
-              value: deliveryFee,
-            },
-            totalAmount: {
-              value: deliveryFee,
-            },
-          },
-        ],
-        redirectUrl: {
-          success: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=success`,
-          failure: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=failed`,
-          cancel: `http://localhost:3000/myorders?orderId=${requestReferenceNumber}&status=canceled`,
-        },
-        requestReferenceNumber,
-      };
-
-      try {
-        console.log("Request Headers:", headers);
-        console.log("Request Body:", requestBody);
-
-        const response = await axios.post(mayaApiUrl, requestBody, { headers });
-        if (response.data && response.data.redirectUrl) {
-          console.log("Redirecting to PayMaya:", response.data.redirectUrl);
-          // Redirect to the PayMaya checkout page
-          window.location.href = response.data.redirectUrl;
-
-          // Reuse the existing cartDetails array before making the PayMaya request
-          const totalQuantity = cartDetails.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          );
-          const totalAmount = cartDetails.reduce(
-            (sum, item) => sum + item.price * item.quantity,
-            0
-          );
-          const itemNames = cartDetails.map((item) => item.name).join(", ");
-
-          const saveTransaction = async (transactionDetails) => {
-            console.log("Saving Transaction Details:", transactionDetails);
-            try {
-              await axios.post(
-                "http://localhost:4000/api/transactions",
-                transactionDetails
-              );
-              console.log("Transaction saved:", transactionDetails);
-            } catch (error) {
-              console.error(
-                "Error saving transaction:",
-                error.response ? error.response.data : error.message
-              );
-            }
-          };
-          const userId = localStorage.getItem("userId");
-          saveTransaction({
-            transactionId: requestReferenceNumber, // Pass the requestReferenceNumber here instead
-            date: new Date(),
-            name: `${data.firstName} ${data.lastName}`,
-            contact: data.phone, // Adjusted contact format
-            item: itemNames, // Concatenated item names
-            quantity: totalQuantity,
-            amount: totalAmount,
-            address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
-            status: "Cart Processing",
-            userId: userId, // Include userId here
-          });
-
-          const updateStock = async () => {
-            try {
-              const stockUpdates = cartDetails.map((item) => ({
-                id: item.id.toString(),
-                size: item.size,
-                quantity: item.quantity,
-              }));
-              await axios.post("http://localhost:4000/api/updateStock", {
-                updates: stockUpdates,
-              });
-              console.log("Stock updated successfully");
-            } catch (error) {
-              console.error(
-                "Error updating stock:",
-                error.response ? error.response.data : error.message
-              );
-              toast.error("Failed to update stock");
-            }
-          };
-
-          updateStock();
-          await axios.delete(`http://localhost:4000/api/cart/${userId}`); // Clear cart after checkout
-          toast.success("Checkout successful!");
-        } else {
-          console.error("Checkout Response Error:", response.data);
-          toast.error("Checkout failed, please try again.");
-        }
-      } catch (error) {
-        console.error(
-          "Error during Maya checkout:",
-          error.response ? error.response.data : error
-        );
-        toast.error(`Checkout failed: ${error.message}`);
-      }
-    } else {
-      toast.error(
-        "You are not logged in. Please log in to proceed to checkout."
-      );
+  
+    if (!token) {
+      toast.error("You are not logged in. Please log in to proceed.");
       navigate("/login");
+      return;
+    }
+  
+    const referenceNumber = generateReferenceNumber();
+    const cartDetails = itemDetails.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price || item.adjustedPrice,
+      quantity: item.quantity,
+      size: item.size,
+    }));
+  
+    const paymongoUrl = "https://api.paymongo.com/v1";
+    const secretKey = process.env.REACT_APP_PAYMONGO_SECRET_KEY;
+    if (!secretKey) {
+      toast.error("Payment configuration error. Please contact support.");
+      return;
+    }
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(secretKey)}`,
+    };
+    console.log(`Basic ${btoa(secretKey)}`); // Output the encoded secret key
+    console.log(process.env.REACT_APP_PAYMONGO_SECRET_KEY);
+
+    const totalAmount = (getTotalCartAmount() + deliveryFee) * 100; // Amount in cents
+  
+    try {
+      // Step 1: Create a Checkout Session
+      const checkoutSessionPayload = {
+        data: {
+          attributes: {
+            amount: totalAmount, // Optional if `line_items` is detailed
+            description: `Payment for Order ${referenceNumber}`,
+            currency: "PHP",
+            payment_method_types: ["gcash", "grab_pay", "paymaya"], // Allow multiple e-wallets
+            livemode: false, // Set to true for production
+            statement_descriptor: "Tienda",
+            success_redirect_url: `http://localhost:3000/myorders?transaction_id=${referenceNumber}`, // Redirect after success
+            cancel_redirect_url: `http://localhost:3000/cart?status=canceled`, // Redirect after cancel
+            metadata: {
+              reference_number: referenceNumber,
+            },
+            // Add line_items
+            line_items: cartDetails.map((item) => ({
+              name: item.name,
+              description: `Size: ${item.size || "N/A"}`,
+              amount: item.price * 100, // Convert to cents
+              quantity: item.quantity,
+              currency: "PHP",
+            })),
+          },
+        },
+      };
+      
+  
+      const sessionResponse = await axios.post(`${paymongoUrl}/checkout_sessions`, checkoutSessionPayload, { headers });
+      console.log("Checkout Session Response:", sessionResponse.data);
+  
+      const checkoutSession = sessionResponse.data.data;
+  
+      // Redirect to Checkout URL
+      if (checkoutSession.attributes.checkout_url) {
+        window.location.href = checkoutSession.attributes.checkout_url;
+        toast.success("Redirecting to payment gateway...");
+      } else {
+        toast.error("Failed to create checkout session. Please try again.");
+      }
+  
+      // Save transaction details
+      const userId = localStorage.getItem("userId");
+      await axios.post("http://localhost:4000/api/transactions", {
+        transactionId: referenceNumber,
+        date: new Date(),
+        name: `${data.firstName} ${data.lastName}`,
+        contact: data.phone,
+        item: cartDetails.map((item) => item.name).join(", "),
+        quantity: cartDetails.reduce((sum, item) => sum + item.quantity, 0),
+        amount: getTotalCartAmount() + deliveryFee,
+        address: `${data.street} ${data.city} ${data.state} ${data.zipcode} ${data.country}`,
+        status: "Cart Processing",
+        userId: userId,
+      });
+  
+      // Update stock
+      await axios.post("http://localhost:4000/api/updateStock", {
+        updates: cartDetails.map((item) => ({
+          id: item.id.toString(),
+          size: item.size,
+          quantity: item.quantity,
+        })),
+      });
+  
+      clearCart();
+    } catch (error) {
+      if (error.response?.data?.errors) {
+        console.error("Response Data:", error.response.data);
+        console.error("Response Status:", error.response.status);
+        console.error("Response Headers:", error.response.headers);
+        const errorDetails = error.response.data.errors[0]?.detail;
+        if (errorDetails.includes("authorized")) {
+          toast.error("Payment authorized but an error occurred. Please check your orders.");
+        } else if (errorDetails.includes("fail")) {
+          toast.error("Payment failed. Please try again.");
+        } else if (errorDetails.includes("expire")) {
+          toast.error("Payment expired. Please initiate a new payment.");
+        } else {
+          toast.error("Failed to process payment. Please try again.");
+        }
+      } else {
+        console.error("Checkout Error:", error.response || error);
+        toast.error("Failed to process payment. Please try again.");
+      }
     }
   };
+  
+  
 
   useEffect(() => {
     if (getTotalCartAmount() === 0) {
