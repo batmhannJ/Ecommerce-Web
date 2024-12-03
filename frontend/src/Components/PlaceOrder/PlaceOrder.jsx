@@ -151,7 +151,7 @@ export const PlaceOrder = () => {
   const fetchCoordinates = async (address) => {
     const apiKey = process.env.REACT_APP_POSITION_STACK_API_KEY; // Set this in your .env file
     console.log("Position Stack API Key:", apiKey);
-    const url = `http://api.positionstack.com/v1/forward?access_key=072e48c34a52df1351a9de28cf930b88&query=${address}`;
+    const url = `http://api.positionstack.com/v1/forward?access_key=1e898dd6e9c8d306350d701870c5e1a8&query=${address}`;
 
     try {
       const response = await axios.get(url);
@@ -285,8 +285,8 @@ export const PlaceOrder = () => {
             payment_method_types: ["gcash", "grab_pay", "paymaya", "card"], // Allow multiple e-wallets
             livemode: false, // Set to true for production
             statement_descriptor: "Tienda",
-            success_redirect_url: `http://localhost:3000/myorders?transaction_id=${referenceNumber}`, // Redirect after success
-            cancel_redirect_url: `http://localhost:3000/cart?status=canceled`, // Redirect after cancel
+            success_redirect_url: `http://localhost:3000/myorders?transaction_id=${referenceNumber}&status=success`,
+            cancel_redirect_url: `http://localhost:3000/cart?status=canceled`,
             metadata: {
               reference_number: referenceNumber,
               delivery_fee: deliveryFee, // Include delivery fee in metadata
@@ -324,7 +324,7 @@ export const PlaceOrder = () => {
       await axios.post("http://localhost:4000/api/transactions", {
         transactionId: referenceNumber,
         date: new Date(),
-        name: `${data.firstName} ${data.lastName}`,
+        name: `${data.name}`,
         contact: data.phone,
         item: cartDetails.map((item) => item.name).join(", "),
         quantity: cartDetails.reduce((sum, item) => sum + item.quantity, 0),
@@ -376,22 +376,55 @@ export const PlaceOrder = () => {
   }, [navigate, getTotalCartAmount]);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search); // Get the query parameters from the URL
-    const id = searchParams.get("orderId"); // Extract the 'orderId' parameter from the URL
-    const status = searchParams.get("status"); // Extract the 'status' parameter from the URL
-    if (id && status === "success") {
-      console.log("Payment successful. Clearing cart...");
-      setTransactionId(id); // Set the extracted id in state
-      clearCart(); // Clear the cart after successful payment
-      toast.success("Order placed successfully!");
-    } else if (status === "failed") {
-      toast.error("Payment failed. Please try again.");
-    } else if (status === "canceled") {
-      toast.info("Payment was canceled.");
-    } else {
-      console.error("No Transaction ID found in URL");
-    }
+    const handlePaymentStatus = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const transactionId = searchParams.get("transaction_id");
+      const status = searchParams.get("status");
+  
+      if (!transactionId) {
+        console.error("No Transaction ID found in URL");
+        return;
+      }
+  
+      switch (status) {
+        case "success":
+        case "authorized":
+          console.log(`Payment ${status}. Redirecting to orders...`);
+          try {
+            // Clear cart and redirect
+            await axios.delete(`http://localhost:4000/api/clear-cart/${localStorage.getItem("userId")}`);
+            toast.success("Payment successful! Redirecting to My Orders...");
+            setTimeout(() => {
+              window.location.href = "/myorders"; // Redirect with delay
+            }, 3000);
+          } catch (error) {
+            console.error("Error clearing cart:", error);
+            toast.error("Failed to process order. Contact support.");
+          }
+          break;
+  
+        case "failed":
+          toast.error("Payment failed. Redirecting to cart...");
+          setTimeout(() => {
+            window.location.href = "/cart";
+          }, 3000);
+          break;
+  
+        case "canceled":
+          toast.info("Payment canceled. Redirecting to cart...");
+          setTimeout(() => {
+            window.location.href = "/cart";
+          }, 3000);
+          break;
+  
+        default:
+          console.error("Unhandled payment status:", status);
+      }
+    };
+  
+    handlePaymentStatus();
   }, [location]);
+
 
   return (
     <form noValidate onSubmit={handleProceedToCheckout} className="place-order">

@@ -51,7 +51,7 @@ router.post("/", async (req, res) => {
 });
 
 // Clear the cart for a user after checkout
-router.delete("/:userId", async (req, res) => {
+router.delete("/clear-cart/:userId", async (req, res) => {
   const { userId } = req.params;
 
   try {
