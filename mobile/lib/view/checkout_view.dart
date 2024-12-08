@@ -142,108 +142,109 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Future<void> proceedToPayment(BuildContext context) async {
-    final userAddress = context.read<AuthViewModel>().address;
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
 
     if (userAddress == null) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text("Address Required"),
-          content:
-              Text("Please set your address before proceeding to payment."),
+          title: Text("Incomplete Address"),
+          content: Text(
+              "Please complete your address before proceeding to payment."),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                return; // Prevent proceeding to payment
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: Text("OK"),
             ),
           ],
         ),
       );
-      return; // Immediately return if address is not provided, stop execution
+      return;
     }
 
-    // Proceed to payment only if address is set
     final cartViewModel = context.read<CartViewModel>();
-    final subtotal = cartViewModel.getSubtotal();
     final items = cartViewModel.items;
+    final subtotal = cartViewModel.getSubtotal();
+    final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
 
-    final paymentData = {
-      "totalAmount": {
-        "currency": "PHP",
-        "value": (subtotal + shippingFee)
-            .toString(), // Include shipping fee in total
-      },
-      "requestReferenceNumber":
-          DateTime.now().millisecondsSinceEpoch.toString(),
-      "items": items.map((productEntry) {
-        final product = productEntry.key;
-        final quantity = productEntry.value;
-        final selectedSize = cartViewModel.getSelectedSize(product);
+    final paymongoUrl = "https://api.paymongo.com/v1";
+    const secretKey =
+        'sk_test_fp78egyq6UtfYJMVaRf8DX2v'; // Replace with your secret key
+    final authHeader = base64Encode(utf8.encode('$secretKey:'));
 
-        return {
-          "name": product.name,
-          "size": selectedSize?.name ?? '', // Ensure size is included
-          "quantity": quantity,
-          "totalAmount": {
-            "currency": "PHP",
-            "value": subtotal.toString(), // Calculate item total
-          },
-        };
-      }).toList(),
-      "deliveryFee": {
-        // Separate field for the delivery fee
+    final lineItems = items.map<Map<String, dynamic>>((productEntry) {
+      final product = productEntry.key;
+      final quantity = productEntry.value;
+      final selectedSize = cartViewModel.getSelectedSize(product);
+
+      return {
+        "name": product.name,
+        "description": "Size: ${selectedSize?.name ?? 'N/A'}",
+        "amount": (product.new_price * 100).toInt(),
+        "quantity": quantity,
         "currency": "PHP",
-        "value": shippingFee.toString(),
+      };
+    }).toList();
+
+    final deliveryFeeItem = {
+      "name": "Delivery Fee",
+      "description": "Delivery to your address",
+      "amount": (shippingFee * 100).toInt(),
+      "quantity": 1,
+      "currency": "PHP",
+    };
+
+    final payload = {
+      "data": {
+        "attributes": {
+          "amount": ((subtotal + shippingFee) * 100).toInt(),
+          "description": "Payment for Order $referenceNumber",
+          "currency": "PHP",
+          "payment_method_types": ["gcash", "grab_pay", "paymaya", "card"],
+          "livemode": false,
+          "statement_descriptor": "Tienda",
+          "success_redirect_url":
+              "http://localhost:3000/myorders?transaction_id=$referenceNumber&status=success",
+          "cancel_redirect_url": "http://localhost:3000/cart?status=canceled",
+          "line_items": [...lineItems, deliveryFeeItem],
+        },
       },
     };
 
-    print("Payment Data: ${json.encode(paymentData)}");
+    try {
+      final response = await http.post(
+        Uri.parse("$paymongoUrl/checkout_sessions"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic $authHeader",
+        },
+        body: json.encode(payload),
+      );
 
-    const publicKey = 'pk-Z0OSzLvIcOI2UIvDhdTGVVfRSSeiGStnceqwUE7n0Ah';
-    const secretKey = 'sk-8MqXdZYWV9UJB92Mc0i149CtzTWT7BYBQeiarM27iAi';
-    final auth = base64Encode(utf8.encode('$publicKey:$secretKey'));
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final checkoutUrl = responseData['data']['attributes']['checkout_url'];
 
-    final response = await http.post(
-      Uri.parse("https://pg-sandbox.paymaya.com/checkout/v1/checkouts"),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Basic $auth",
-      },
-      body: json.encode(paymentData),
-    );
+        if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
+          await launchUrl(Uri.parse(checkoutUrl));
+          //toast("Redirecting to payment gateway...", context);
 
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body);
-      final checkoutUrl =
-          responseData['redirectUrl']; // Extract the redirect URL
-
-      if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
-        await launchUrl(Uri.parse(checkoutUrl));
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
-        );
-        await _updateStockInDatabase(
-          widget.cartItems,
-          List<Map<String, dynamic>>.from(paymentData['items'] as List),
-        );
-        await saveTransaction(paymentData, context);
+          await saveTransaction(items as Map<Product, int>,
+              subtotal + shippingFee, userAddress, referenceNumber);
+          await _updateStockInDatabase(items as List<Map<String, dynamic>>);
+        } else {
+          throw Exception("Failed to launch payment URL");
+        }
       } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CheckoutFailureView()),
-        );
-        print('Could not launch $checkoutUrl');
+        throw Exception("Payment failed: ${response.body}");
       }
-    } else {
+    } catch (e) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => CheckoutFailureView()),
       );
-      print('Payment failed: ${response.body}');
+      print("Error: $e");
     }
   }
 
@@ -299,41 +300,29 @@ class _CheckoutViewState extends State<CheckoutView> {
     });
   }
 
-  Future<void> _updateStockInDatabase(List<Map<String, dynamic>> cartItems,
-      List<Map<String, dynamic>> paymentItems) async {
-    for (var item in paymentItems) {
-      final name = item['name'];
-      final size = item['size'];
-      final quantity = item['quantity'];
+  Future<void> _updateStockInDatabase(
+      List<Map<String, dynamic>> lineItems) async {
+    final stockUpdates = lineItems.map((item) {
+      return {
+        "id": item["id"], // Assuming each lineItem has a product ID
+        "size": item["description"] ?? "N/A",
+        "quantity": item["quantity"],
+      };
+    }).toList();
 
-      // Check if required fields are present
-      if (name == null || size == null || quantity == null) {
-        print('Missing fields for item: $item');
-        continue; // Skip this iteration if required fields are missing
-      }
-
-      final response = await http.post(
-        Uri.parse('http://localhost:4000/updateStock'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'name': name,
-          'size': size,
-          'quantity': quantity,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print('Stock updated successfully for $name');
-      } else {
-        print('Failed to update stock: ${response.body}');
-      }
-    }
+    await http.post(
+      Uri.parse("http://localhost:4000/api/updateStock"),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({"updates": stockUpdates}),
+    );
   }
 
   Future<void> saveTransaction(
-      Map<String, dynamic> paymentData, BuildContext context) async {
+    Map<Product, int> items,
+    double totalAmount,
+    Address userAddress,
+    String referenceNumber,
+  ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final authViewModel = context.read<AuthViewModel>();
     final userId = prefs.getString('userId');
@@ -363,32 +352,39 @@ class _CheckoutViewState extends State<CheckoutView> {
     final cityName = getCityName(userAddress.municipality);
     final barangayName = getBarangayName(userAddress.barangay);
 
-    final transactionDetails = {
-      "transactionId": paymentData["requestReferenceNumber"],
+    // Process paymentData (Map<Product, int>) into a List of items
+    /*final List<Map<String, Object>> items = paymentData.entries.map((entry) {
+      final product = entry.key;
+      final quantity = entry.value;
+      return {
+        "name": product.name ?? "Unknown Product",
+        "quantity": quantity,
+      };
+    }).toList();*/
+
+    final transactionPayload = {
+      "transactionId": referenceNumber,
       "date": DateTime.now().toIso8601String(),
-      "name": currentUser.name ?? "Unknown User",
-      "contact": currentUser.phone ?? "No contact available",
-      "item": paymentData["items"].map((item) => item['name']).join(', '),
-      "quantity": paymentData["items"]
-          .map((item) => item['quantity'])
-          .reduce((a, b) => a + b),
-      "amount": paymentData["totalAmount"]["value"],
+      "items": items.entries
+          .map((e) => {
+                "name": e.key.name,
+                "quantity": e.value,
+              })
+          .toList(),
+      "totalAmount": totalAmount,
       "address":
           "${userAddress.street}, $barangayName, $cityName, $provinceName, ${userAddress.zip}",
-      "status": "Cart Processing",
-      "userId": userId,
     };
-
     try {
       final response = await http.post(
         Uri.parse('http://localhost:4000/api/transactions'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode(transactionDetails),
+        body: json.encode(transactionPayload),
       );
 
       if (response.statusCode == 200) {
         Fluttertoast.showToast(msg: "Transaction saved successfully.");
-        print("Transaction saved: $transactionDetails");
+        print("Transaction saved: $transactionPayload");
       } else {
         Fluttertoast.showToast(
             msg: "Error saving transaction. Code: ${response.statusCode}");
