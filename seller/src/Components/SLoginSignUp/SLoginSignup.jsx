@@ -298,7 +298,7 @@ const handleResetPassword = async (e) => {
       // Validate the password
       const isValidPassword = validatePassword(password);
       if (!isValidPassword) {
-        setPasswordError('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
+        toast.error('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
       } else {
         setPasswordError(''); // Clear error if password is valid
       }
