@@ -108,6 +108,14 @@
   text-align: center;
 }
 
+.eye-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
 @media (max-width: 992px) {
   .account-settings-container {
     padding: 20px 30px;
