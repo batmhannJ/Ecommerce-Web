@@ -76,39 +76,26 @@ const LoginSignup = () => {
             />
           </div>
           <div style={{ position: 'relative' }}>
-  <label>Password:</label>
-  <input
-    type={showPassword ? 'text' : 'password'}
-    name="password"
-    value={formData.password}
-    onChange={(e) => {
-      const value = e.target.value;
-      setFormData({ ...formData, password: value });
-
-      // Validate password: at least one capital letter, between 8 and 20 characters
-      const passwordRegex = /^(?=.*[A-Z]).{8,20}$/; // At least one capital letter and between 8 to 20 characters
-      if (!passwordRegex.test(value)) {
-        setPasswordError('Password must be between 8 and 20 characters and include at least one capital letter.');
-      } else {
-        setPasswordError(''); // Clear error if valid
-      }
-    }}
-    required
-  />
-           <span
-  onClick={togglePasswordVisibility}
-  style={{
-    cursor: 'pointer',
-    position: 'absolute',
-    right: window.innerWidth <= 500 ? '5px' : '10px', // Adjust right margin for smaller screens
-    top: window.innerWidth <= 500 ? '55%' : '60%',   // Adjust top position for smaller screens
-    transform: 'translateY(-50%)',
-    fontSize: window.innerWidth <= 500 ? '16px' : '20px', // Adjust font size
-  }}
->
-  {showPassword ? <FaEyeSlash /> : <FaEye />}
-</span>
-
+            <label>Password:</label>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <span
+              onClick={togglePasswordVisibility}
+              style={{
+                cursor: 'pointer',
+                position: 'absolute',
+                right: '10px',
+                top: '60%',
+                transform: 'translateY(-50%)',
+              }}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
           </div>
           <button type="submit">{isSignup ? 'Sign up' : 'Log in'}</button>
         </form>
