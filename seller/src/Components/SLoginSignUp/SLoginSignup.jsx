@@ -295,12 +295,18 @@ const handleResetPassword = async (e) => {
       // Update the form data
       handleChange({ target: { name: 'password', value: password } });
 
-      // Validate the password
-      const isValidPassword = validatePassword(password);
-      if (!isValidPassword) {
-        toast.error('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
+      // Validate the password when it reaches 20 characters or more
+      if (password.length === 20) {
+        const isValidPassword = validatePassword(password);
+
+        // Show toast error if password is invalid when it's 20 characters
+        if (!isValidPassword) {
+          toast.error('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
+        } else {
+          setPasswordError(''); // Clear error if password is valid
+        }
       } else {
-        setPasswordError(''); // Clear error if password is valid
+        setPasswordError(''); // Clear error if password is less than 20 characters
       }
     }}
     required
@@ -320,6 +326,7 @@ const handleResetPassword = async (e) => {
   </span>
 </div>
 {passwordError && <p className="password-error">{passwordError}</p>}
+
 
               <label>ID Picture (required):</label>
               <input
