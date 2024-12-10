@@ -40,23 +40,12 @@ const SLoginSignup = () => {
     }
   };
 
-  // Password validation while typing
-  if (name === 'password') {
-    const isValidPassword = validatePassword(value);
-    if (!isValidPassword) {
-      setPasswordError("Password must be at least 8 characters long and contain at least one uppercase letter.");
-    } else {
-      setPasswordError('');
-    }
-  }
-};
+  const validatePassword = (password) => {
+    const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
+    return passwordRegex.test(password);
+  };
 
-const validatePassword = (password) => {
-  const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
-  return passwordRegex.test(password);
-};
-
-   const handleSignup = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     const { name, email, password, idPicture } = formData;
 
@@ -183,7 +172,6 @@ const handleResetPassword = async (e) => {
 };
 
 
-
   return (
     <div className="login-container">
       <div className="login-box">
@@ -237,15 +225,25 @@ const handleResetPassword = async (e) => {
               />
             </div>
             <div>
-              <div className="password-container" style={{ position: 'relative' }}>
-                <label>Password:</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
+            <div className="password-container" style={{ position: 'relative' }}>
+  <label>Password:</label>
+  <input
+    type={showPassword ? "text" : "password"}
+    name="password"
+    value={formData.password}
+    onChange={(e) => {
+      handleChange(e); // Handle form input change
+      const password = e.target.value; // Get the value of the password input
+      const isValidPassword = validatePassword(password); // Validate the password
+      if (!isValidPassword) {
+        setPasswordError("Password must be at least 8 characters long and contain at least one uppercase letter.");
+      } else {
+        setPasswordError(''); // Clear error if password is valid
+      }
+    }}
+    required
+  />
+
                 <span
                   className="eye-icon"
                   onClick={togglePasswordVisibility}
