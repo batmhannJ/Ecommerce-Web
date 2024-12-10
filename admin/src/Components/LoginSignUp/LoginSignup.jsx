@@ -76,14 +76,25 @@ const LoginSignup = () => {
             />
           </div>
           <div style={{ position: 'relative' }}>
-            <label>Password:</label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
+  <label>Password:</label>
+  <input
+    type={showPassword ? 'text' : 'password'}
+    name="password"
+    value={formData.password}
+    onChange={(e) => {
+      const value = e.target.value;
+      setFormData({ ...formData, password: value });
+
+      // Validate password: at least one capital letter, between 8 and 20 characters
+      const passwordRegex = /^(?=.*[A-Z]).{8,20}$/; // At least one capital letter and between 8 to 20 characters
+      if (!passwordRegex.test(value)) {
+        setPasswordError('Password must be between 8 and 20 characters and include at least one capital letter.');
+      } else {
+        setPasswordError(''); // Clear error if valid
+      }
+    }}
+    required
+  />
            <span
   onClick={togglePasswordVisibility}
   style={{
