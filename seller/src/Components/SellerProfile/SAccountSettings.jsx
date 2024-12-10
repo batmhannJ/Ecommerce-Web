@@ -142,7 +142,14 @@ const SAccountSettings = () => {
     id="phone"
     value={formData.phone}
     onChange={handleChange}
-    onInput={(e) => (e.target.value = e.target.value.replace(/[^0-9]/g, ""))}
+    onInput={(e) => {
+      let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+      if (value.length > 0) {
+        value = '9' + value.slice(1); // Ensure it starts with 9
+      }
+      e.target.value = value.slice(0, 10); // Restrict to 10 digits
+    }}
+    maxLength="10"
     aria-required="true"
   />
   {formErrors.phone && (
