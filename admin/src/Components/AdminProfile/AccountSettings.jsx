@@ -145,17 +145,30 @@ const AccountSettings = () => {
             </div>
 
             <div className="account-settings__form-group">
-              <label htmlFor="phone">Phone/Mobile <span>*</span></label>
-              <input
-                type="text"
-                name="phone"
-                id="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                aria-required="true"
-              />
-              {formErrors.phone && <span className="account-settings__error">{formErrors.phone}</span>}
-            </div>
+  <label htmlFor="phone">
+    Phone/Mobile <span>*</span>
+  </label>
+  <input
+    type="text"
+    name="phone"
+    id="phone"
+    value={formData.phone}
+    onChange={handleChange}
+    onInput={(e) => {
+      let value = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+      if (value.length > 0) {
+        value = '9' + value.slice(1); // Ensure it starts with 9
+      }
+      e.target.value = value.slice(0, 10); // Restrict to 10 digits
+    }}
+    maxLength="10"
+    aria-required="true"
+  />
+  {formErrors.phone && (
+    <span className="account-settings__error">{formErrors.phone}</span>
+  )}
+</div>
+
 
             <div className="account-settings__form-group">
               <label htmlFor="email">Email <span>*</span></label>
