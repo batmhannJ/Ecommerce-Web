@@ -84,18 +84,20 @@ const LoginSignup = () => {
               onChange={handleChange}
               required
             />
-            <span
-              onClick={togglePasswordVisibility}
-              style={{
-                cursor: 'pointer',
-                position: 'absolute',
-                right: '10px',
-                top: '60%',
-                transform: 'translateY(-50%)',
-              }}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
+           <span
+  onClick={togglePasswordVisibility}
+  style={{
+    cursor: 'pointer',
+    position: 'absolute',
+    right: window.innerWidth <= 500 ? '5px' : '10px', // Adjust right margin for smaller screens
+    top: window.innerWidth <= 500 ? '55%' : '60%',   // Adjust top position for smaller screens
+    transform: 'translateY(-50%)',
+    fontSize: window.innerWidth <= 500 ? '16px' : '20px', // Adjust font size
+  }}
+>
+  {showPassword ? <FaEyeSlash /> : <FaEye />}
+</span>
+
           </div>
           <button type="submit">{isSignup ? 'Sign up' : 'Log in'}</button>
         </form>
