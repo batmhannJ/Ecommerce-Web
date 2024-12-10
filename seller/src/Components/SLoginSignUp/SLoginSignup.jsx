@@ -226,29 +226,29 @@ const handleResetPassword = async (e) => {
               />
             </div>
             <div>
-              <div className="password-container" style={{ position: 'relative' }}>
-                <label>Password:</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-                <span
-                  className="eye-icon"
-                  onClick={togglePasswordVisibility}
-                  style={{
-                    cursor: 'pointer',
-                    position: 'absolute',
-                    right: '10px',
-                    top: '60%',
-                    transform: 'translateY(-50%)',
-                  }}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
+    <label>Password:</label>
+    <div className="password-container" style={{ position: 'relative' }}>
+      <input
+        type={showPassword ? 'text' : 'password'} // Toggle between text and password
+        name="password"
+        value={formData.password}
+        onChange={handleChange}
+        required
+      />
+      <span
+        className="eye-icon"
+        onClick={togglePasswordVisibility}
+        style={{
+          cursor: 'pointer',
+          position: 'absolute',
+          right: '10px',
+          top: '50%',
+          transform: 'translateY(-50%)', // Center the icon vertically
+        }}
+      >
+        {showPassword ? <FaEyeSlash /> : <FaEye />}
+      </span>
+    </div>
               {passwordError && <p className="password-error">{passwordError}</p>}
               <p><span className="link" onClick={() => setForgotPassword(true)}>Forgot Password?</span></p>
             </div>
