@@ -30,6 +30,13 @@ const SAccountSettings = () => {
     return null;
   };
 
+  // New state variable to handle password visibility
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       const authToken = localStorage.getItem("admin_token");
@@ -182,6 +189,18 @@ const SAccountSettings = () => {
               />
               {formErrors.password && <span className="account-settings__error">{formErrors.password}</span>}
             </div>
+            <span
+              onClick={togglePasswordVisibility}
+              style={{
+                cursor: 'pointer',
+                position: 'absolute',
+                right: '10px',
+                top: '60%',
+                transform: 'translateY(-50%)',
+              }}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
 
             <button className="account-settings__button" type="submit">
               Save Changes

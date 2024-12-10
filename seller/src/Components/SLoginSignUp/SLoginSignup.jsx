@@ -290,6 +290,7 @@ const handleResetPassword = async (e) => {
       // Restrict the password to 20 characters
       if (password.length > 20) {
         password = password.slice(0, 20); // Truncate to 20 characters
+        toast.error('Password cannot exceed 20 characters.');
       }
 
       // Update the form data
@@ -301,7 +302,7 @@ const handleResetPassword = async (e) => {
 
         // Show toast error if password is invalid when it's 20 characters
         if (!isValidPassword) {
-          toast.error('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
+          //toast.error('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
         } else {
           setPasswordError(''); // Clear error if password is valid
         }
