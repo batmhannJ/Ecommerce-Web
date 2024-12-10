@@ -89,10 +89,11 @@ const LoginSignup = () => {
   style={{
     cursor: 'pointer',
     position: 'absolute',
-    right: window.innerWidth <= 500 ? '5px' : '15px', // Adjust right margin for smaller screens
-    top: window.innerWidth <= 500 ? '55%' : '60%',   // Adjust top position for smaller screens
+    right: '10px',
+    top: '50%',
     transform: 'translateY(-50%)',
-    fontSize: window.innerWidth <= 500 ? '16px' : '20px', // Adjust font size
+    zIndex: 1, // Ensure it stays above the input field
+    fontSize: window.innerWidth <= 768 ? '16px' : '20px', // Adjust size for smaller screens
   }}
 >
   {showPassword ? <FaEyeSlash /> : <FaEye />}
