@@ -41,9 +41,10 @@ const SLoginSignup = () => {
   };
 
   const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
+    const passwordRegex = /^(?=.*[A-Z]).{8,20}$/; // Password must be between 8 and 20 characters long and contain at least one uppercase letter
     return passwordRegex.test(password);
   };
+  
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -277,32 +278,57 @@ const handleResetPassword = async (e) => {
               />
             </div>
             <div>
-              <div className="password-container" style={{ position: 'relative' }}>
-                <label>Password:</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-                <span
-                  className="eye-icon"
-                  onClick={togglePasswordVisibility}
-                  style={{
-                    cursor: 'pointer',
-                    position: 'absolute',
-                    right: '10px',
-                    top: '60%',
-                    transform: 'translateY(-50%)',
-                  }}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-              {passwordError && <p className="password-error">{passwordError}</p>}
-            </div>
-            <div>
+            <div className="password-container" style={{ position: 'relative' }}>
+  <label>Password:</label>
+  <input
+    type={showPassword ? 'text' : 'password'}
+    name="password"
+    value={formData.password}
+    onChange={(e) => {
+      let password = e.target.value; // Get the password input value
+
+      // Restrict the password to 20 characters
+      if (password.length > 20) {
+        password = password.slice(0, 20); // Truncate to 20 characters
+        toast.error('Password cannot exceed 20 characters.');
+      }
+
+      // Update the form data
+      handleChange({ target: { name: 'password', value: password } });
+
+      // Validate the password when it reaches 20 characters or more
+      if (password.length === 20) {
+        const isValidPassword = validatePassword(password);
+
+        // Show toast error if password is invalid when it's 20 characters
+        if (!isValidPassword) {
+          //toast.error('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
+        } else {
+          setPasswordError(''); // Clear error if password is valid
+        }
+      } else {
+        setPasswordError(''); // Clear error if password is less than 20 characters
+      }
+    }}
+    required
+  />
+  <span
+    className="eye-icon"
+    onClick={togglePasswordVisibility}
+    style={{
+      cursor: 'pointer',
+      position: 'absolute',
+      right: '10px',
+      top: '60%',
+      transform: 'translateY(-50%)', // Adjusted position to align vertically
+    }}
+  >
+    {showPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
+{passwordError && <p className="password-error">{passwordError}</p>}
+
+
               <label>ID Picture (required):</label>
               <input
                 type="file"

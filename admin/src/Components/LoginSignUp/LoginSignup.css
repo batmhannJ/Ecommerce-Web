@@ -1,5 +1,4 @@
-
-
+/* General Styles */
 .login-container {
   width: 100%;
   height: 100vh;
@@ -73,66 +72,45 @@
   margin-top: 0.5em;
 }
 
+/* Password Container with Eye Icon */
 .password-container {
-  position: relative;
+  position: relative; /* Positioning for the eye icon */
   margin-bottom: 20px; /* Space below the input */
 }
 
 .password-container label {
-  display: block; /* Block display for label */
-  margin-bottom: 5px; /* Space below the label */
-  color: #34495e; /* Primary color for label */
+  display: block;
+  margin-bottom: 5px;
+  color: #34495e;
+  font-size: 14px;
 }
 
 .password-container input {
-  width: 100%; /* Full width */
-  padding: 12px; /* Padding inside the input */
-  border: 1px solid #c9c9c9; /* Border color */
-  border-radius: 5px; /* Rounded corners */
-  font-size: 16px; /* Base font size */
-  color: #5c5c5c; /* Input text color */
-  transition: border-color 0.3s; /* Smooth transition for border color */
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c9c9c9;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #5c5c5c;
+  transition: border-color 0.3s;
 }
 
 .password-container input:focus {
-  border-color: #BAC195; /* Focus border color */
-  outline: none; /* Remove default outline */
+  border-color: #BAC195;
+  outline: none;
 }
 
 .eye-icon {
-  cursor: pointer; /* Pointer cursor for icon */
-  position: absolute; /* Position icon relative to the container */
-  right: 10px; /* Distance from the right */
-  top: 50%; /* Center the icon vertically */
-  transform: translateY(-50%); /* Adjust vertical position */
-  font-size: 20px; /* Size of the icon */
-  color: #000000; /* Icon color */
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 60%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #000000;
 }
 
 /* Media Queries for Responsiveness */
-@media (max-width: 768px) {
-  .password-container input {
-      padding: 10px; /* Adjust padding for smaller screens */
-      font-size: 14px; /* Smaller font size for input */
-  }
-
-  .eye-icon {
-      font-size: 18px; /* Slightly smaller icon size on mobile */
-  }
-}
-
-@media (max-width: 480px) {
-  .password-container input {
-      padding: 8px; /* Further reduce padding on extra small screens */
-      font-size: 12px; /* Smaller font size */
-  }
-
-  .eye-icon {
-      font-size: 16px; /* Smaller icon size for mobile */
-  }
-}
-
-
 @media (max-width: 768px) {
   .login-box {
     padding: 30px;
@@ -152,6 +130,15 @@
     width: 80%;
     font-size: 14px;
     padding: 8px;
+  }
+
+  .password-container input {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .eye-icon {
+    font-size: 18px;
   }
 }
 
@@ -173,5 +160,14 @@
   .login-box button {
     font-size: 14px;
     padding: 8px;
+  }
+
+  .password-container input {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .eye-icon {
+    font-size: 16px;
   }
 }

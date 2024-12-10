@@ -90,7 +90,7 @@ const LoginSignup = () => {
                 cursor: 'pointer',
                 position: 'absolute',
                 right: '10px',
-                top: '50%',
+                top: '60%',
                 transform: 'translateY(-50%)',
               }}
             >
