@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./SAccountSettings.css";
 import axios from "axios";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-
 import Navbar from '../Navbar/Navbar'; // Adjust the import path as necessary
 import Sidebar from '../Sidebar/Sidebar'; // Adjust the import path as necessary
 
@@ -16,11 +14,6 @@ const SAccountSettings = () => {
 
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
 
   const getUserIdFromToken = () => {
     const authToken = localStorage.getItem("admin_token");
@@ -144,22 +137,17 @@ const SAccountSettings = () => {
     Phone/Mobile <span>*</span>
   </label>
   <input
-    type="tel"
+    type="text"
     name="phone"
     id="phone"
     value={formData.phone}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (/^\d*$/.test(value)) {
-        handleChange(e); // Only update if input is numeric
-      }
-    }}
+    onChange={handleChange}
+    onInput={(e) => (e.target.value = e.target.value.replace(/[^0-9]/g, ""))}
     aria-required="true"
-    pattern="\d*"
-    maxLength="11" // Optional: restrict input to 11 digits (Philippines phone numbers)
-    placeholder="Enter phone number"
   />
-  {formErrors.phone && <span className="account-settings__error">{formErrors.phone}</span>}
+  {formErrors.phone && (
+    <span className="account-settings__error">{formErrors.phone}</span>
+  )}
 </div>
 
 
@@ -177,33 +165,16 @@ const SAccountSettings = () => {
             </div>
 
             <div className="account-settings__form-group">
-  <label htmlFor="password">Password <span>(optional)</span></label>
-  <div style={{ position: 'relative' }}>
-    <input
-      type={showPassword ? "text" : "password"}
-      name="password"
-      id="password"
-      value={formData.password}
-      onChange={handleChange}
-      style={{ paddingRight: '30px', width: '100%'}} // Add padding to make space for the icon
-    />
-    <span
-      className="eye-icon"
-      onClick={togglePasswordVisibility}
-      style={{
-        cursor: 'pointer',
-        position: 'absolute',
-        right: '10px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-      }}
-    >
-      {showPassword ? <FaEyeSlash /> : <FaEye />}
-    </span>
-  </div>
-  {formErrors.password && <span className="account-settings__error">{formErrors.password}</span>}
-</div>
-
+              <label htmlFor="password">Password <span>(optional)</span></label>
+              <input
+                type="password"
+                name="password"
+                id="password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+              {formErrors.password && <span className="account-settings__error">{formErrors.password}</span>}
+            </div>
 
             <button className="account-settings__button" type="submit">
               Save Changes
