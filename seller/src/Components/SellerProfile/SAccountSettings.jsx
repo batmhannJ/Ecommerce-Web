@@ -133,17 +133,28 @@ const SAccountSettings = () => {
             </div>
 
             <div className="account-settings__form-group">
-              <label htmlFor="phone">Phone/Mobile <span>*</span></label>
-              <input
-                type="text"
-                name="phone"
-                id="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                aria-required="true"
-              />
-              {formErrors.phone && <span className="account-settings__error">{formErrors.phone}</span>}
-            </div>
+  <label htmlFor="phone">
+    Phone/Mobile <span>*</span>
+  </label>
+  <input
+    type="tel"
+    name="phone"
+    id="phone"
+    value={formData.phone}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) {
+        handleChange(e); // Only update if input is numeric
+      }
+    }}
+    aria-required="true"
+    pattern="\d*"
+    maxLength="11" // Optional: restrict input to 11 digits (Philippines phone numbers)
+    placeholder="Enter phone number"
+  />
+  {formErrors.phone && <span className="account-settings__error">{formErrors.phone}</span>}
+</div>
+
 
             <div className="account-settings__form-group">
               <label htmlFor="email">Email <span>*</span></label>
