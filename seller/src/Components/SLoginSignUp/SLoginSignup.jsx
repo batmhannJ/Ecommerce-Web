@@ -41,9 +41,10 @@ const SLoginSignup = () => {
   };
 
   const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
+    const passwordRegex = /^(?=.*[A-Z]).{8,20}$/; // Password must be between 8 and 20 characters long and contain at least one uppercase letter
     return passwordRegex.test(password);
   };
+  
 
   const handleSignup = async (e) => {
     e.preventDefault();
