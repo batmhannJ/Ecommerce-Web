@@ -226,29 +226,29 @@ const handleResetPassword = async (e) => {
               />
             </div>
             <div>
-    <label>Password:</label>
-    <div className="password-container" style={{ position: 'relative' }}>
-      <input
-        type={showPassword ? 'text' : 'password'} // Toggle between text and password
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        required
-      />
-      <span
-        className="eye-icon"
-        onClick={togglePasswordVisibility}
-        style={{
-          cursor: 'pointer',
-          position: 'absolute',
-          right: '10px',
-          top: '50%',
-          transform: 'translateY(-50%)', // Center the icon vertically
-        }}
-      >
-        {showPassword ? <FaEyeSlash /> : <FaEye />}
-      </span>
-    </div>
+              <div className="password-container" style={{ position: 'relative' }}>
+                <label>Password:</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <span
+                  className="eye-icon"
+                  onClick={togglePasswordVisibility}
+                  style={{
+                    cursor: 'pointer',
+                    position: 'absolute',
+                    right: '10px',
+                    top: '60%',
+                    transform: 'translateY(-50%)',
+                  }}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
               {passwordError && <p className="password-error">{passwordError}</p>}
               <p><span className="link" onClick={() => setForgotPassword(true)}>Forgot Password?</span></p>
             </div>
@@ -279,49 +279,48 @@ const handleResetPassword = async (e) => {
             </div>
             <div>
             <div className="password-container" style={{ position: 'relative' }}>
-      <label>Password:</label>
-      <input
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={(e) => {
-          let password = e.target.value; // Get the password input value
-          
-          // Restrict the password to 20 characters
-          if (password.length > 20) {
-            password = password.slice(0, 20); // Truncate to 20 characters
-          }
+  <label>Password:</label>
+  <input
+    type={showPassword ? 'text' : 'password'}
+    name="password"
+    value={formData.password}
+    onChange={(e) => {
+      let password = e.target.value; // Get the password input value
 
-          // Update the form data
-          handleChange({ target: { name: 'password', value: password } });
+      // Restrict the password to 20 characters
+      if (password.length > 20) {
+        password = password.slice(0, 20); // Truncate to 20 characters
+      }
 
-          // Validate the password
-          const isValidPassword = validatePassword(password);
-          if (!isValidPassword) {
-            setPasswordError('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
-          } else {
-            setPasswordError(''); // Clear error if password is valid
-          }
-        }}
-        required
-      />
-                <span
-                  className="eye-icon"
-                  onClick={togglePasswordVisibility}
-                  style={{
-                    cursor: 'pointer',
-                    position: 'absolute',
-                    right: '10px',
-                    top: '60%',
-                    transform: 'translateY(-50%)',
-                  }}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-              {passwordError && <p className="password-error">{passwordError}</p>}
-            </div>
-            <div>
+      // Update the form data
+      handleChange({ target: { name: 'password', value: password } });
+
+      // Validate the password
+      const isValidPassword = validatePassword(password);
+      if (!isValidPassword) {
+        setPasswordError('Password must be between 8 and 20 characters and contain at least one uppercase letter.');
+      } else {
+        setPasswordError(''); // Clear error if password is valid
+      }
+    }}
+    required
+  />
+  <span
+    className="eye-icon"
+    onClick={togglePasswordVisibility}
+    style={{
+      cursor: 'pointer',
+      position: 'absolute',
+      right: '10px',
+      top: '50%',
+      transform: 'translateY(-50%)', // Adjusted position to align vertically
+    }}
+  >
+    {showPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
+{passwordError && <p className="password-error">{passwordError}</p>}
+
               <label>ID Picture (required):</label>
               <input
                 type="file"
