@@ -230,8 +230,13 @@ class _CheckoutViewState extends State<CheckoutView> {
           await launchUrl(Uri.parse(checkoutUrl));
           //toast("Redirecting to payment gateway...", context);
 
-          await saveTransaction(items as Map<Product, int>,
-              subtotal + shippingFee, userAddress, referenceNumber);
+          await saveTransaction(
+            Map.fromEntries(items),
+            subtotal + shippingFee,
+            userAddress,
+            referenceNumber,
+          );
+
           await _updateStockInDatabase(items as List<Map<String, dynamic>>);
         } else {
           throw Exception("Failed to launch payment URL");
@@ -330,7 +335,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     // Fetch user details and address
     await authViewModel.fetchUserDetails();
     final currentUser = authViewModel.user;
-    final userAddress = authViewModel.address;
+    final fetchedUserAddress = authViewModel.address;
 
     if (userId == null) {
       Fluttertoast.showToast(msg: "User ID not found. Please log in.");
@@ -342,39 +347,46 @@ class _CheckoutViewState extends State<CheckoutView> {
       return;
     }
 
-    if (userAddress == null) {
+    if (fetchedUserAddress == null) {
       Fluttertoast.showToast(msg: "User address not found.");
       return;
     }
 
-    final regionName = getRegionName(userAddress.region);
-    final provinceName = getProvinceName(userAddress.province);
-    final cityName = getCityName(userAddress.municipality);
-    final barangayName = getBarangayName(userAddress.barangay);
+    final regionName = getRegionName(fetchedUserAddress.region);
+    final provinceName = getProvinceName(fetchedUserAddress.province);
+    final cityName = getCityName(fetchedUserAddress.municipality);
+    final barangayName = getBarangayName(fetchedUserAddress.barangay);
+    final cartViewModel = context.read<CartViewModel>();
+    final cartItems = widget.cartItems; // Assuming cartItems is already a map
+    final subtotal = cartViewModel.getSubtotal();
+    final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
 
-    // Process paymentData (Map<Product, int>) into a List of items
-    /*final List<Map<String, Object>> items = paymentData.entries.map((entry) {
+    // Serialize items
+    final serializedItems = items.entries.map((entry) {
       final product = entry.key;
       final quantity = entry.value;
       return {
-        "name": product.name ?? "Unknown Product",
-        "quantity": quantity,
+        "name": product.name.trim(),
       };
-    }).toList();*/
+    }).toList(); // Convert to a list of JSON objects
 
     final transactionPayload = {
+      "userId": userId,
+      "status": "Cart Processing",
+      "amount": subtotal,
+      "quantity": serializedItems.length,
       "transactionId": referenceNumber,
       "date": DateTime.now().toIso8601String(),
-      "items": items.entries
-          .map((e) => {
-                "name": e.key.name,
-                "quantity": e.value,
-              })
-          .toList(),
+      "item": serializedItems
+          .map((item) => "${item['name']}")
+          .join(';'), // Convert array to a single string
       "totalAmount": totalAmount,
+      "contact": currentUser.phone ?? '', // Ensure phone is available
+      "name": currentUser.name ?? '', // Ensure name is available
       "address":
-          "${userAddress.street}, $barangayName, $cityName, $provinceName, ${userAddress.zip}",
+          "${fetchedUserAddress.street}, $barangayName, $cityName, $provinceName, ${fetchedUserAddress.zip}",
     };
+
     try {
       final response = await http.post(
         Uri.parse('http://localhost:4000/api/transactions'),
