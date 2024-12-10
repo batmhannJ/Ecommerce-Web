@@ -880,65 +880,99 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Widget orderSummaryCard(BuildContext context) {
-    final double shippingFee =
-        this.shippingFee; // Use the shippingFee from the state variable
-    final subtotal = context.read<CartViewModel>().getSubtotal();
-    final total = subtotal + shippingFee;
+  final double shippingFee =
+      this.shippingFee; // Use the shippingFee from the state variable
+  final subtotal = context.read<CartViewModel>().getSubtotal();
+  final total = subtotal + shippingFee;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+  // Check if userAddress is valid
+  final authViewModel = context.read<AuthViewModel>();
+  final userAddress = authViewModel.address;
+
+  final isAddressComplete = userAddress != null &&
+      userAddress.street?.isNotEmpty == true &&
+      userAddress.zip?.isNotEmpty == true &&
+      selectedBarangay != null &&
+      selectedCity != null &&
+      selectedProvince != null &&
+      selectedRegion != null;
+
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.2),
+          blurRadius: 6,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "ORDER SUMMARY",
+          style: AppTextStyles.headline4.copyWith(
+            fontWeight: AppFontWeights.bold,
+            fontSize: 20,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "ORDER SUMMARY",
-            style: AppTextStyles.headline4.copyWith(
-              fontWeight: AppFontWeights.bold,
-              fontSize: 20,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Divider(color: Colors.grey.shade300), // Divider for separation
-          const SizedBox(height: 8),
-          _buildSummaryRow("Subtotal:", "₱${subtotal.toStringAsFixed(2)}",
-              Icons.monetization_on),
-          _buildSummaryRow("Shipping:", "₱${shippingFee.toStringAsFixed(2)}",
-              Icons.local_shipping),
-          Divider(color: Colors.grey.shade300), // Divider for total section
-          _buildSummaryRow(
-              "Total:", "₱${total.toStringAsFixed(2)}", Icons.payment,
-              isTotal: true),
-          const SizedBox(height: 25),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  isExpanded: true,
-                  text: "Proceed to Payment",
-                  textStyle: AppTextStyles.button.copyWith(color: Colors.white),
-                  command: () => proceedToPayment(context),
-                  height: 48,
-                  fillColor: AppColors.red,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                ),
+        ),
+        const SizedBox(height: 16),
+        Divider(color: Colors.grey.shade300), // Divider for separation
+        const SizedBox(height: 8),
+        _buildSummaryRow("Subtotal:", "₱${subtotal.toStringAsFixed(2)}",
+            Icons.monetization_on),
+        _buildSummaryRow("Shipping:", "₱${shippingFee.toStringAsFixed(2)}",
+            Icons.local_shipping),
+        Divider(color: Colors.grey.shade300), // Divider for total section
+        _buildSummaryRow(
+            "Total:", "₱${total.toStringAsFixed(2)}", Icons.payment,
+            isTotal: true),
+        const SizedBox(height: 25),
+        Row(
+          children: [
+            Expanded(
+              child: CustomButton(
+                isExpanded: true,
+                text: "Proceed to Payment",
+                textStyle: AppTextStyles.button.copyWith(color: Colors.white),
+                command: () {
+                  if (isAddressComplete) {
+                    proceedToPayment(context); // Proceed to payment if address is complete
+                  } else {
+                    // Show a reminder dialog or snackbar
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text("Incomplete Address"),
+                        content: Text(
+                            "Please set your shipping address before proceeding to payment."),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text("OK"),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+                height: 48,
+                fillColor: isAddressComplete
+                    ? AppColors.red
+                    : Colors.grey, // Change color based on state
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildSummaryRow(String label, String value, IconData icon,
       {bool isTotal = false}) {
