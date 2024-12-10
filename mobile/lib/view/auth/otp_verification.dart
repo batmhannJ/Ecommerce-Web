@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:http/http.dart' as http;
+import 'package:indigitech_shop/view/cart_view.dart';
+import 'package:indigitech_shop/view/home/home_view.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:indigitech_shop/view/profile_view.dart';
+import 'package:indigitech_shop/view/address_view.dart'; // Import your AddressView
+
+
 
 class OTPVerificationScreen extends StatefulWidget {
   final String email;
@@ -22,38 +27,80 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   final _otpController = TextEditingController();
 
   Future<void> _verifyOTP() async {
-    String otp = _otpController.text.trim(); // Trim the OTP input
+  String otp = _otpController.text.trim(); // Trim the OTP input
 
-    if (otp.isNotEmpty) {
-      bool isVerified = await _verifyOTPRequest(widget.email, otp);
-      if (isVerified) {
-        // Call the onOTPVerified callback
-        widget.onOTPVerified();
+  if (otp.isNotEmpty) {
+    bool isVerified = await _verifyOTPRequest(widget.email, otp);
+    if (isVerified) {
+      // Redirect to HomeView after successful OTP verification
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
+      );
 
-        // Fetch userId after OTP verification
-        String? userId = await _fetchUserId(widget.email);
-        if (userId != null) {
-          // Store the user ID in local storage
-          await _storeUserId(userId);
+      // Call the onOTPVerified callback (optional, if needed elsewhere)
+      widget.onOTPVerified();
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ProfileView()), // Navigate to ProfileView
-          );
+      // Fetch userId after OTP verification
+      String? userId = await _fetchUserId(widget.email);
+      if (userId != null) {
+        // Store the user ID and other details in SharedPreferences
+        await _storeUserId(userId);
+        await _storeLoginStatus(true); // Set login status to true
+
+        // Optionally check if the user has an address set up
+        bool hasAddress = await _checkUserAddress(userId);
+        if (hasAddress) {
+          print("User has an address, proceed with the flow.");
+          // You can proceed with CartView or other logic here
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("User ID not found. Please try again.")),
-          );
+          print("User does not have an address, proceed to address setup.");
+          // You can display a notification or message about setting the address
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid OTP. Please try again.")),
+          const SnackBar(content: Text("User ID not found. Please try again.")),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter the OTP.")),
+        const SnackBar(content: Text("Invalid OTP. Please try again.")),
       );
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter the OTP.")),
+    );
+  }
+}
+
+
+  Future<void> _storeLoginStatus(bool isLoggedIn) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', isLoggedIn); // Store login status
+  print("Login status stored: $isLoggedIn"); // Debug line
+}
+
+Future<bool> _checkUserAddress(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:4000/check-user-address'), // Endpoint to check user address
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'userId': userId}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['hasAddress']; // Assuming the response contains this field
+      } else {
+        print("Error checking address: ${response.statusCode}, ${response.body}");
+        return false; // Return false if the request fails
+      }
+    } catch (e) {
+      print("Exception while checking address: $e");
+      return false; // Return false on exception
     }
   }
 
@@ -115,6 +162,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   Future<void> _storeUserId(String userId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', userId);
+    print("User ID stored: $userId"); // Debug line
   }
 
   @override
@@ -123,36 +171,92 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Verify OTP')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Enter the OTP sent to ${widget.email}",
-              style: const TextStyle(fontSize: 16),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text("Verify OTP"), // Title for the AppBar
+      backgroundColor: Colors.white, // AppBar background color
+      foregroundColor: Colors.black, // AppBar text color
+    ),
+    body: Center(
+      child: Card(
+        elevation: 5, // Card shadow elevation
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Rounded corners for the card
+        ),
+        color: Colors.white, // Card background color
+        margin: const EdgeInsets.symmetric(horizontal: 20), // Card margin
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36), // Padding inside the card
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center, // Center align text
+              children: [
+                Text(
+                  "Verify OTP", // Header text
+                  style: TextStyle(
+                    fontSize: 30, // Reduced font size for header
+                    fontWeight: FontWeight.normal, // Normal font weight
+                    color: Colors.black, // Header color
+                  ),
+                  textAlign: TextAlign.center, // Center align header text
+                ),
+                const SizedBox(height: 20), // Space between header and next text
+                Text(
+                  "Enter the OTP sent to ${widget.email}", // Instruction text
+                  style: TextStyle(
+                    fontSize: 16, // Instruction text font size
+                    color: Colors.black, // Instruction text color
+                  ),
+                  textAlign: TextAlign.center, // Center align instruction text
+                ),
+                const SizedBox(height: 20), // Space between instruction and input
+                TextField(
+                  controller: _otpController, // Controller for OTP input
+                  keyboardType: TextInputType.number, // Numeric keyboard for OTP
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(), // Border for the text field
+                    hintText: "OTP", // Hint text for the text field
+                    hintStyle: TextStyle(color: Colors.grey), // Hint text color
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey), // Border color when not focused
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue), // Border color when focused
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20), // Space between input and button
+                SizedBox(
+                  width: double.infinity, // Full-width button
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _verifyOTP(); // Call the verify function
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF778C62), // Logout button color
+                      foregroundColor: Colors.white, // Button text color
+                      minimumSize: Size(double.infinity, 50), // Reduced button height
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero, // No rounded corners
+                      ),
+                      textStyle: TextStyle(
+                           fontWeight: FontWeight.bold, // Button text weight
+                        fontSize: 14, // Reduced button text size
+                      ),
+                    ),
+                    child: const Text("Verify"), // Button text
+                  ),
+                ),
+                const SizedBox(height: 15), // Space below the button
+              ],
             ),
-            const Gap(20),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'OTP',
-              ),
-            ),
-            const Gap(20),
-            ElevatedButton(
-              onPressed: _verifyOTP, // Verify OTP on button press
-              child: const Text('Verify'),
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

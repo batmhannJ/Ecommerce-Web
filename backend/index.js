@@ -11,6 +11,7 @@ const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
 
 // import routes
+const superAdminRoutes = require("./routes/superAdminRoute");
 const adminRoutes = require("./routes/adminRoute");
 const orderRouter = require("./routes/orderRoute");
 const sellerRouter = require("./routes/sellerRoute");
@@ -20,6 +21,10 @@ const productRoute = require("./routes/productRoute");
 const cartRoute = require("./routes/cartRoute");
 const { signup } = require("./controllers/sellerController");
 const { getUsers } = require("./controllers/userController");
+const { searchAdmin } = require("./controllers/adminController");
+
+
+
 const { ObjectId } = require('mongodb');
 
 require("dotenv").config();
@@ -47,8 +52,26 @@ const sendEmail = async (to, subject, text) => {
     });
   });
 };
-
-app.use(cors());
+const allowedOrigins = [  
+  'http://localhost:3000', 
+  'http://localhost:28429',
+  'http://localhost:5173', 
+  'http://localhost:5174', 
+  'http://localhost:46631',
+  'http://localhost:47106',
+  'https://tienda-han.onrender.com',
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true // Allow credentials to be included in the request
+}));
 app.use(express.json());
 app.use("/api/transactions", transactionRoutes);
 app.use("/api", productRoute);
@@ -69,7 +92,7 @@ app.get("/api/transactions", (req, res) => {
   res.json({ message: "This is the transactions endpoint" });
 });
 app.get('/api/users/search', getUsers); // Define the route that uses getUsers
-
+app.get('/api/admin/search', searchAdmin);
 
 app.listen(port, (error) => {
   if (!error) {
@@ -93,7 +116,17 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Creating Upload Endpoints for Images
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Allow specified methods
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specified headers
+  next();
+});
 app.use("/images", express.static("upload/images"));
+app.use('/upload', express.static('upload'));
+app.use('/upload/images', express.static('upload/images'));
+
+
 
 app.post("/upload", upload.single("product"), (req, res) => {
   res.json({
@@ -1101,14 +1134,17 @@ app.get('/get-user-details/:id', async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const user = await Users.findById(userId).select('name email phone'); // Select only the needed fields
+    const user = await Users.findById(userId); // Select only the needed fields
 
     if (user) {
+      console.log(user);
       return res.status(200).json({
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          password: user.password,
       });
+      
     } else {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -1144,10 +1180,187 @@ app.get('/get-user-address/:id', async (req, res) => {
   }
 });
 
+app.post('/compare-password', async (req, res) => {
+  const { userId, oldPassword } = req.body;
+
+  try {
+    // Fetch the user by ID
+    const user = await Users.findById(userId);
+
+    if (user) {
+      // Directly compare plain text passwords
+      if (user.password === oldPassword) {
+        return res.status(200).json({ message: 'Password match' });
+      } else {
+        return res.status(400).json({ message: 'Old password is incorrect' });
+      }
+    } else {
+      return res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+app.post('/updatepassword-mobile/:id', async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.params.id;
+
+  try {
+    const user = await Users.findById(userId); // Find user by ID
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Directly update the password without hashing
+    user.password = newPassword; // Save new password as plaintext
+    await user.save();
+
+    return res.status(200).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Check user address endpoint
+app.post('/check-user-address', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await Users.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.address) {
+      return res.status(200).json({ addressExists: false, message: "No address found. Please set up your address first." });
+    }
+
+    return res.status(200).json({ addressExists: true, address: user.address });
+  } catch (error) {
+    console.error("Error checking user address:", error);
+    return res.status(500).json({ message: "Error checking user address" });
+  }
+});
+
+app.post('/updateStock', async (req, res) => {
+  console.log("Received body:", req.body); // Log the entire body
+  const { name, size } = req.body;
+  const quantity = Number(req.body.quantity); // Ensure quantity is a number
+
+  try {
+    // Define the field name for the selected size
+    let sizeField;
+    switch (size) {
+      case 'S':
+        sizeField = 's_stock';
+        break;
+      case 'M':
+        sizeField = 'm_stock';
+        break;
+      case 'L':
+        sizeField = 'l_stock';
+        break;
+      case 'XL':
+        sizeField = 'xl_stock';
+        break;
+      default:
+        return res.status(400).send("Invalid size selected.");
+    }
+
+    // Find the product by name
+    const product = await Product.findOne({ name: name });
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    // Build the update query to decrement the specific size stock
+    const updateQuery = { $inc: { [sizeField]: -quantity, stock: -quantity } };
+    console.log("Update query:", updateQuery); // Log the update query
+
+    // Perform the update
+    const updatedProduct = await Product.findOneAndUpdate(
+      { name: name }, // Find by name
+      updateQuery,
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Stock updated successfully", updatedProduct });
+  } catch (error) {
+    res.status(500).send("Error updating stock: " + error.message);
+  }
+});
+
+app.patch('/api/update-address/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { region, province, municipality, barangay, zip, street } = req.body;
+
+  try {
+    // Find the user by ID
+    const user = await Users.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update the address fields
+    user.address = {
+      region,
+      province,
+      municipality,
+      barangay,
+      zip,
+      street,
+    };
+
+    // Save the updated user information
+    await user.save();
+
+    res.status(200).json({ message: 'Address updated successfully', address: user.address });
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ message: 'Failed to update address', error });
+  }
+});
+
+app.get('/api/products/:productId', async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    // Use the 'id' field to find the product
+    const product = await Product.findOne({ id: productId });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/newproducts', async (req, res) => {
+  try {
+    const products = await Product.find({ available: true })
+      .sort({ date: -1 }) // Sort by date in descending order (latest first)
+      .limit(8); // Limit to 8 items
+    res.json(products); // Send the products as JSON
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+});
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);
+app.use("/api/superadmin", superAdminRoutes);
+app.use("/api/", superAdminRoutes);
 app.use("/api/seller", sellerRouter);
 app.use("/api", sellerRouter);
 app.use("/api", userRoutes);

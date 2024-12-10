@@ -303,7 +303,7 @@ const handleResetPassword = async (e) => {
               {passwordError && <p className="password-error">{passwordError}</p>}
             </div>
             <div>
-              <label>ID Picture (optional):</label>
+              <label>ID Picture (required):</label>
               <input
                 type="file"
                 name="idPicture"

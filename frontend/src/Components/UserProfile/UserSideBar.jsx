@@ -1,13 +1,15 @@
 import React from "react";
 import "./UserSideBar.css";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
 
 const UserSideBar = ({ activepage }) => {
   return (
     <div className="usersidebar">
-      <Link to="/user/accountsettings" className="stylenone">
-        <div className={`s1 ${activepage === "accountsettings" ? "active" : ""}`}>
+      <Link to="/user/accountsettings" className="stylenone1">
+        <div
+          className={`s1 ${activepage === "accountsettings" ? "active" : ""}`}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -26,8 +28,10 @@ const UserSideBar = ({ activepage }) => {
         </div>
       </Link>
 
-      <Link to="/user/changepassword" className="stylenone">
-        <div className={`s1 ${activepage === "changepassword" ? "active" : ""}`}>
+      <Link to="/user/changepassword" className="stylenone2">
+        <div
+          className={`s1 ${activepage === "changepassword" ? "active" : ""}`}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -51,7 +55,7 @@ const UserSideBar = ({ activepage }) => {
         </div>
       </Link>
 
-      <Link to="/user/address" className="stylenone">
+      <Link to="/user/address" className="stylenone3">
         <div className={`s1 ${activepage === "address" ? "active" : ""}`}>
           <svg
             xmlns="http://www.w3.org/2000/svg"

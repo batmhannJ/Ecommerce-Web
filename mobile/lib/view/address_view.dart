@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
+import 'package:indigitech_shop/model/product.dart';
+import 'package:indigitech_shop/view/checkout_view.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
+import 'package:indigitech_shop/view_model/cart_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:indigitech_shop/services/address_service.dart';
 import '../core/style/form_styles.dart';
 import '../widget/buttons/custom_filled_button.dart';
 import '../widget/form_fields/custom_text_form_field.dart';
+import 'package:indigitech_shop/view/cart_view.dart'; // Import your AddressView
 
 class AddressView extends StatefulWidget {
   const AddressView({super.key});
@@ -18,7 +22,8 @@ class AddressView extends StatefulWidget {
 }
 
 class _AddressViewState extends State<AddressView> {
-  final AddressService _addressService = AddressService('https://isaacdarcilla.github.io/philippine-addresses');
+  final AddressService _addressService =
+      AddressService('https://isaacdarcilla.github.io/philippine-addresses');
 
   List<dynamic> regions = [];
   List<dynamic> provinces = [];
@@ -39,57 +44,99 @@ class _AddressViewState extends State<AddressView> {
   @override
   void initState() {
     super.initState();
-    fetchAddressDetails();
-  }
+    final authViewModel = context.read<AuthViewModel>();
 
-  Future<void> fetchAddressDetails() async {
-    try {
-      regions = await _addressService.regions();
-      if (regions.isNotEmpty) {
-        setState(() {
-          selectedRegion = regions[0]['region_code'];
-        });
-        await fetchProvinces(selectedRegion!);
-      }
+    // Fetch and display user details
+    authViewModel.fetchUserDetails().then((_) {
+      setState(() {
+        final currentUser = authViewModel.user;
 
-      // Load existing user address details
-      final userAddress = context.read<AuthViewModel>().address;
+        _fullNameController.text =
+            currentUser?.name ?? ''; // Safe handling of null
+        _phoneNumberController.text =
+            currentUser?.phone ?? ''; // Safe handling of null
+        _emailController.text =
+            currentUser?.email ?? ''; // Safe handling of null
 
-        if (userAddress != null) {
-          // Access the properties of the user address
-          String fullName = userAddress.fullName;
-          String phoneNumber = userAddress.phoneNumber;
-          String province = userAddress.province;
-          String municipality = userAddress.municipality; // Use municipality if that's how it's defined
-          String barangay = userAddress.barangay;
-          String zip = userAddress.zip;
-          String street = userAddress.street;
+        print('Name: ${currentUser?.name}');
+        print('Phone: ${currentUser?.phone}');
+        print('Email: ${currentUser?.email}');
+      });
+    });
 
-        // Fetch provinces, cities, and barangays based on the existing address
+    // Fetch and display user address
+    authViewModel.fetchUserAddress().then((_) {
+      setState(() {
+        final userAddress = authViewModel.address;
+
+        _streetController.text =
+            userAddress?.street ?? ''; // Safe handling of null
+        _zipController.text = userAddress?.zip ?? ''; // Safe handling of null
+
+        // Update drop-downs for region, province, city, and barangay
+        selectedRegion = userAddress?.region;
+        selectedProvince = userAddress?.province;
+        selectedCity = userAddress?.municipality;
+        selectedBarangay = userAddress?.barangay;
+
+        // Fetch corresponding provinces, cities, and barangays based on address
+        if (selectedRegion != null) {
+          fetchProvinces(selectedRegion!);
+        }
         if (selectedProvince != null) {
-          await fetchProvinces(selectedRegion!);
+          fetchCities(selectedProvince!);
         }
         if (selectedCity != null) {
-          await fetchCities(selectedProvince!);
+          fetchBarangays(selectedCity!);
         }
-        if (selectedBarangay != null) {
-          await fetchBarangays(selectedCity!);
+        print('Street: ${userAddress?.street}');
+        print('Zip: ${userAddress?.zip}');
+      });
+    });
+
+    // Fetch regions initially
+    fetchRegions();
+  }
+
+  Future<void> fetchRegions() async {
+    try {
+      regions = await _addressService.regions();
+      setState(() {
+        // Clear the previous selections to avoid duplicates
+        if (selectedRegion != null &&
+            regions.any((region) => region['region_code'] == selectedRegion)) {
+          // Keep selectedRegion if it is still valid
+          selectedRegion = selectedRegion;
+        } else if (regions.isNotEmpty) {
+          // Reset selectedRegion to the first one if not valid
+          selectedRegion = regions[0]['region_code'];
+        } else {
+          selectedRegion = null; // Handle the case when there are no regions
         }
-      }
+      });
     } catch (error) {
-      print("Error fetching address details: $error");
+      print("Error fetching regions: $error");
     }
   }
 
   Future<void> fetchProvinces(String regionCode) async {
     try {
-      provinces = await _addressService.provinces(regionCode);
-      if (provinces.isNotEmpty) {
-        setState(() {
-          selectedProvince = provinces[0]['province_code'];
-        });
-        await fetchCities(selectedProvince!);
-      }
+      List<dynamic> fetchedProvinces =
+          await _addressService.provinces(regionCode);
+      setState(() {
+        provinces.clear(); // Clear previous provinces to avoid duplicates
+        provinces.addAll(fetchedProvinces);
+        // Reset selectedProvince if it's not found in the new list
+        if (provinces
+            .any((province) => province['province_code'] == selectedProvince)) {
+          // If selectedProvince exists in the new provinces
+          selectedProvince = selectedProvince;
+        } else {
+          selectedProvince = provinces.isNotEmpty
+              ? provinces[0]['province_code']
+              : null; // Default to first province
+        }
+      });
     } catch (error) {
       print("Error fetching provinces: $error");
     }
@@ -97,13 +144,24 @@ class _AddressViewState extends State<AddressView> {
 
   Future<void> fetchCities(String provinceCode) async {
     try {
-      cities = await _addressService.cities(provinceCode);
-      if (cities.isNotEmpty) {
-        setState(() {
-          selectedCity = cities[0]['city_code'];
-        });
-        await fetchBarangays(selectedCity!);
-      }
+      List<dynamic> fetchedCities = await _addressService.cities(provinceCode);
+      setState(() {
+        cities.clear(); // Clear previous cities to avoid duplicates
+        cities.addAll(fetchedCities);
+        // Reset selectedCity if it's not found in the new list
+        if (cities.any((city) => city['city_code'] == selectedCity)) {
+          // If selectedCity exists in the new cities
+          selectedCity = selectedCity;
+        } else {
+          selectedCity = cities.isNotEmpty
+              ? cities[0]['city_code']
+              : null; // Default to first city
+        }
+        // Fetch barangays based on the newly selected city
+        if (selectedCity != null) {
+          fetchBarangays(selectedCity!);
+        }
+      });
     } catch (error) {
       print("Error fetching cities: $error");
     }
@@ -111,11 +169,57 @@ class _AddressViewState extends State<AddressView> {
 
   Future<void> fetchBarangays(String cityCode) async {
     try {
-      barangays = await _addressService.barangays(cityCode);
-      setState(() {}); // Update UI after fetching barangays
+      List<dynamic> fetchedBarangays =
+          await _addressService.barangays(cityCode);
+      setState(() {
+        barangays.clear(); // Clear previous barangays to avoid duplicates
+        barangays.addAll(fetchedBarangays);
+        // Reset selectedBarangay if it's not found in the new list
+        if (barangays
+            .any((barangay) => barangay['brgy_code'] == selectedBarangay)) {
+          selectedBarangay = selectedBarangay; // Keep it as is if found
+        } else {
+          selectedBarangay = barangays.isNotEmpty
+              ? barangays[0]['brgy_code']
+              : null; // Default to first barangay
+        }
+      });
     } catch (error) {
       print("Error fetching barangays: $error");
     }
+  }
+
+  void _proceedToPayment() {
+    final authViewModel = context.read<AuthViewModel>();
+    final currentUser = authViewModel.user;
+    final userAddress = authViewModel.address;
+
+    authViewModel.isLoggedIn = true; // Gamitin ang setter para sa isLoggedIn
+
+    // Fetch the cart items from your CartViewModel or wherever you're managing cart state
+    final cartItems = context.read<CartViewModel>().items.map((entry) {
+      Product product =
+          entry.key; // Assuming this maps correctly to your data structure
+      int quantity = entry.value;
+      String selectedSize = ""; // Adjust according to your app's logic
+      return {
+        'name': product.name,
+        'selectedSize': selectedSize,
+        'quantity': quantity,
+      };
+    }).toList();
+
+    // Navigate to CheckoutView with the required parameters
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutView(
+          user: currentUser,
+          address: userAddress,
+          cartItems: cartItems, // Ensure cartItems is correctly passed
+        ),
+      ),
+    );
   }
 
   @override
@@ -128,102 +232,114 @@ class _AddressViewState extends State<AddressView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Contact", style: AppTextStyles.subtitle2.copyWith(color: AppColors.darkGrey)),
+              Text("Contact",
+                  style: AppTextStyles.subtitle2
+                      .copyWith(color: AppColors.darkGrey)),
               const Gap(5),
-              CustomTextFormField(controller: _fullNameController, formStyle: AppFormStyles.defaultFormStyle, height: 36, hintText: "Full Name"),
+              CustomTextFormField(
+                  controller: _fullNameController,
+                  formStyle: AppFormStyles.defaultFormStyle,
+                  height: 36,
+                  hintText: "Full Name"),
               const Gap(10),
-              CustomTextFormField(keyboardType: TextInputType.phone, controller: _phoneNumberController, formStyle: AppFormStyles.defaultFormStyle, height: 36, hintText: "Phone Number"),
+              CustomTextFormField(
+                  keyboardType: TextInputType.phone,
+                  controller: _phoneNumberController,
+                  formStyle: AppFormStyles.defaultFormStyle,
+                  height: 36,
+                  hintText: "Phone Number"),
               const Gap(15),
-              Text("Address", style: AppTextStyles.subtitle2.copyWith(color: AppColors.darkGrey)),
+              Text("Address",
+                  style: AppTextStyles.subtitle2
+                      .copyWith(color: AppColors.darkGrey)),
               const Gap(10),
 
               // Region Dropdown
+              // Region Dropdown
               DropdownButtonFormField(
                 value: selectedRegion,
-                items: regions.isNotEmpty
-                    ? regions.map((region) {
-                        return DropdownMenuItem(
-                          value: region['region_code'],
-                          child: Text(region['region_name']),
-                        );
-                      }).toList()
-                    : [DropdownMenuItem(child: Text('No regions available'))],
+                items: regions.map((region) {
+                  return DropdownMenuItem(
+                    value: region['region_code'],
+                    child: Text(region['region_name']),
+                  );
+                }).toList(),
                 onChanged: (value) {
                   setState(() {
                     selectedRegion = value as String?;
                     fetchProvinces(selectedRegion!);
                   });
                 },
-                decoration: InputDecoration(hintText: "Select Region"),
+                decoration: const InputDecoration(hintText: "Select Region"),
               ),
-              const Gap(10),
 
-              // Province Dropdown
               DropdownButtonFormField(
                 value: selectedProvince,
-                items: provinces.isNotEmpty
-                    ? provinces.map((province) {
-                        return DropdownMenuItem(
-                          value: province['province_code'],
-                          child: Text(province['province_name']),
-                        );
-                      }).toList()
-                    : [DropdownMenuItem(child: Text('No provinces available'))],
+                items: provinces.map((province) {
+                  return DropdownMenuItem(
+                    value: province['province_code'],
+                    child: Text(province['province_name']),
+                  );
+                }).toList(),
                 onChanged: (value) {
                   setState(() {
                     selectedProvince = value as String?;
-                    fetchCities(selectedProvince!);
+                    fetchCities(
+                        selectedProvince!); // Fetch cities based on selected province
                   });
                 },
-                decoration: InputDecoration(hintText: "Select Province"),
+                decoration: const InputDecoration(hintText: "Select Province"),
               ),
-              const Gap(10),
-
-              // City Dropdown
+// City Dropdown
               DropdownButtonFormField(
                 value: selectedCity,
-                items: cities.isNotEmpty
-                    ? cities.map((city) {
-                        return DropdownMenuItem(
-                          value: city['city_code'],
-                          child: Text(city['city_name']),
-                        );
-                      }).toList()
-                    : [DropdownMenuItem(child: Text('No cities available'))],
+                items: cities.map((city) {
+                  return DropdownMenuItem(
+                    value: city['city_code'],
+                    child: Text(city['city_name']),
+                  );
+                }).toList(),
                 onChanged: (value) {
                   setState(() {
                     selectedCity = value as String?;
-                    fetchBarangays(selectedCity!);
+                    fetchBarangays(
+                        selectedCity!); // Fetch barangays based on selected city
                   });
                 },
-                decoration: InputDecoration(hintText: "Select City"),
+                decoration: const InputDecoration(hintText: "Select City"),
               ),
-              const Gap(10),
 
-              // Barangay Dropdown
+// Barangay Dropdown
               DropdownButtonFormField(
                 value: selectedBarangay,
-                items: barangays.isNotEmpty
-                    ? barangays.map((barangay) {
-                        return DropdownMenuItem(
-                          value: barangay['brgy_code'],
-                          child: Text(barangay['brgy_name']),
-                        );
-                      }).toList()
-                    : [DropdownMenuItem(child: Text('No barangays available'))],
+                items: barangays.map((barangay) {
+                  return DropdownMenuItem(
+                    value: barangay['brgy_code'],
+                    child: Text(barangay['brgy_name']),
+                  );
+                }).toList(),
                 onChanged: (value) {
                   setState(() {
                     selectedBarangay = value as String?;
                   });
                 },
-                decoration: InputDecoration(hintText: "Select Barangay"),
+                decoration: const InputDecoration(hintText: "Select Barangay"),
               ),
+
               const Gap(10),
 
               // Zip Code and Street
-              CustomTextFormField(controller: _zipController, formStyle: AppFormStyles.defaultFormStyle, height: 36, hintText: "Zip Code"),
+              CustomTextFormField(
+                  controller: _zipController,
+                  formStyle: AppFormStyles.defaultFormStyle,
+                  height: 36,
+                  hintText: "Zip Code"),
               const Gap(10),
-              CustomTextFormField(controller: _streetController, formStyle: AppFormStyles.defaultFormStyle, height: 36, hintText: "Street Name, Building, House No."),
+              CustomTextFormField(
+                  controller: _streetController,
+                  formStyle: AppFormStyles.defaultFormStyle,
+                  height: 36,
+                  hintText: "Street Name, Building, House No."),
               const Gap(25),
 
               // Update Button
@@ -242,38 +358,53 @@ class _AddressViewState extends State<AddressView> {
                       selectedBarangay != null &&
                       _zipController.text.isNotEmpty &&
                       _streetController.text.isNotEmpty) {
-                    
                     // Update user details
                     context.read<AuthViewModel>().updateUser(
-                      name: _fullNameController.text,
-                      phone: _phoneNumberController.text,
-                      email: _emailController.text,
-                      context: context,
-                    );
+                          name: _fullNameController.text,
+                          phone: _phoneNumberController.text,
+                          email: _emailController.text,
+                          context: context,
+                        );
 
-                                // Update address details
-                  context.read<AuthViewModel>().updateAddress(
-                    fullName: _fullNameController.text, // Full name
-                    phoneNumber: _phoneNumberController.text, // Phone number
-                    province: selectedProvince ?? '', // Ensure province is a non-null value
-                    municipality: selectedCity ?? '', // Ensure city is a non-null value
-                    barangay: selectedBarangay ?? '', // Ensure barangay is a non-null value
-                    zip: _zipController.text, // Zip code
-                    street: _streetController.text, // Street address
-                  );
+                    // Update address details
+                    context.read<AuthViewModel>().updateAddress(
+                          region: selectedRegion ?? '',
+                          province: selectedProvince ??
+                              '', // Ensure province is a non-null value
+                          municipality: selectedCity ??
+                              '', // Ensure city is a non-null value
+                          barangay: selectedBarangay ??
+                              '', // Ensure barangay is a non-null value
+                          zip: _zipController.text, // Zip code
+                          street: _streetController.text, // Street address
+                        );
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Address Updated Successfully")),
+                      const SnackBar(
+                          content: Text("Address Updated Successfully")),
                     );
                   } else {
                     // Show an error message if required fields are missing
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Please fill all required fields")),
+                      const SnackBar(
+                          content: Text("Please fill all required fields")),
                     );
                   }
                 },
                 child: const Text("Update Address"),
               ),
+              // Proceed to Payment Button
+              /*const Gap(15),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed:
+                    _proceedToPayment, // Call the method to navigate to payment
+                child: const Text("Proceed to Payment"),
+              ),*/
             ],
           ),
         ),

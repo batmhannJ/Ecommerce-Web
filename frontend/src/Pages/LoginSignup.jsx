@@ -6,7 +6,6 @@ import ReCAPTCHA from "react-google-recaptcha";
 import "./CSS/LoginSignup.css";
 
 const LoginSignup = () => {
-
   const [recaptchaToken, setRecaptchaToken] = useState(null); // State to store reCAPTCHA token
 
   // Handler for when reCAPTCHA is completed
@@ -25,11 +24,11 @@ const LoginSignup = () => {
 
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({
-    username:"",
-    password:"",
-    email:"",
+    username: "",
+    password: "",
+    email: "",
     phone: "", // Add phone to formData
-    otp:"",
+    otp: "",
     newPassword: "",
     confirmPassword: "",
     agreed: false,
@@ -42,11 +41,11 @@ const LoginSignup = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-   // New state variable to handle password visibility
-   const [showPassword, setShowPassword] = useState(false);
-   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // New state variable to handle password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-   const togglePasswordVisibility = () => {
+  const togglePasswordVisibility = () => {
     console.log("Toggling password visibility");
     setShowPassword((prev) => !prev);
   };
@@ -55,7 +54,7 @@ const LoginSignup = () => {
     console.log("Toggling password visibility");
     setShowConfirmPassword((prev) => !prev);
   };
-  
+
   const changeHandler = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -64,8 +63,8 @@ const LoginSignup = () => {
     setFormData({ ...formData, agreed: !formData.agreed });
   };
 
-   // Send OTP to user's email
-   const sendOtp = async () => {
+  // Send OTP to user's email
+  const sendOtp = async () => {
     if (!formData.email) {
       toast.error("Please enter your email address.");
       return;
@@ -81,7 +80,7 @@ const LoginSignup = () => {
       const data = await response.json();
       if (data.success) {
         toast.success("OTP sent to your email.");
-        setOtpSent(true);  // Show the OTP input field
+        setOtpSent(true); // Show the OTP input field
         setEmailError(""); // Clear any previous errors
       } else {
         toast.error(data.errors);
@@ -152,7 +151,7 @@ const LoginSignup = () => {
       const data = await response.json();
       if (data.success) {
         toast.success("Password successfully changed!");
-        localStorage.setItem('auth-token', data.token);
+        localStorage.setItem("auth-token", data.token);
         window.location.replace("/");
       } else {
         toast.error(data.errors);
@@ -162,116 +161,118 @@ const LoginSignup = () => {
       toast.error("Failed to reset password.");
     }
   };
-  
-    // Send OTP for password reset
-    const sendPasswordResetEmail = async () => {
-      if (!emailForReset) {
-        toast.error("Please enter your email address.");
-        return;
-      }
-  
-      try {
-        const response = await fetch('http://localhost:4000/forgot-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailForReset }),
-        });
-  
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            toast.success("OTP sent to your email.");
-            setOtpSentForReset(true); // Show OTP input field for reset password
-          } else {
-            toast.error(data.errors);
-          }
+
+  // Send OTP for password reset
+  const sendPasswordResetEmail = async () => {
+    if (!emailForReset) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:4000/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailForReset }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.success("OTP sent to your email.");
+          setOtpSentForReset(true); // Show OTP input field for reset password
         } else {
-          const errorText = await response.text();
-          console.error("Error response:", errorText);
-          toast.error("Failed to send password reset email.");
+          toast.error(data.errors);
         }
-      } catch (error) {
-        console.error("Error sending reset password email:", error);
+      } else {
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
         toast.error("Failed to send password reset email.");
       }
-    };
-  
-    const handleResetPasswordFormChange = (e) => {
-      setResetPasswordForm({ ...resetPasswordForm, [e.target.name]: e.target.value });
-    };
+    } catch (error) {
+      console.error("Error sending reset password email:", error);
+      toast.error("Failed to send password reset email.");
+    }
+  };
 
-    const login = async () => {
-      if (!formData.agreed) {
-        toast.error("Please agree to the terms of use & privacy policy.", {
-          position: "top-left"
-        });
-        return;
-      }
-    
-      if (!recaptchaToken) {
-        toast.error("Please complete the CAPTCHA.", {
-          position: "top-left"
-        });
-        return;
-      }
-    
-      try {
-        const response = await fetch('http://localhost:4000/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            recaptchaToken: recaptchaToken,
-          }),
-        });
-    
-        const data = await response.json();
-        if (!data.success) {
-          toast.error(data.errors);
-        } else {
-          toast.success("Login successful!");
-          localStorage.setItem('auth-token', data.token); // Store token
-          localStorage.setItem('userId', data.userId); // Store user ID
-          window.location.replace("/");
-        }
-      } catch (error) {
-        console.error("Login failed:", error);
-        toast.error("An error occurred. Please try again.");
-      }
-    };    
+  const handleResetPasswordFormChange = (e) => {
+    setResetPasswordForm({
+      ...resetPasswordForm,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-    const signup = async () => {
-      if (!formData.agreed) {
-        toast.error("Please agree to the terms of use & privacy policy.", {
-          position: "top-left"
-        });
-        return;
-      }
-    
-      console.log("Signup Function Executed", formData);
-      let responseData;
-      await fetch('http://localhost:4000/signup', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-        .then((response) => response.json())
-        .then((data) => responseData = data);
-    
-      if (responseData.success) {
-        toast.success("Signup successful! Please log in.");
-        setState("Login"); // Switch to login state
+  const login = async () => {
+    if (!formData.agreed) {
+      toast.error("Please agree to the terms of use & privacy policy.", {
+        position: "top-left",
+      });
+      return;
+    }
+
+    if (!recaptchaToken) {
+      toast.error("Please complete the CAPTCHA.", {
+        position: "top-left",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:4000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          recaptchaToken: recaptchaToken,
+        }),
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        toast.error(data.errors);
       } else {
-        toast.error(responseData.errors, {
-          position: "top-left"
-        });
+        toast.success("Login successful!");
+        localStorage.setItem("auth-token", data.token); // Store token
+        localStorage.setItem("userId", data.userId); // Store user ID
+        window.location.replace("/");
       }
-    };
-    
+    } catch (error) {
+      console.error("Login failed:", error);
+      toast.error("An error occurred. Please try again.");
+    }
+  };
+
+  const signup = async () => {
+    if (!formData.agreed) {
+      toast.error("Please agree to the terms of use & privacy policy.", {
+        position: "top-left",
+      });
+      return;
+    }
+
+    console.log("Signup Function Executed", formData);
+    let responseData;
+    await fetch("http://localhost:4000/signup", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => response.json())
+      .then((data) => (responseData = data));
+
+    if (responseData.success) {
+      toast.success("Signup successful! Please log in.");
+      setState("Login"); // Switch to login state
+    } else {
+      toast.error(responseData.errors, {
+        position: "top-left",
+      });
+    }
+  };
 
   return (
     <div className="loginsignup">
@@ -300,129 +301,200 @@ const LoginSignup = () => {
                   type="text"
                   placeholder="Enter OTP"
                 />
-            <div className="password-container" style={{ position: 'relative' }}>
-                <input
-                   name="newPassword"
-                   value={resetPasswordForm.newPassword}
-                   onChange={handleResetPasswordFormChange}
-                   //type={showPassword ? "text" : "password"}
-                   placeholder="New Password"
-                />
-                <span
+                <div
+                  className="password-container"
+                  style={{ position: "relative" }}
+                >
+                  <input
+                    name="newPassword"
+                    value={resetPasswordForm.newPassword}
+                    onChange={handleResetPasswordFormChange}
+                    //type={showPassword ? "text" : "password"}
+                    placeholder="New Password"
+                  />
+                  <span
                     className="eye-icon"
                     onClick={togglePasswordVisibility}
                     style={{
-                        cursor: 'pointer',
-                        position: 'absolute',
-                        right: '10px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
+                      cursor: "pointer",
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
                     }}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}{" "}
+                    {/* Toggle eye icon */}
+                  </span>
+                </div>
+                {/* Confirm Password Input */}
+                <div
+                  className="password-container"
+                  style={{ position: "relative" }}
                 >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Toggle eye icon */}
-                </span>
-            </div>
-                 {/* Confirm Password Input */}
-            <div className="password-container" style={{ position: 'relative' }}>
-                <input
-                     name="confirmPassword"
-                     value={resetPasswordForm.confirmPassword}
-                     onChange={handleResetPasswordFormChange}
-                     //type={showPassword ? "text" : "password"}
-                     placeholder="Confirm Password"
-                />
-                <span
+                  <input
+                    name="confirmPassword"
+                    value={resetPasswordForm.confirmPassword}
+                    onChange={handleResetPasswordFormChange}
+                    //type={showPassword ? "text" : "password"}
+                    placeholder="Confirm Password"
+                  />
+                  <span
                     className="eye-icon"
                     onClick={toggleConfirmPasswordVisibility}
                     style={{
-                        cursor: 'pointer',
-                        position: 'absolute',
-                        right: '10px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
+                      cursor: "pointer",
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
                     }}
-                >
+                  >
                     {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-            </div>
-                <button onClick={verifyOtpAndResetPassword}>Reset Password</button>
+                  </span>
+                </div>
+                <button onClick={verifyOtpAndResetPassword}>
+                  Reset Password
+                </button>
               </>
             )}
-            <p onClick={() => setForgotPasswordMode(false)} className="loginsignup-login">
+            <p
+              onClick={() => setForgotPasswordMode(false)}
+              className="loginsignup-login"
+            >
               Back to Login
             </p>
           </div>
         ) : (
           <>
             <div className="loginsignup-fields">
-              {state === "Sign Up" ? <input name='username' value={formData.username} onChange={changeHandler} type="text" placeholder='Your Name' /> : null}
-              <input name='email' value={formData.email} onChange={changeHandler} type="email" placeholder='Email Address' />
-               {/* Phone number input field */}
-               {state === "Sign Up" && (
-    <input
-      name='phone'
-      value={formData.phone}
-      onChange={changeHandler}
-      type="text"
-      placeholder='Phone Number'
-    />
-  )}
-                     <div className="password-container" style={{ position: "relative" }}>
-                        <input
-                            name="password"
-                            value={formData.password}
-                            onChange={changeHandler}
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Password"
-                        />
-                        <span
-                            className="eye-icon"
-                            onClick={togglePasswordVisibility}
-                            style={{
-                                cursor: "pointer",
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                            }}
-                        >
-                            {showPassword ? <FaEyeSlash /> : <FaEye />}
-                        </span>
-                    </div>
+              {state === "Sign Up" ? (
+                <input
+                  name="username"
+                  value={formData.username}
+                  onChange={changeHandler}
+                  type="text"
+                  placeholder="Your Name"
+                />
+              ) : null}
+              <input
+                name="email"
+                value={formData.email}
+                onChange={changeHandler}
+                type="email"
+                placeholder="Email Address"
+              />
+              {/* Phone number input field */}
+              {state === "Sign Up" && (
+                <input
+                  name="phone"
+                  value={formData.phone}
+                  onChange={changeHandler}
+                  type="text"
+                  placeholder="Phone Number"
+                />
+              )}
+              <div
+                className="password-container"
+                style={{ position: "relative" }}
+              >
+                <input
+                  name="password"
+                  value={formData.password}
+                  onChange={changeHandler}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                />
+                <span
+                  className="eye-icon"
+                  onClick={togglePasswordVisibility}
+                  style={{
+                    cursor: "pointer",
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
 
-                    {otpSent && (
-                <input name='otp' value={formData.otp} onChange={changeHandler} type="text" placeholder='Enter OTP' />
+              {otpSent && (
+                <input
+                  name="otp"
+                  value={formData.otp}
+                  onChange={changeHandler}
+                  type="text"
+                  placeholder="Enter OTP"
+                />
               )}
             </div>
             {state === "Login" && (
               <>
                 <div className="recaptcha-container">
-                  <div className="recaptcha-description">Please verify you are human</div>
+                  <div className="recaptcha-description">
+                    Please verify you are human
+                  </div>
                   <ReCAPTCHA
                     sitekey="6LcCKEcqAAAAAF8ervh2kGqovSNLl1B9L02UZBhD"
                     onChange={onRecaptchaChange}
                   />
                 </div>
 
-                <p className="forgot-password" onClick={() => setForgotPasswordMode(true)}>
+                <p
+                  className="forgot-password"
+                  onClick={() => setForgotPasswordMode(true)}
+                >
                   Forgot Password?
                 </p>
               </>
             )}
 
-        <button onClick={() => { 
-          state === "Login" 
-            ? login()  // Only CAPTCHA verification for Login
-            : otpSent ? verifyOtp() : sendOtp();  // OTP verification for Sign Up
-        }}>Continue</button>
-        {state === "Sign Up" ? 
-          <p className="loginsignup-login">Already have an account? <span onClick={() => {setState("Login")}}>Login</span></p> 
-          : <p className="loginsignup-login">Create an account? <span onClick={() => {setState("Sign Up")}}>Sign Up</span></p>}
-        <div className="loginsignup-agree">
-          <input type="checkbox" name='agreed' checked={formData.agreed} onChange={checkboxHandler} />
-          <p>By continuing I agree to the terms of use & privacy policy</p>
-        </div>
-        </>
+            <button
+              onClick={() => {
+                state === "Login"
+                  ? login() // Only CAPTCHA verification for Login
+                  : otpSent
+                  ? verifyOtp()
+                  : sendOtp(); // OTP verification for Sign Up
+              }}
+            >
+              Continue
+            </button>
+            {state === "Sign Up" ? (
+              <p className="loginsignup-login">
+                Already have an account?{" "}
+                <span
+                  onClick={() => {
+                    setState("Login");
+                  }}
+                >
+                  Login
+                </span>
+              </p>
+            ) : (
+              <p className="loginsignup-login">
+                Create an account?{" "}
+                <span
+                  onClick={() => {
+                    setState("Sign Up");
+                  }}
+                >
+                  Sign Up
+                </span>
+              </p>
+            )}
+            <div className="loginsignup-agree">
+              <input
+                type="checkbox"
+                name="agreed"
+                checked={formData.agreed}
+                onChange={checkboxHandler}
+              />
+              <p>By continuing I agree to the terms of use & privacy policy</p>
+            </div>
+          </>
         )}
       </div>
     </div>

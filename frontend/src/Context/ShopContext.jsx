@@ -17,23 +17,22 @@ const ShopContextProvider = (props) => {
   const [users, setUser] = useState(null);
 
   const saveCartToDatabase = async () => {
-    const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem("userId");
     if (!userId) {
-      console.error('No user ID found in local storage. Cannot save cart.');
+      console.error("No user ID found in local storage. Cannot save cart.");
       return;
     }
-  
+
     try {
-      await axios.post('http://localhost:4000/api/cart', {
+      await axios.post("http://localhost:4000/api/cart", {
         userId,
-        cartItems // Ensure this reflects the updated cart items
+        cartItems, // Ensure this reflects the updated cart items
       });
       console.log("Cart saved to database successfully.");
     } catch (error) {
       console.error("Error saving cart to database:", error);
     }
   };
-  
 
   const calculateDeliveryFee = (distance) => {
     // Example logic for delivery fee
@@ -63,7 +62,7 @@ const ShopContextProvider = (props) => {
   // Fetch cart for the specific user
   useEffect(() => {
     const authToken = localStorage.getItem("auth-token");
-    const storedUserId = localStorage.getItem('userId');
+    const storedUserId = localStorage.getItem("userId");
 
     if (authToken && storedUserId) {
       setUserId(storedUserId); // Set the userId in state
@@ -71,30 +70,29 @@ const ShopContextProvider = (props) => {
     }
   }, []);
 
-useEffect(() => {
-  const fetchProducts = async () => {
-    const products = await fetchAllProducts();
-    setAll_Product(products);
-  };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const products = await fetchAllProducts();
+      setAll_Product(products);
+    };
 
-  fetchProducts();
+    fetchProducts();
 
-  const authToken = localStorage.getItem("auth-token");
-  if (authToken) {
-    fetch("http://localhost:4000/getcart", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        Authorization: `${authToken}`,
-        "Content-Type": "application/json",
-      },
-      body: "",
-    })
-      .then((response) => response.json())
-      .then((data) => setCartItems(data));
-  }
-}, []);
-
+    const authToken = localStorage.getItem("auth-token");
+    if (authToken) {
+      fetch("http://localhost:4000/getcart", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `${authToken}`,
+          "Content-Type": "application/json",
+        },
+        body: "",
+      })
+        .then((response) => response.json())
+        .then((data) => setCartItems(data));
+    }
+  }, []);
 
   const fetchAllProducts = async () => {
     try {
@@ -103,30 +101,32 @@ useEffect(() => {
         throw new Error("Failed to fetch products");
       }
       const allProducts = await response.json();
-  
+
       // Construct the full image URL for each product
-      const updatedProducts = allProducts.map(product => {
+      const updatedProducts = allProducts.map((product) => {
         // Determine which image to display: edited or main
-        const mainImage = product.image ? `http://localhost:4000/images/${product.image}` : null;
-        const editedImage = product.editedImage ? `http://localhost:4000/images/${product.editedImage}` : null; // Assuming editedImage is stored in the product object
-  
+        const mainImage = product.image
+          ? `http://localhost:4000/images/${product.image}`
+          : null;
+        const editedImage = product.editedImage
+          ? `http://localhost:4000/images/${product.editedImage}`
+          : null; // Assuming editedImage is stored in the product object
+
         // Choose the edited image if it exists; otherwise, use the main image
         const imageToDisplay = editedImage || mainImage;
-  
+
         return {
           ...product,
-          image: imageToDisplay // Set the selected image
+          image: imageToDisplay, // Set the selected image
         };
       });
-  
+
       return updatedProducts;
     } catch (error) {
       console.error("Error fetching products:", error);
       return [];
     }
   };
-  
-  
 
   const prepareOrderItems = async (cartItems) => {
     const allProducts = await fetchAllProducts();
@@ -150,35 +150,44 @@ useEffect(() => {
   // Function to fetch cart items for a specific user
   const fetchCartItems = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/cart/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth-token")}`
+      const response = await axios.get(
+        `http://localhost:4000/api/cart/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+          },
         }
-      });
+      );
       setCartItems(response.data.cartItems); // Assuming the API returns cartItems in response
     } catch (error) {
       console.error("Error fetching cart items:", error);
     }
   };
 
-
-  const addToCart = async (productId, selectedSize, adjustedPrice, quantity) => {
-    const userId = localStorage.getItem('userId'); // Make sure userId exists
+  const addToCart = async (
+    productId,
+    selectedSize,
+    adjustedPrice,
+    quantity
+  ) => {
+    const userId = localStorage.getItem("userId"); // Make sure userId exists
     if (!userId) {
-      console.error('No user ID found in local storage. Cannot add to cart.');
+      console.error("No user ID found in local storage. Cannot add to cart.");
       return;
     }
-  
+
     // First, get the existing cart
     try {
-      const response = await axios.get(`http://localhost:4000/api/cart/${userId}`);
-      const existingCart = response.data.cartItems;
-  
-      // Check if the product with the selected size already exists
-      const existingItemIndex = existingCart.findIndex(item => 
-        item.productId === productId && item.size === selectedSize
+      const response = await axios.get(
+        `http://localhost:4000/api/cart/${userId}`
       );
-  
+      const existingCart = response.data.cartItems;
+
+      // Check if the product with the selected size already exists
+      const existingItemIndex = existingCart.findIndex(
+        (item) => item.productId === productId && item.size === selectedSize
+      );
+
       if (existingItemIndex !== -1) {
         // Item exists, update the quantity
         existingCart[existingItemIndex].quantity += quantity;
@@ -188,140 +197,120 @@ useEffect(() => {
           productId,
           selectedSize: selectedSize, // Adjusted this line
           adjustedPrice: adjustedPrice,
-          quantity
+          quantity,
         });
       }
-  
+
       // Send the updated cart back to the server
-      await axios.post('http://localhost:4000/api/cart', {
+      await axios.post("http://localhost:4000/api/cart", {
         userId,
-        cartItems: existingCart
+        cartItems: existingCart,
       });
       console.log("Cart updated successfully in frontend"); // Debugging
-  
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        console.warn('Cart not found, creating a new one.');
+        console.warn("Cart not found, creating a new one.");
         // Create a new cart if it doesn't exist
-        await axios.post('http://localhost:4000/api/cart', {
+        await axios.post("http://localhost:4000/api/cart", {
           userId,
-          cartItems: [{
-            productId,
-            selectedSize: selectedSize,
-            adjustedPrice: adjustedPrice,
-            quantity
-          }]
+          cartItems: [
+            {
+              productId,
+              selectedSize: selectedSize,
+              adjustedPrice: adjustedPrice,
+              quantity,
+            },
+          ],
         });
       } else {
         console.error("Error fetching/updating cart in frontend:", error);
       }
     }
   };
-  
-  
 
   const updateQuantity = (key, newQuantity) => {
-    setCartItems(prevItems => {
+    setCartItems((prevItems) => {
       return {
         ...prevItems,
         [key]: {
           ...prevItems[key],
           quantity: newQuantity,
-        }
+        },
       };
     });
-};
+  };
 
-const removeFromCart = async (productId, selectedSize) => {
-  const userId = localStorage.getItem('userId');
+  const removeFromCart = async (productId, selectedSize) => {
+    const userId = localStorage.getItem("userId");
 
-  // Check if userId exists
-  if (!userId) {
-    console.error('No user ID found. Cannot remove item.');
-    return;
-  }
+    if (!userId) {
+      console.error("No user ID found.");
+      return;
+    }
 
-  const key = `${productId}_${selectedSize || 'N/A'}`; // Handle undefined size
-  console.log("Removing item with key:", key);
-  console.log("Cart Items:", cartItems);
+    try {
+      // Remove the item from cart (local state)
+      setCartItems((prevItems) =>
+        prevItems.filter(
+          (item) =>
+            !(
+              item.productId === Number(productId) &&
+              item.selectedSize === selectedSize
+            )
+        )
+      );
 
-  // Find the index of the item to remove based on productId and selectedSize
-  const itemIndex = cartItems.findIndex(item => {
-    console.log("Comparing with item:", item);
-    return item.productId === Number(productId) && item.selectedSize.toUpperCase() === selectedSize.toUpperCase();
-  });
+      // Send DELETE request to backend
+      await axios.delete(
+        `http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`
+      );
 
-  // Check if item is found in the cart
-  if (itemIndex === -1) {
-    console.error('Item not found in cart:', key);
-    return; // Exit if the item is not found
-  }
+      // Refetch the cart to ensure consistency
+      const response = await axios.get(
+        `http://localhost:4000/api/cart/${userId}`
+      );
+      setCartItems(response.data.cartItems);
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+    }
+  };
 
-  // Check the quantity of the item
-  const item = cartItems[itemIndex];
-  if (item.quantity > 1) {
-    // Reduce the quantity by one
-    setCartItems(prevItems => {
-      const updatedItems = prevItems.map((cartItem, index) => {
-        if (index === itemIndex) {
-          return { ...cartItem, quantity: cartItem.quantity - 1 }; // Decrease the quantity
-        }
-        return cartItem;
+  const clearCart = () => {
+    setCartItems({}); // Assuming you're using an object to store cart items by productId
+  };
+
+  const increaseItemQuantity = async (productId, selectedSize) => {
+    const userId = localStorage.getItem("userId");
+
+    // Check if userId exists
+    if (!userId) {
+      console.error("No user ID found. Cannot increase item quantity.");
+      return;
+    }
+
+    const key = `${productId}_${selectedSize || "N/A"}`; // Handle undefined size
+    console.log("Increasing quantity for item with key:", key);
+    console.log("Cart Items:", cartItems);
+
+    // Find the index of the item to update based on productId and selectedSize
+    const itemIndex = cartItems.findIndex((item) => {
+      return (
+        item.productId === Number(productId) &&
+        item.selectedSize.toUpperCase() === selectedSize.toUpperCase()
+      );
+    });
+
+    // If the item is found, increase the quantity
+    if (itemIndex !== -1) {
+      // Update the local state to increase the quantity
+      setCartItems((prevItems) => {
+        return prevItems.map((cartItem, index) => {
+          if (index === itemIndex) {
+            return { ...cartItem, quantity: cartItem.quantity + 1 }; // Increase the quantity
+          }
+          return cartItem;
+        });
       });
-      return updatedItems; // Return the updated items
-    });
-  } else {
-    // Remove item from local state if quantity is 1
-    setCartItems(prevItems => {
-      const updatedItems = prevItems.filter((_, index) => index !== itemIndex);
-      return updatedItems; // Return the updated items
-    });
-  }
-
-  // Update the database accordingly
-  try {
-    // If quantity was reduced, you may want to update the database with the new quantity
-    const newQuantity = item.quantity > 1 ? item.quantity - 1 : 0; // Update quantity for the database
-    const response = await axios.patch(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`, { quantity: newQuantity });
-    console.log("Cart updated in database successfully:", response.data);
-  } catch (error) {
-    console.error("Error updating cart in database:", error.response ? error.response.data : error.message);
-  }
-};
-
-const clearCart = () => {
-  setCartItems({}); // Assuming you're using an object to store cart items by productId
-};
-
-const increaseItemQuantity = async (productId, selectedSize) => {
-  const userId = localStorage.getItem('userId');
-
-  // Check if userId exists
-  if (!userId) {
-    console.error('No user ID found. Cannot increase item quantity.');
-    return;
-  }
-
-  const key = `${productId}_${selectedSize || 'N/A'}`; // Handle undefined size
-  console.log("Increasing quantity for item with key:", key);
-  console.log("Cart Items:", cartItems);
-
-  // Find the index of the item to update based on productId and selectedSize
-  const itemIndex = cartItems.findIndex(item => {
-    return item.productId === Number(productId) && item.selectedSize.toUpperCase() === selectedSize.toUpperCase();
-  });
-
-  // If the item is found, increase the quantity
-  if (itemIndex !== -1) {
-    // Update the local state to increase the quantity
-    setCartItems(prevItems => {
-      return prevItems.map((cartItem, index) => {
-        if (index === itemIndex) {
-          return { ...cartItem, quantity: cartItem.quantity + 1 }; // Increase the quantity
-        }
-        return cartItem;
-      });
-    });
 
     // Update the database
     try {
@@ -330,6 +319,65 @@ const increaseItemQuantity = async (productId, selectedSize) => {
       console.log("Cart updated in database successfully:", response.data);
     } catch (error) {
       console.error("Error updating cart in database:", error.response ? error.response.data : error.message);
+    }
+  } else {
+    console.error('Item not found in cart:', key);
+  }
+};
+
+const decreaseItemQuantity = async (productId, selectedSize) => {
+  const userId = localStorage.getItem('userId');
+
+  // Check if userId exists
+  if (!userId) {
+    console.error('No user ID found. Cannot decrease item quantity.');
+    return;
+  }
+
+  const key = `${productId}_${selectedSize || 'N/A'}`; // Handle undefined size
+  console.log("Decreasing quantity for item with key:", key);
+  console.log("Cart Items:", cartItems);
+
+  // Find the index of the item to update based on productId and selectedSize
+  const itemIndex = cartItems.findIndex(item => {
+    return item.productId === Number(productId) && item.selectedSize.toUpperCase() === selectedSize.toUpperCase();
+  });
+
+  // If the item is found, decrease the quantity
+  if (itemIndex !== -1) {
+    const currentQuantity = cartItems[itemIndex].quantity;
+
+    // Only decrease the quantity if it's greater than 1, otherwise remove the item
+    if (currentQuantity > 1) {
+      // Update the local state to decrease the quantity
+      setCartItems(prevItems => {
+        return prevItems.map((cartItem, index) => {
+          if (index === itemIndex) {
+            return { ...cartItem, quantity: cartItem.quantity - 1 }; // Decrease the quantity
+          }
+          return cartItem;
+        });
+      });
+
+      // Update the database
+      try {
+        const updatedQuantity = currentQuantity - 1; // New quantity to update in the database
+        const response = await axios.patch(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`, { quantity: updatedQuantity });
+        console.log("Cart updated in database successfully:", response.data);
+      } catch (error) {
+        console.error("Error updating cart in database:", error.response ? error.response.data : error.message);
+      }
+    } else {
+      // Remove the item if the quantity reaches 1 and user wants to decrease it
+      setCartItems(prevItems => prevItems.filter((_, index) => index !== itemIndex));
+
+      // Remove item from the database
+      try {
+        const response = await axios.delete(`http://localhost:4000/api/cart/${userId}/${productId}?selectedSize=${selectedSize}`);
+        console.log("Item removed from cart in database successfully:", response.data);
+      } catch (error) {
+        console.error("Error removing item from cart in database:", error.response ? error.response.data : error.message);
+      }
     }
   } else {
     console.error('Item not found in cart:', key);
@@ -358,7 +406,7 @@ const increaseItemQuantity = async (productId, selectedSize) => {
     return totalItem;
   };
 
-  const [userId, setUserId] = useState(localStorage.getItem('userId')); // Initialize from localStorage
+  const [userId, setUserId] = useState(localStorage.getItem("userId")); // Initialize from localStorage
 
   const contextValue = {
     getTotalCartAmount,
@@ -378,6 +426,7 @@ const increaseItemQuantity = async (productId, selectedSize) => {
     setCartItems,
     saveCartToDatabase,
     clearCart,
+    decreaseItemQuantity,
     increaseItemQuantity
   };
 

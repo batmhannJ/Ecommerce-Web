@@ -1,8 +1,8 @@
 // controllers/sellerController.js
-const Seller = require('../models/sellerModels');
-const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
+const Seller = require("../models/sellerModels");
+const jwt = require("jsonwebtoken");
+const { validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
 
 // Signup Controller
 const signup = async (req, res) => {
@@ -10,7 +10,7 @@ const signup = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     // Extract error messages
-    const extractedErrors = errors.array().map(err => err.msg);
+    const extractedErrors = errors.array().map((err) => err.msg);
     return res.status(400).json({ success: false, errors: extractedErrors });
   }
 
@@ -20,12 +20,19 @@ const signup = async (req, res) => {
     // Check for existing seller
     let existingSeller = await Seller.findOne({ email });
     if (existingSeller) {
-      return res.status(400).json({ success: false, errors: ['Seller already exists with this email.'] });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          errors: ["Seller already exists with this email."],
+        });
     }
 
     // Validate that all fields are provided
     if (!req.file) {
-      return res.status(400).json({ success: false, errors: ['ID Picture is required.'] });
+      return res
+        .status(400)
+        .json({ success: false, errors: ["ID Picture is required."] });
     }
 
     // Hash the password before saving
@@ -43,10 +50,15 @@ const signup = async (req, res) => {
 
     await newSeller.save();
 
-    res.status(201).json({ success: true, data: 'Seller registered successfully! Waiting for admin approval.' });
+    res
+      .status(201)
+      .json({
+        success: true,
+        data: "Seller registered successfully! Waiting for admin approval.",
+      });
   } catch (error) {
-    console.error('Signup Controller Error:', error); // Enhanced error logging
-    res.status(500).json({ success: false, errors: ['Server error.'] });
+    console.error("Signup Controller Error:", error); // Enhanced error logging
+    res.status(500).json({ success: false, errors: ["Server error."] });
   }
 };
 
@@ -54,24 +66,30 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // Find the seller by email
     const seller = await Seller.findOne({ email });
-    
+
     // Check if seller exists
     if (!seller) {
-      return res.status(404).json({ success: false, message: "Seller not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found." });
     }
 
     // Check if the seller is approved
     if (!seller.isApproved) {
-      return res.status(403).json({ success: false, message: "Seller is not approved." });
+      return res
+        .status(403)
+        .json({ success: false, message: "Seller is not approved." });
     }
 
     // Validate password (assuming you have a method to compare passwords)
     const isMatch = await seller.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ success: false, message: "Invalid credentials." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials." });
     }
 
     // Create a token or session and send response
@@ -88,8 +106,8 @@ const getPendingSellers = async (req, res) => {
     const pendingSellers = await Seller.find({ isApproved: false });
     res.status(200).json(pendingSellers);
   } catch (error) {
-    console.error('Error fetching pending sellers:', error);
-    res.status(500).json({ success: false, message: 'Server error.' });
+    console.error("Error fetching pending sellers:", error);
+    res.status(500).json({ success: false, message: "Server error." });
   }
 };
 
@@ -115,17 +133,15 @@ const updateSeller = async (req, res) => {
     );
 
     if (!updatedSeller) {
-      return res.status(404).json({ message: 'Seller not found' });
+      return res.status(404).json({ message: "Seller not found" });
     }
 
     console.log("Seller updated successfully:", updatedSeller); // Log updated seller
     res.json(updatedSeller);
   } catch (error) {
     console.error("Error updating seller:", error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 module.exports = { signup, login, getPendingSellers, updateSeller };

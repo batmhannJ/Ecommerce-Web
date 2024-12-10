@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide CarouselController;
 import 'package:flutter/widgets.dart';
-import 'package:indigitech_shop/core/style/colors.dart';
-import 'package:indigitech_shop/core/style/text_styles.dart';
 
 class ImageCarousel extends StatefulWidget {
   final List<Image> images;

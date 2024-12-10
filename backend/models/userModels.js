@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema({
     region: String,
     zip: String,
     country: { type: String, default: "Philippines" },
-},
+  },
   cartData: {
     type: Object,
   },

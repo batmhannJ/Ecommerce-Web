@@ -13,12 +13,14 @@ exports.createOrderedList = async (req, res) => {
 
 exports.getOrderedList = async (req, res) => {
   try {
-    const orders = await Order.find({})
-      .populate('buyer', 'firstName lastName contact address'); // Populate the buyer fields with necessary info
+    const orders = await Order.find({}).populate(
+      "buyer",
+      "firstName lastName contact address"
+    ); // Populate the buyer fields with necessary info
 
-    res.json({ 
-      success: true, 
-      data: orders // Include user details with orders
+    res.json({
+      success: true,
+      data: orders, // Include user details with orders
     });
   } catch (error) {
     console.log(error);

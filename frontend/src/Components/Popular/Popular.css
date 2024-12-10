@@ -24,8 +24,8 @@
 }
 
 .popular-item {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
   gap: 30px;
   justify-content: center;
 }
@@ -47,6 +47,7 @@
 
   .popular-item {
     gap: 20px;
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
   }
 }
 
@@ -67,6 +68,7 @@
 
   .popular-item {
     gap: 15px;
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
   }
 }
 
@@ -82,10 +84,12 @@
 
   .popular hr {
     width: 60px;
+    height: 2px;
   }
 
   .popular-item {
     gap: 10px;
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
   }
 }
 
@@ -97,8 +101,7 @@
   }
 
   .popular-item {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
 }

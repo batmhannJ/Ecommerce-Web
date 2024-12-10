@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:indigitech_shop/products.dart';
 import 'package:indigitech_shop/widget/product_list.dart';
-
-import '../../../products.dart';
+import 'package:indigitech_shop/model/product.dart'; // Adjust based on your project structure
+import 'package:indigitech_shop/services/product_api_service.dart'; // Adjust based on your project structure
 
 class ClothesTabView extends StatefulWidget {
   const ClothesTabView({super.key});
@@ -12,56 +13,81 @@ class ClothesTabView extends StatefulWidget {
 
 class _ClothesTabViewState extends State<ClothesTabView>
     with AutomaticKeepAliveClientMixin {
-  @override
-Widget build(BuildContext context) {
-  super.build(context);
+  List<Product> products = []; // Store fetched products
+  bool isLoading = true; // Loading state
 
-  return SingleChildScrollView(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center, // Center align items
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0), // Vertical padding
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9, // Set width to 90% of screen width
-            height: 50.0, // Set a specific height for the container
-            decoration: BoxDecoration(
-              color: Colors.white, // Set container color to white
-              borderRadius: BorderRadius.circular(10.0), // Reduced border radius
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1), // Lighten the shadow color
-                  blurRadius: 5.0, // Reduced blur radius
-                  offset: const Offset(0, 2), // Adjusted shadow offset
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(10.0), // Padding around the text
-            child: Center( // Center the text within the container
-              child: Text(
-                'CLOTHES',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith( // Use titleLarge for Flutter 3.0+
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black, // Change text color to black for contrast
-                  fontSize: 24.0, // Maintain the original font size
+  @override
+  void initState() {
+    super.initState();
+    fetchAllProducts(); // Fetch products when the widget initializes
+  }
+
+  Future<void> fetchAllProducts() async {
+    try {
+      products = await fetchProducts(); // Call the fetchProducts function
+      setState(() {
+        isLoading = false; // Update loading state
+      });
+    } catch (e) {
+      // Handle any errors here, e.g., show a message to the user
+      print('Error fetching products: $e');
+      setState(() {
+        isLoading = false; // Stop loading even if there's an error
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: 50.0,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 5.0,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(10.0),
+              child: Center(
+                child: Text(
+                  'CLOTHES',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 24.0,
+                      ),
                 ),
               ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0), // Horizontal padding for ProductList
-          child: ProductList(
-            products: products
-                .where((element) => element.category == "clothes")
-                .toList(),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
+          isLoading
+              ? Center(child: CircularProgressIndicator()) // Show loading indicator
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ProductList(
+                    products: products
+                        .where((element) => element.category == "clothes")
+                        .toList(),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
 
   @override
   bool get wantKeepAlive => true;

@@ -52,7 +52,8 @@
     width: 220px;
   }
 
-  .item_price_new, .item_price_old {
+  .item_price_new,
+  .item_price_old {
     font-size: 14px;
   }
 
@@ -66,7 +67,8 @@
     width: 170px;
   }
 
-  .item_price_new, .item_price_old {
+  .item_price_new,
+  .item_price_old {
     font-size: 13px;
   }
 
@@ -80,7 +82,8 @@
     width: 120px;
   }
 
-  .item_price_new, .item_price_old {
+  .item_price_new,
+  .item_price_old {
     font-size: 12px;
   }
 
@@ -94,7 +97,8 @@
     width: 160px;
   }
 
-  .item_price_new, .item_price_old {
+  .item_price_new,
+  .item_price_old {
     font-size: 12px;
   }
 

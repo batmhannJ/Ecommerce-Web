@@ -55,10 +55,26 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return DefaultViewLayout(
-      title: "Account Settings",
-      content: Form(
+Widget build(BuildContext context) {
+  return DefaultViewLayout(
+    title: "Account Settings",
+    content: Container(
+      // Container for the main card style
+      decoration: BoxDecoration(
+        color: Colors.white, // White background
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1), // Subtle shadow
+            spreadRadius: 2,
+            blurRadius: 15,
+            offset: Offset(0, 4), // Shadow position
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(30), // Padding around the container
+      margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 24), // Centered with margins
+      child: Form(
         onChanged: () {
           setState(() {
             currentName = _nameController.text;
@@ -67,22 +83,31 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
           });
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Personal Information",
-                style: AppTextStyles.subtitle2.copyWith(color: AppColors.darkGrey),
+              Center(
+                child: Text(
+                  "Personal Information",
+                  style: AppTextStyles.subtitle2.copyWith(
+                    color: AppColors.black,
+                    fontSize: 28, // Title size slightly smaller for balance
+                    fontWeight: FontWeight.bold, // Bold title
+                  ),
+                ),
               ),
-              const Gap(10),
+              const SizedBox(height: 25),
+              
+              // Name Field
               CustomTextFormField(
                 controller: _nameController,
                 formStyle: AppFormStyles.defaultFormStyle,
                 height: 48,
                 hintText: "Your Name",
               ),
-              const Gap(20),
+              const SizedBox(height: 20),
+              
+              // Phone Field
               CustomTextFormField(
                 keyboardType: TextInputType.phone,
                 controller: _phoneController,
@@ -90,7 +115,9 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                 height: 48,
                 hintText: "Phone or Mobile",
               ),
-              const Gap(20),
+              const SizedBox(height: 20),
+              
+              // Email Field
               CustomTextFormField(
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
@@ -98,7 +125,9 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                 height: 48,
                 hintText: "Email",
               ),
-              const Gap(30),
+              const SizedBox(height: 30),
+
+              // Update Button
               Row(
                 children: [
                   Expanded(
@@ -120,7 +149,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                         Navigator.of(context).pop();
                       },
                       height: 48,
-                      fillColor: AppColors.black,
+                      fillColor: Color(0xFF778C62), // Maroon color for the button
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                   ),
@@ -130,6 +159,8 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

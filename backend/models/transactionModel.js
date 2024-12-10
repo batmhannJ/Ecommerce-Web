@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const transactionSchema = new mongoose.Schema({
   date: { type: Date, required: true },
@@ -13,4 +13,4 @@ const transactionSchema = new mongoose.Schema({
   userId: { type: String, required: true },
 });
 
-module.exports = mongoose.model('Transaction', transactionSchema);
+module.exports = mongoose.model("Transaction", transactionSchema);

@@ -1,7 +1,7 @@
 .loginsignup {
   width: 100%;
   height: 100vh;
-  background-image: url('../../Components/Assets/tlogo.png');
+  background-image: url("../../Components/Assets/tlogo.png");
   background-size: cover;
   background-position: center;
   display: flex;
@@ -32,10 +32,9 @@
   border-radius: 10px;
   padding: 30px 40px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  position: relative;
-  display: flex; /* Added for flexbox layout */
-  flex-direction: column; /* Stacks children vertically */
-  align-items: stretch; /* Allows children to stretch */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .loginsignup-container h1 {
@@ -75,7 +74,7 @@
   width: 100%;
   height: 50px;
   color: white;
-  background: #BAC195;
+  background: #bac195;
   margin-top: 20px;
   border: none;
   font-size: 20px;
@@ -124,58 +123,82 @@
 
 /* reCAPTCHA styling */
 .recaptcha-container {
-  margin-top: 10px; /* Increase margin-top for more space above */
+  margin-top: 10px;
   margin-bottom: 10px;
   display: flex;
-  flex-direction: column; /* Allow items to stack vertically */
+  flex-direction: column;
   align-items: center; /* Center align items */
+  width: 100%; /* Ensure full width for responsive layout */
 }
 
-/* Adjusts the size and appearance of the reCAPTCHA widget */
 .recaptcha-container .g-recaptcha {
-  margin-top: 5px; /* Space above the widget */
-  transform: scale(0.9); /* Scale down the reCAPTCHA widget */
-  transform-origin: 0 0; /* Adjust origin for scaling */
-  width: 100%; /* Make it responsive */
-  max-width: 300px; /* Limit max width for larger screens */
-}
-
-/* Optional styling for a label or description */
-.recaptcha-description {
-  color: #5c5c5c;
-  font-size: 14px;
-  text-align: center; /* Center-align the text */
-  margin-bottom: 10px; /* Space below the description */
+  margin-top: 5px;
+  transform: scale(0.9); /* Adjust scaling for a less compact appearance */
+  transform-origin: top left; /* Keep the scaling origin at the top left */
+  width: 100%; /* Use full width */
+  max-width: 400px; /* Limit max width for larger screens */
+  height: 100px; /* Set a height that keeps it rectangular */
 }
 
 /* Media queries for responsiveness */
+@media (max-width: 768px) {
+  .recaptcha-container .g-recaptcha {
+    max-width: 90%; /* Responsive adjustment for medium screens */
+    transform: scale(0.8); /* Adjust scaling for medium screens */
+    height: 80px; /* Adjust height for medium screens */
+  }
+}
+
+@media (max-width: 576px) {
+  .recaptcha-container .g-recaptcha {
+    max-width: 80%; /* Further adjust max width for very small screens */
+    transform: scale(0.7); /* Further adjust scaling for smaller screens */
+    height: 70px; /* Adjust height for smaller screens */
+  }
+}
+
+.recaptcha-description {
+  color: #5c5c5c;
+  font-size: 14px; /* Maintain readable font size */
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+
+/* Media queries for responsiveness */
+@media (max-width: 576px) {
+  .recaptcha-container .g-recaptcha {
+    max-width: 90%; /* Adjust max-width for smaller screens */
+  }
+}
+/* Media queries for responsiveness */
 @media (max-width: 1280px) {
   .loginsignup-container {
-    max-width: 90%; /* Adjust width for smaller screens */
-    padding: 20px; /* Add padding for small screens */
+    max-width: 100%;
+    padding: 20px;
   }
 
   .loginsignup-container h1 {
-    font-size: 24px; /* Adjust font size */
+    font-size: 24px;
   }
 
   .loginsignup-fields input {
-    height: 50px; /* Maintain height */
+    height: 50px;
   }
 
   .loginsignup-container button {
-    font-size: 18px; /* Adjust button font size */
+    font-size: 18px;
   }
 
   .loginsignup-login,
   .loginsignup-agree {
-    font-size: 14px; /* Adjust font size */
+    font-size: 14px;
   }
 }
 
 @media (max-width: 992px) {
   .loginsignup-container {
-    width: 80%;
+    width: 100%;
     padding: 20px;
   }
 
@@ -185,10 +208,6 @@
 
   .loginsignup-fields {
     margin-top: 15px;
-  }
-
-  .loginsignup-fields input {
-    height: 50px; /* Maintain height */
   }
 
   .loginsignup-container button {
@@ -204,53 +223,53 @@
 
   .loginsignup-container {
     max-width: 95%;
-    padding: 20px; /* Add padding for small screens */
+    padding: 20px;
   }
 
   .loginsignup-container h1 {
-    font-size: 20px; /* Adjust font size */
+    font-size: 20px;
   }
 
   .loginsignup-fields input {
-    height: 45px; /* Adjust height */
+    height: 45px;
   }
 
   .loginsignup-container button {
-    height: 45px; /* Adjust button height */
-    font-size: 14px; /* Adjust button font size */
+    height: 45px;
+    font-size: 14px;
   }
 
   .loginsignup-login,
   .loginsignup-agree {
-    font-size: 14px; /* Adjust font size */
+    font-size: 14px;
   }
 }
 
 @media (max-width: 576px) {
   .loginsignup {
-    padding: 0 10px; /* Add padding for small screens */
+    padding: 0 10px;
   }
 
   .loginsignup-container {
     max-width: 100%;
-    padding: 15px; /* Adjust padding */
+    padding: 15px;
   }
 
   .loginsignup-container h1 {
-    font-size: 18px; /* Adjust font size */
+    font-size: 18px;
   }
 
   .loginsignup-fields input {
-    height: 40px; /* Adjust height */
+    height: 40px;
   }
 
   .loginsignup-container button {
-    height: 40px; /* Adjust button height */
-    font-size: 12px; /* Adjust button font size */
+    height: 40px;
+    font-size: 12px;
   }
 
   .loginsignup-login,
   .loginsignup-agree {
-    font-size: 12px; /* Adjust font size */
+    font-size: 12px;
   }
 }

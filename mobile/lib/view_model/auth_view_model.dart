@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../model/user.dart';
 import 'package:http/http.dart' as http;
@@ -25,12 +24,35 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  String? regionName;
+  String? provinceName;
+  String? cityName;
+  String? barangayName;
+
+  Future<void> logins() async {
+    // Simulate a login process (e.g., API call)
+    await Future.delayed(Duration(seconds: 2)); // Simulate a delay
+    _isLoggedIn = true; // Set logged in state after a successful login
+    notifyListeners(); // Notify listeners of the change
+  }
+
+  set isLoggedIn(bool value) {
+    _isLoggedIn = value; // Setter for isLoggedIn
+    notifyListeners(); // Notify listeners if you're using ChangeNotifier
+  }
+
   void setUser(User newUser) {
     _user = newUser;
     notifyListeners();
   }
 
-  void setAddress(Address newAddress) { // Method to set the address
+  void setUserId(String id) {
+    _userId = id;
+    notifyListeners();
+  }
+
+  void setAddress(Address newAddress) {
+    // Method to set the address
     _address = newAddress;
     notifyListeners();
   }
@@ -70,7 +92,8 @@ class AuthViewModel extends ChangeNotifier {
           notifyListeners();
           _showSnackBar(context, 'User details updated successfully.');
         } else {
-          _showSnackBar(context, 'Failed to update user. Please try again.', isSuccess: false);
+          _showSnackBar(context, 'Failed to update user. Please try again.',
+              isSuccess: false);
         }
       } catch (e) {
         _showSnackBar(context, 'Error updating user: $e', isSuccess: false);
@@ -78,48 +101,45 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  void _showSnackBar(BuildContext context, String message, {bool isSuccess = true}) {
+  void _showSnackBar(BuildContext context, String message,
+      {bool isSuccess = true}) {
     final snackBar = SnackBar(
       content: Text(message),
-      backgroundColor: isSuccess ? Colors.green : Colors.red, // Green for success, red for error
+      backgroundColor: isSuccess
+          ? Colors.green
+          : Colors.red, // Green for success, red for error
       duration: const Duration(seconds: 3), // Duration of the SnackBar
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  Future<void> updateAddress({
-    required String fullName,
-    required String phoneNumber,
+  Future<bool> updateAddress({
+    required String region,
     required String province,
-    required String municipality, // Change `city` to `municipality`
+    required String municipality,
     required String barangay,
-    required String zip, // Change `postalCode` to `zip`
+    required String zip,
     required String street,
   }) async {
     // Validate that user is logged in
     if (_user != null) {
-      // Create a new Address instance with the provided data
       final newAddress = Address(
-        fullName: fullName,
-        phoneNumber: phoneNumber,
+        region: region,
         province: province,
-        municipality: municipality, // Use municipality instead of city
+        municipality: municipality,
         barangay: barangay,
-        zip: zip, // Use zip instead of postalCode
-        street: street, // Assuming street corresponds to line1
+        zip: zip,
+        street: street,
       );
 
-      // Update the address
-      _address = newAddress; 
-      notifyListeners(); 
+      _address = newAddress;
+      notifyListeners();
 
-      // Send the updated address to your backend
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? userId = prefs.getString('userId');
-
       final url = 'http://localhost:4000/api/update-address/$userId';
-      final addressData = newAddress.toJson(); // Ensure Address class has a toJson method
+      final addressData = newAddress.toJson();
 
       try {
         final response = await http.patch(
@@ -130,14 +150,18 @@ class AuthViewModel extends ChangeNotifier {
 
         if (response.statusCode == 200) {
           print('Address updated successfully.');
+          return true; // Return true on success
         } else {
           print('Failed to update address: ${response.body}');
+          return false; // Return false on failure
         }
       } catch (e) {
         print('Error updating address: $e');
+        return false; // Return false on error
       }
     } else {
       print('User not logged in. Cannot update address.');
+      return false; // Return false if the user is not logged in
     }
   }
 
@@ -147,36 +171,11 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // Method to change the password
-  Future<void> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  }) async {
-    // Simulate checking the old password
-    if (_currentPassword == null || _currentPassword != oldPassword) {
-      throw Exception("Old password is incorrect");
-    }
-
-    // Simulate changing the password (here you would make an API call)
-    try {
-      // Update the current password
-      _currentPassword = newPassword;
-
-      // Simulate a successful API response
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Notify listeners about the state change if needed
-      notifyListeners();
-      print("Password changed successfully!");
-    } catch (error) {
-      // Handle any errors that occur during the password change
-      print("Error changing password: $error");
-      throw Exception("Failed to change password");
-    }
-  }
 
   Future<void> fetchUserDetails() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId'); // Ensure you retrieve the user ID
+    String? userId =
+        prefs.getString('userId'); // Ensure you retrieve the user ID
 
     if (userId != null) {
       try {
@@ -187,7 +186,8 @@ class AuthViewModel extends ChangeNotifier {
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           setUser(User.fromJson(data)); // Set the user correctly
-          print('User fetched: ${data.toString()}'); // Debugging line
+          print(
+              'User fetched: ${data.toString()}'); // Include user ID in the output
         } else {
           print('Failed to load user details');
         }
@@ -230,6 +230,41 @@ class AuthViewModel extends ChangeNotifier {
     } else {
       print('User ID is null, cannot fetch user address');
       setAddress(Address()); // Set to empty Address if user ID is null
+    }
+  }
+
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    if (_userId == null) {
+      throw Exception("User ID is not set");
+    }
+
+    // Simulate checking the old password locally (optional, could rely on backend)
+    if (_currentPassword != oldPassword) {
+      throw Exception("Old password is incorrect");
+    }
+
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('userId');
+      final response = await http.post(
+        Uri.parse('http://localhost:4000/updatepassword-mobile/$userId'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'password': newPassword}),
+      );
+
+      if (response.statusCode == 200) {
+        _currentPassword = newPassword;
+        notifyListeners();
+        print("Password changed successfully!");
+      } else {
+        throw Exception("Failed to change password");
+      }
+    } catch (error) {
+      print("Error changing password: $error");
+      throw Exception("Error during password change");
     }
   }
 }

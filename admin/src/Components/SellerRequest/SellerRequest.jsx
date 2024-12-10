@@ -1,7 +1,7 @@
 // src/Components/SellerRequest/SellerRequest.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import UserSearchBar from "../SearchBar/SearchBar";
+import SellerSearchBar from "../SearchBar/SellerSearchBar";
 import { toast } from "react-toastify";
 import "./SellerRequest.css";
 //import "./ViewUserModal.css";
@@ -11,6 +11,7 @@ function SellerRequest() {
   const [loading, setLoading] = useState(false);
   const [approving, setApproving] = useState(false);
   const [error, setError] = useState(null);
+  const [originalSellers, setOriginalSellers] = useState([]); // To keep original seller data
 
   const adminToken = localStorage.getItem("admin_token"); // Ensure the key matches when storing
 
@@ -26,12 +27,17 @@ function SellerRequest() {
   const fetchPendingSellers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:4000/api/seller/pending", {
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-        },
-      });
-      setSellers(Array.isArray(response.data) ? response.data : []); // Set sellers to response data
+      const response = await axios.get(
+        "http://localhost:4000/api/seller/pending",
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
+        }
+      );
+      const fetchedSellers = Array.isArray(response.data) ? response.data : [];
+      setSellers(fetchedSellers);
+      setOriginalSellers(fetchedSellers); // Save the original list for filtering
     } catch (error) {
       console.error("Error fetching pending sellers:", error);
       setError("Failed to fetch pending sellers.");
@@ -40,11 +46,11 @@ function SellerRequest() {
       setLoading(false);
     }
   };
-  
 
   const handleApproveSeller = async (id) => {
-    if (!window.confirm("Are you sure you want to approve this seller?")) return;
-  
+    if (!window.confirm("Are you sure you want to approve this seller?"))
+      return;
+
     setApproving(true);
     try {
       const response = await axios.patch(
@@ -56,11 +62,16 @@ function SellerRequest() {
           },
         }
       );
-  
+
       if (response.data.success) {
-        toast.success(`Seller ${response.data.seller.name} approved successfully.`);
+        toast.success(
+          `Seller ${response.data.seller.name} approved successfully.`
+        );
         // Remove the approved seller from the list
         setSellers(sellers.filter((seller) => seller._id !== id));
+        setOriginalSellers(
+          originalSellers.filter((seller) => seller._id !== id)
+        );
       } else {
         toast.error("Failed to approve seller.");
       }
@@ -71,19 +82,26 @@ function SellerRequest() {
       setApproving(false);
     }
   };
-  
 
   const handleDeleteSeller = async (id) => {
     if (!window.confirm("Are you sure you want to delete this seller?")) return;
 
     try {
-      await axios.delete(`http://localhost:4000/api/seller/${id}`, { // Ensure 'sellers' is plural
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-        },
-      });
-      setSellers(sellers.filter((seller) => seller._id !== id));
-      toast.success("Seller deleted successfully.");
+      const response = await axios.delete(
+        `http://localhost:4000/api/seller/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Seller deleted successfully.");
+        fetchPendingSellers();
+      } else {
+        toast.error("Failed to delete seller.");
+      }
     } catch (error) {
       console.error("Error deleting seller:", error);
       toast.error("Error deleting seller.");
@@ -97,8 +115,8 @@ function SellerRequest() {
   return (
     <div className="seller-management-container">
       <h1>Manage Seller Requests</h1>
-      <UserSearchBar onSearch={handleSearch} />
-      
+      <SellerSearchBar sellers={originalSellers} onSearch={handleSearch} />{" "}
+      {/* Pass sellers and search handler */}
       {loading ? (
         <p>Loading pending sellers...</p>
       ) : sellers.length === 0 ? (
@@ -121,12 +139,13 @@ function SellerRequest() {
                 <td>{seller.name}</td>
                 <td>{seller.email}</td>
                 <td>
-  <img
-    src={`http://localhost:4000/upload/${seller.idPicture}`} // Adjust this path to match your server's setup
-    alt="ID Picture"
-    style={{ width: '100px', height: 'auto' }} // You can adjust the size as needed
-  />
-</td>{/* Ensure 'idProfile' exists in Seller model */}
+                  <img
+                    src={`http://localhost:4000/upload/${seller.idPicture}`} // Adjust this path to match your server's setup
+                    alt="ID Picture"
+                    style={{ width: "100px", height: "auto" }} // You can adjust the size as needed
+                  />
+                </td>
+                {/* Ensure 'idProfile' exists in Seller model */}
                 <td>
                   <button
                     className="action-button approve"

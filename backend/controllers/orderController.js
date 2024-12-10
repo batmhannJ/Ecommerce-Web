@@ -1,6 +1,6 @@
-const orderModel = require('../models/orderModel');
-const userModel = require('../models/userModels');
-const axios = require('axios');
+const orderModel = require("../models/orderModel");
+const userModel = require("../models/userModels");
+const axios = require("axios");
 
 const generateReferenceNumber = () => {
   // Generate a unique reference using timestamp and random numbers
@@ -10,11 +10,14 @@ const generateReferenceNumber = () => {
 //const stripe = require('stripe')(process.env.REACT_APP_CHECKOUT_SECRET_API_KEY);
 
 const PlaceOrder = async (req, res) => {
-  const frontend_url = 'http://localhost:3000';
+  const frontend_url = "http://localhost:3000";
 
   try {
     // Debugging: Print the Stripe key to verify it's being read correctly
-    console.log("Paymaya Secret Key:", process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY);
+    console.log(
+      "Paymaya Secret Key:",
+      process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY
+    );
 
     // Create new order
     const newOrder = new orderModel({
@@ -36,8 +39,8 @@ const PlaceOrder = async (req, res) => {
         },
         unit_amount: item.price * 100 * 58,
       },
-      quantity: item.quantity
-    }))
+      quantity: item.quantity,
+    }));
 
     // Add delivery charges
     line_items.push({
@@ -48,28 +51,35 @@ const PlaceOrder = async (req, res) => {
         },
         unit_amount: 50 * 100 * 58,
       },
-      quantity: 1
-    })
+      quantity: 1,
+    });
     console.log(JSON.stringify(requestBody, null, 2));
 
-    const createPayMayaCheckout = async (order, buyerInfo, requestReferenceNumber) => {
+    const createPayMayaCheckout = async (
+      order,
+      buyerInfo,
+      requestReferenceNumber
+    ) => {
       try {
         // PayMaya Sandbox API endpoint
-        const payMayaApiUrl = "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
-    
+        const payMayaApiUrl =
+          "https://pg-sandbox.paymaya.com/checkout/v1/checkouts";
+
         // Fetch your PayMaya API key from environment variables
         const secretKey = process.env.REACT_APP_CHECKOUT_PUBLIC_API_KEY;
         if (!secretKey) {
-          throw new Error("PayMaya API Key missing from environment configuration");
+          throw new Error(
+            "PayMaya API Key missing from environment configuration"
+          );
         }
-    
+
         // Prepare headers
         const encodedKey = Buffer.from(`${secretKey}:`).toString("base64");
         const headers = {
           "Content-Type": "application/json",
           Authorization: `Basic ${encodedKey}`,
         };
-    
+
         // Create the payload for PayMaya API
         const requestBody = {
           totalAmount: {
@@ -101,24 +111,27 @@ const PlaceOrder = async (req, res) => {
           },
           requestReferenceNumber,
         };
-    
+
         // Make API request to PayMaya
-        const response = await axios.post(payMayaApiUrl, requestBody, { headers });
-    
+        const response = await axios.post(payMayaApiUrl, requestBody, {
+          headers,
+        });
+
         // Return the checkout URL to redirect the user
         return response.data.checkoutUrl;
-    
       } catch (error) {
-        console.error("Error creating PayMaya checkout session:", error.response ? error.response.data : error);
+        console.error(
+          "Error creating PayMaya checkout session:",
+          error.response ? error.response.data : error
+        );
         throw new Error("PayMaya checkout session failed");
       }
     };
-    
-    const PlaceOrder = async (req, res) => {
-      const frontend_url = 'http://localhost:3000';
-    
-      try {
 
+    const PlaceOrder = async (req, res) => {
+      const frontend_url = "http://localhost:3000";
+
+      try {
         const requestReferenceNumber = generateReferenceNumber();
         // Create new order in your database
         const newOrder = new orderModel({
@@ -127,62 +140,72 @@ const PlaceOrder = async (req, res) => {
           amount: req.body.amount,
           address: req.body.address,
           referenceNumber: requestReferenceNumber,
-          status: "Pending"
+          status: "Pending",
         });
-    
+
         await newOrder.save();
         await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
-    
+
         // Create a PayMaya checkout session
-        const checkoutUrl = await createPayMayaCheckout(newOrder, req.body.buyer, requestReferenceNumber);
-    
+        const checkoutUrl = await createPayMayaCheckout(
+          newOrder,
+          req.body.buyer,
+          requestReferenceNumber
+        );
+
         // Return the checkout URL so the frontend can redirect the user to PayMaya's checkout page
-        res.json({ success: true, checkoutUrl, referenceNumber: requestReferenceNumber, orderId: newOrder._id });
-    
+        res.json({
+          success: true,
+          checkoutUrl,
+          referenceNumber: requestReferenceNumber,
+          orderId: newOrder._id,
+        });
       } catch (error) {
         console.log("Error placing order:", error);
         res.json({
           success: false,
-          message: 'An error occurred while placing your order. Please try again.'
+          message:
+            "An error occurred while placing your order. Please try again.",
         });
       }
     };
 
-    res.json({ success: true, session_url: session.url })
-
+    res.json({ success: true, session_url: session.url });
   } catch (error) {
     console.log(error);
     res.json({
       success: false,
-      message: 'An error occurred while placing your order. Please try again.'
-    })
+      message: "An error occurred while placing your order. Please try again.",
+    });
   }
-}
+};
 
 const verifyOrder = async (req, res) => {
   const { orderId, success, transactionId } = req.query;
 
   try {
     // Validate orderId and success
-    if (!orderId || !['true', 'false', 'cancel'].includes(success)) {
-      return res.status(400).json({ success: false, message: 'Invalid parameters' });
+    if (!orderId || !["true", "false", "cancel"].includes(success)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid parameters" });
     }
 
     let updateData;
     let redirectUrl;
 
-    if (success === 'true') {
+    if (success === "true") {
       // Update the order to mark it as paid
-      updateData = { payment: true, status: 'paid' };
+      updateData = { payment: true, status: "paid" };
       redirectUrl = `/myorders?orderId=${orderId}`;
-    } else if (success === 'cancel') {
+    } else if (success === "cancel") {
       // Handle cancel logic
-      updateData = { status: 'cancelled' };
-      redirectUrl = '/cancel';
+      updateData = { status: "cancelled" };
+      redirectUrl = "/cancel";
     } else {
       // Handle payment failure
-      updateData = { status: 'failed' };
-      redirectUrl = '/failure';
+      updateData = { status: "failed" };
+      redirectUrl = "/failure";
     }
 
     // Update order status
@@ -191,22 +214,22 @@ const verifyOrder = async (req, res) => {
     // Save transaction details
     await transactionModel.create({
       date: new Date(),
-      name: 'Some Name', // Update with actual user info
+      name: "Some Name", // Update with actual user info
       transactionId: transactionId,
       orderId: orderId,
-      status: success === 'true' ? 'Paid' : 'Failed',
+      status: success === "true" ? "Paid" : "Failed",
     });
 
     // Return success response
     res.json({ success: true, redirectUrl });
-
   } catch (error) {
-    console.log('Error verifying order:', error);
-    res.status(500).json({ success: false, message: 'Error processing payment verification.' });
+    console.log("Error verifying order:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error processing payment verification.",
+    });
   }
 };
-
-
 
 // User Orders for Frontend
 const userOrders = async (req, res) => {
@@ -215,13 +238,13 @@ const userOrders = async (req, res) => {
 
     res.json({
       success: true,
-      data: orders // Return the entire order data (including _id and status)
+      data: orders, // Return the entire order data (including _id and status)
     });
   } catch (error) {
     console.log(error);
     res.json({
       success: false,
-      message: "Error fetching orders"
+      message: "Error fetching orders",
     });
   }
 };
@@ -244,18 +267,16 @@ exports.getUserOrders = async (req, res) => {
   }
 };*/
 
-
-
-
 // Listing Orders for Admin Panel
 const listOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({})
-      .populate('userId', 'name address phone'); // Populate the user fields
+    const orders = await orderModel
+      .find({})
+      .populate("userId", "name address phone"); // Populate the user fields
 
-    res.json({ 
-      success: true, 
-      data: orders // This will now include user details
+    res.json({
+      success: true,
+      data: orders, // This will now include user details
     });
   } catch (error) {
     console.log(error);
@@ -263,17 +284,23 @@ const listOrders = async (req, res) => {
   }
 };
 
-
-
 // API for Updating Order Status
- const updateStatus = async (req,res) => {
+const updateStatus = async (req, res) => {
   try {
-    await orderModel.findByIdAndUpdate(req.body.orderId, {status: req.body.status});
-    res.json({success:true, message:"Status Updated"})
-  } catch (error) {    
+    await orderModel.findByIdAndUpdate(req.body.orderId, {
+      status: req.body.status,
+    });
+    res.json({ success: true, message: "Status Updated" });
+  } catch (error) {
     console.log(error);
-    res.json({success:false, message:"Error"})
+    res.json({ success: false, message: "Error" });
   }
- }
+};
 
-module.exports = { PlaceOrder, verifyOrder, userOrders,listOrders, updateStatus };
+module.exports = {
+  PlaceOrder,
+  verifyOrder,
+  userOrders,
+  listOrders,
+  updateStatus,
+};
