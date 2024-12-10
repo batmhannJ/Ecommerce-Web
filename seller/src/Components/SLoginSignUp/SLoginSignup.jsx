@@ -225,25 +225,15 @@ const handleResetPassword = async (e) => {
               />
             </div>
             <div>
-            <div className="password-container" style={{ position: 'relative' }}>
-  <label>Password:</label>
-  <input
-    type={showPassword ? "text" : "password"}
-    name="password"
-    value={formData.password}
-    onChange={(e) => {
-      handleChange(e); // Handle form input change
-      const password = e.target.value; // Get the value of the password input
-      const isValidPassword = validatePassword(password); // Validate the password
-      if (!isValidPassword) {
-        setPasswordError("Password must be at least 8 characters long and contain at least one uppercase letter.");
-      } else {
-        setPasswordError(''); // Clear error if password is valid
-      }
-    }}
-    required
-  />
-
+              <div className="password-container" style={{ position: 'relative' }}>
+                <label>Password:</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
                 <span
                   className="eye-icon"
                   onClick={togglePasswordVisibility}
@@ -287,15 +277,24 @@ const handleResetPassword = async (e) => {
               />
             </div>
             <div>
-              <div className="password-container" style={{ position: 'relative' }}>
-                <label>Password:</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
+            <div className="password-container" style={{ position: 'relative' }}>
+  <label>Password:</label>
+  <input
+    type={showPassword ? "text" : "password"}
+    name="password"
+    value={formData.password}
+    onChange={(e) => {
+      handleChange(e); // Handle form input change
+      const password = e.target.value; // Get the value of the password input
+      const isValidPassword = validatePassword(password); // Validate the password
+      if (!isValidPassword) {
+        setPasswordError("Password must be at least 8 characters long and contain at least one uppercase letter.");
+      } else {
+        setPasswordError(''); // Clear error if password is valid
+      }
+    }}
+    required
+  />
                 <span
                   className="eye-icon"
                   onClick={togglePasswordVisibility}
