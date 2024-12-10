@@ -40,12 +40,23 @@ const SLoginSignup = () => {
     }
   };
 
-  const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
-    return passwordRegex.test(password);
-  };
+  // Password validation while typing
+  if (name === 'password') {
+    const isValidPassword = validatePassword(value);
+    if (!isValidPassword) {
+      setPasswordError("Password must be at least 8 characters long and contain at least one uppercase letter.");
+    } else {
+      setPasswordError('');
+    }
+  }
+};
 
-  const handleSignup = async (e) => {
+const validatePassword = (password) => {
+  const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
+  return passwordRegex.test(password);
+};
+
+   const handleSignup = async (e) => {
     e.preventDefault();
     const { name, email, password, idPicture } = formData;
 
@@ -172,6 +183,7 @@ const handleResetPassword = async (e) => {
 };
 
 
+
   return (
     <div className="login-container">
       <div className="login-box">
@@ -225,27 +237,15 @@ const handleResetPassword = async (e) => {
               />
             </div>
             <div>
-            <div style={{ position: 'relative' }}>
-  <label>Password:</label>
-  <input
-    type={showPassword ? 'text' : 'password'}
-    name="password"
-    value={formData.password}
-    onChange={(e) => {
-      const value = e.target.value;
-      setFormData({ ...formData, password: value });
-
-      // Validate password: at least one capital letter, between 8 and 20 characters
-      const passwordRegex = /^(?=.*[A-Z]).{8,20}$/; // At least one capital letter and between 8 to 20 characters
-      if (!passwordRegex.test(value)) {
-        setPasswordError('Password must be between 8 and 20 characters and include at least one capital letter.');
-      } else {
-        setPasswordError(''); // Clear error if valid
-      }
-    }}
-    required
-  />
-
+              <div className="password-container" style={{ position: 'relative' }}>
+                <label>Password:</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
                 <span
                   className="eye-icon"
                   onClick={togglePasswordVisibility}
