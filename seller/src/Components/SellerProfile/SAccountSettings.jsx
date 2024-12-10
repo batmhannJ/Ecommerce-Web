@@ -175,16 +175,17 @@ const SAccountSettings = () => {
           id="password"
           value={formData.password}
           onChange={handleChange}
+          style={{ paddingRight: '30px' }} // Space for the eye icon
         />
         <span
           className="eye-icon"
           onClick={togglePasswordVisibility}
           style={{
-            cursor: 'pointer',
             position: 'absolute',
-            right: '10px',
+            right: '10px', // Adjust position inside the input box
             top: '50%',
             transform: 'translateY(-50%)',
+            cursor: 'pointer',
           }}
         >
           {showPassword ? <FaEyeSlash /> : <FaEye />}
