@@ -177,8 +177,10 @@ class _CheckoutViewState extends State<CheckoutView> {
       final product = productEntry.key;
       final quantity = productEntry.value;
       final selectedSize = cartViewModel.getSelectedSize(product);
+      print('Product ID: ${product.id}, Name: ${product.name}');
 
       return {
+        "id": product.id ?? "", // Check why this might be null
         "name": product.name,
         "description": "Size: ${selectedSize?.name ?? 'N/A'}",
         "amount": (product.new_price * 100).toInt(),
@@ -212,23 +214,24 @@ class _CheckoutViewState extends State<CheckoutView> {
       },
     };
 
-    try {
-      final response = await http.post(
-        Uri.parse("$paymongoUrl/checkout_sessions"),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Basic $authHeader",
-        },
-        body: json.encode(payload),
-      );
+    final response = await http.post(
+      Uri.parse("$paymongoUrl/checkout_sessions"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic $authHeader",
+      },
+      body: json.encode(payload),
+    );
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        final checkoutUrl = responseData['data']['attributes']['checkout_url'];
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = json.decode(response.body);
+      final checkoutUrl = responseData['data']['attributes']['checkout_url'];
 
+      // Validate the URL before proceeding
+      if (checkoutUrl != null &&
+          checkoutUrl.startsWith("https://checkout.paymongo.com/")) {
         if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
           await launchUrl(Uri.parse(checkoutUrl));
-          //toast("Redirecting to payment gateway...", context);
 
           await saveTransaction(
             Map.fromEntries(items),
@@ -236,20 +239,23 @@ class _CheckoutViewState extends State<CheckoutView> {
             userAddress,
             referenceNumber,
           );
+          await _updateStockInDatabase(Map.fromEntries(items), cartViewModel);
 
-          await _updateStockInDatabase(items as List<Map<String, dynamic>>);
+          print(
+              "Items passed to _updateStockInDatabase: ${Map.fromEntries(items)}");
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
+          );
         } else {
           throw Exception("Failed to launch payment URL");
         }
       } else {
-        throw Exception("Payment failed: ${response.body}");
+        throw Exception("Invalid checkout URL: $checkoutUrl");
       }
-    } catch (e) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => CheckoutFailureView()),
-      );
-      print("Error: $e");
+    } else {
+      throw Exception("Payment failed: ${response.body}");
     }
   }
 
@@ -306,20 +312,40 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Future<void> _updateStockInDatabase(
-      List<Map<String, dynamic>> lineItems) async {
-    final stockUpdates = lineItems.map((item) {
+      Map<Product, int> items, CartViewModel cartViewModel) async {
+    // Prepare the stock updates payload with IDs (make sure `product.id` exists)
+    final stockUpdates = items.entries.map((entry) {
+      final product = entry.key;
+      print('Product Details: ${product.toJson()}');
+      final quantity = entry.value;
+      final selectedSize =
+          cartViewModel.getSelectedSize(product)?.name ?? "N/A";
+
+      // If `product.id` is missing, you can use a fallback
       return {
-        "id": item["id"], // Assuming each lineItem has a product ID
-        "size": item["description"] ?? "N/A",
-        "quantity": item["quantity"],
+        "id": product.id ??
+            "", // Ensure that `id` is sent, or empty string if missing
+        "name": product.name,
+        "size": selectedSize,
+        "quantity": quantity,
       };
     }).toList();
 
-    await http.post(
+    // Log payload for debugging
+    print(json.encode({"updates": stockUpdates}));
+
+    // Make the API call
+    final response = await http.post(
       Uri.parse("http://localhost:4000/api/updateStock"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({"updates": stockUpdates}),
     );
+
+    // Handle response
+    if (response.statusCode != 200) {
+      print("Error response: ${response.body}");
+      throw Exception("Failed to update stock: ${response.body}");
+    }
   }
 
   Future<void> saveTransaction(
@@ -394,7 +420,7 @@ class _CheckoutViewState extends State<CheckoutView> {
         body: json.encode(transactionPayload),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         Fluttertoast.showToast(msg: "Transaction saved successfully.");
         print("Transaction saved: $transactionPayload");
       } else {
@@ -892,99 +918,100 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Widget orderSummaryCard(BuildContext context) {
-  final double shippingFee =
-      this.shippingFee; // Use the shippingFee from the state variable
-  final subtotal = context.read<CartViewModel>().getSubtotal();
-  final total = subtotal + shippingFee;
+    final double shippingFee =
+        this.shippingFee; // Use the shippingFee from the state variable
+    final subtotal = context.read<CartViewModel>().getSubtotal();
+    final total = subtotal + shippingFee;
 
-  // Check if userAddress is valid
-  final authViewModel = context.read<AuthViewModel>();
-  final userAddress = authViewModel.address;
+    // Check if userAddress is valid
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
 
-  final isAddressComplete = userAddress != null &&
-      userAddress.street?.isNotEmpty == true &&
-      userAddress.zip?.isNotEmpty == true &&
-      selectedBarangay != null &&
-      selectedCity != null &&
-      selectedProvince != null &&
-      selectedRegion != null;
+    final isAddressComplete = userAddress != null &&
+        userAddress.street?.isNotEmpty == true &&
+        userAddress.zip?.isNotEmpty == true &&
+        selectedBarangay != null &&
+        selectedCity != null &&
+        selectedProvince != null &&
+        selectedRegion != null;
 
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.2),
-          blurRadius: 6,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "ORDER SUMMARY",
-          style: AppTextStyles.headline4.copyWith(
-            fontWeight: AppFontWeights.bold,
-            fontSize: 20,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
-        ),
-        const SizedBox(height: 16),
-        Divider(color: Colors.grey.shade300), // Divider for separation
-        const SizedBox(height: 8),
-        _buildSummaryRow("Subtotal:", "₱${subtotal.toStringAsFixed(2)}",
-            Icons.monetization_on),
-        _buildSummaryRow("Shipping:", "₱${shippingFee.toStringAsFixed(2)}",
-            Icons.local_shipping),
-        Divider(color: Colors.grey.shade300), // Divider for total section
-        _buildSummaryRow(
-            "Total:", "₱${total.toStringAsFixed(2)}", Icons.payment,
-            isTotal: true),
-        const SizedBox(height: 25),
-        Row(
-          children: [
-            Expanded(
-              child: CustomButton(
-                isExpanded: true,
-                text: "Proceed to Payment",
-                textStyle: AppTextStyles.button.copyWith(color: Colors.white),
-                command: () {
-                  if (isAddressComplete) {
-                    proceedToPayment(context); // Proceed to payment if address is complete
-                  } else {
-                    // Show a reminder dialog or snackbar
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text("Incomplete Address"),
-                        content: Text(
-                            "Please set your shipping address before proceeding to payment."),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text("OK"),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                },
-                height: 48,
-                fillColor: isAddressComplete
-                    ? AppColors.red
-                    : Colors.grey, // Change color based on state
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "ORDER SUMMARY",
+            style: AppTextStyles.headline4.copyWith(
+              fontWeight: AppFontWeights.bold,
+              fontSize: 20,
             ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
+          ),
+          const SizedBox(height: 16),
+          Divider(color: Colors.grey.shade300), // Divider for separation
+          const SizedBox(height: 8),
+          _buildSummaryRow("Subtotal:", "₱${subtotal.toStringAsFixed(2)}",
+              Icons.monetization_on),
+          _buildSummaryRow("Shipping:", "₱${shippingFee.toStringAsFixed(2)}",
+              Icons.local_shipping),
+          Divider(color: Colors.grey.shade300), // Divider for total section
+          _buildSummaryRow(
+              "Total:", "₱${total.toStringAsFixed(2)}", Icons.payment,
+              isTotal: true),
+          const SizedBox(height: 25),
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  isExpanded: true,
+                  text: "Proceed to Payment",
+                  textStyle: AppTextStyles.button.copyWith(color: Colors.white),
+                  command: () {
+                    if (isAddressComplete) {
+                      proceedToPayment(
+                          context); // Proceed to payment if address is complete
+                    } else {
+                      // Show a reminder dialog or snackbar
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text("Incomplete Address"),
+                          content: Text(
+                              "Please set your shipping address before proceeding to payment."),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text("OK"),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  height: 48,
+                  fillColor: isAddressComplete
+                      ? AppColors.red
+                      : Colors.grey, // Change color based on state
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSummaryRow(String label, String value, IconData icon,
       {bool isTotal = false}) {
