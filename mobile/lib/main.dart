@@ -15,7 +15,7 @@ import 'package:indigitech_shop/view_model/cart_view_model.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
-
+import 'package:indigitech_shop/view/checkout_result.dart'; // Add this view
 
 void main() {
   runApp(
@@ -66,49 +66,53 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<Widget> _screens(BuildContext context) {
-    final authViewModel = context.watch<AuthViewModel>(); // Get the AuthViewModel instance
+    final authViewModel =
+        context.watch<AuthViewModel>(); // Get the AuthViewModel instance
 
     return <Widget>[
       const HomeView(),
       const CartView(),
       const ProfileView(),
       LoginView(
-                                onLogin: () {
-                                  final authViewModel = context.read<AuthViewModel>();
-                                  authViewModel.logins().then((_) async {
-                                    if (authViewModel.isLoggedIn) {
-                                      // Get user info from authViewModel
-                                      final userInfo = authViewModel.user; // Assuming this is where user info is stored
+        onLogin: () {
+          final authViewModel = context.read<AuthViewModel>();
+          authViewModel.logins().then((_) async {
+            if (authViewModel.isLoggedIn) {
+              // Get user info from authViewModel
+              final userInfo = authViewModel
+                  .user; // Assuming this is where user info is stored
 
-                                      // Store user info in SharedPreferences
-                                      SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      await prefs.setString('userId', userInfo!.id); // Replace 'id' with actual field
-                                      await prefs.setString('userName', userInfo.name); // Replace 'name' with actual field
-                                      await prefs.setString('userEmail', userInfo.email); // Replace 'email' with actual field
-                                      // Add other user details as needed
+              // Store user info in SharedPreferences
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.setString(
+                  'userId', userInfo!.id); // Replace 'id' with actual field
+              await prefs.setString('userName',
+                  userInfo.name); // Replace 'name' with actual field
+              await prefs.setString('userEmail',
+                  userInfo.email); // Replace 'email' with actual field
+              // Add other user details as needed
 
-                                      // Redirect to HomeView after successful login
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(builder: (context) => const HomeView()),
-                                      );
-                                    }
-                                  });
-                                },
-                                
-                                onCreateAccount: () {
-                                  final authViewModel = context.read<AuthViewModel>();
-                                  // Navigate to the Signup View
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => SignupView(
-                                        onLogin: () { 
-                                          authViewModel.logins(); 
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+              // Redirect to HomeView after successful login
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const MyApp()),
+              );
+            }
+          });
+        },
+        onCreateAccount: () {
+          final authViewModel = context.read<AuthViewModel>();
+          // Navigate to the Signup View
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => SignupView(
+                onLogin: () {
+                  authViewModel.logins();
+                },
+              ),
+            ),
+          );
+        },
+      ),
     ];
   }
 }

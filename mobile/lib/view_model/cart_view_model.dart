@@ -82,6 +82,11 @@ class CartViewModel with ChangeNotifier {
 
   int itemCount(Product item) => _items.containsKey(item) ? _items[item]! : 0;
 
+  void clearCart() {
+    _items.clear(); // Clear all items in the cart
+    notifyListeners(); // Notify listeners to rebuild the UI
+  }
+
   double getSubtotal() {
     double subtotal = 0;
 

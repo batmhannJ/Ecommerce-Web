@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart'; // for toast notifications
+import 'package:indigitech_shop/view/cart_view.dart';
+import 'package:indigitech_shop/view/home/home_view.dart';
+import 'package:indigitech_shop/view/profile_view.dart';
+import 'package:indigitech_shop/viewmodels/bottom_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class CheckoutSuccessView extends StatefulWidget {
@@ -12,6 +16,35 @@ class CheckoutSuccessView extends StatefulWidget {
 class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
   List<dynamic> orders = [];
   bool loading = true;
+
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _navigateToScreen(index);
+  }
+
+  void _navigateToScreen(int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeView()),
+        );
+        break;
+      case 1:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const CartView()),
+        );
+        break;
+      case 2:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const ProfileView()),
+        );
+        break;
+    }
+  }
 
   @override
   void initState() {
@@ -131,6 +164,10 @@ class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
                   },
                 )
               : const Center(child: Text("No orders found")),
+      bottomNavigationBar: BottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
+      ),
     );
   }
 
@@ -160,13 +197,60 @@ class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
   }
 }
 
-class CheckoutFailureView extends StatelessWidget {
+class CheckoutFailureView extends StatefulWidget {
+  @override
+  _CheckoutFailureViewState createState() => _CheckoutFailureViewState();
+}
+
+class _CheckoutFailureViewState extends State<CheckoutFailureView> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _navigateToScreen(index);
+  }
+
+  void _navigateToScreen(int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeView()),
+        );
+        break;
+      case 1:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const CartView()),
+        );
+        break;
+      case 2:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const ProfileView()),
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Payment Failed")),
+      appBar: AppBar(
+        title:
+            const Text("Payment Failed", style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 1,
+      ),
       body: Center(
-        child: Text("There was an issue with your payment. Please try again."),
+        child: Text(
+          "There was an issue with your payment. Please try again.",
+          style: TextStyle(fontSize: 18, color: Colors.red),
+        ),
+      ),
+      bottomNavigationBar: BottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
       ),
     );
   }

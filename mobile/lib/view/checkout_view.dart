@@ -247,7 +247,10 @@ class _CheckoutViewState extends State<CheckoutView> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
-          );
+          ).then((_) {
+            // Clear the cart after navigating to success page
+            cartViewModel.clearCart();
+          });
         } else {
           throw Exception("Failed to launch payment URL");
         }
