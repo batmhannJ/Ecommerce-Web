@@ -1356,6 +1356,37 @@ app.get('/newproducts', async (req, res) => {
   }
 });
 
+app.get('/product/:name', async (req, res) => {
+  const { name } = req.params;
+  try {
+    const product = await Product.findOne({ name });
+    if (!product) {
+      return res.status(404).send('Product not found');
+    }
+
+    // Ensure the response includes the 'id' field
+    const productResponse = {
+      id: product._id.toString(), // You can use _id as 'id' if needed
+      name: product.name,
+      image: product.image,
+      description: product.description,
+      category: product.category,
+      new_price: product.new_price,
+      old_price: product.old_price,
+      stock: product.stock,
+      available: product.available,
+      // Add other product fields you need
+    };
+
+    res.json(productResponse); // Return the modified response
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+
+
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/", adminRoutes);

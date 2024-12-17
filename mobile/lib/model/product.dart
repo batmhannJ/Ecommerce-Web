@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Product {
-  final String id;
+  String id;
   final String name;
   final double old_price;
   final double new_price;
@@ -97,7 +97,7 @@ class Product {
   // Create a Product object from a JSON map.
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['cartItemId'] ?? '', // Provide default string
+      id: json['id'].toString(), // Ensure 'id' is converted to a String
       name: json['name'] ?? 'Unknown Product', // Default string
       old_price: (json['old_price'] ?? 0).toDouble(), // Default double
       new_price: (json['new_price'] ?? 0).toDouble(),

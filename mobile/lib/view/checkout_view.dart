@@ -180,7 +180,7 @@ class _CheckoutViewState extends State<CheckoutView> {
       print('Product ID: ${product.id}, Name: ${product.name}');
 
       return {
-        "id": product.id ?? "", // Check why this might be null
+        "id": product.id ?? "",
         "name": product.name,
         "description": "Size: ${selectedSize?.name ?? 'N/A'}",
         "amount": (product.new_price * 100).toInt(),
@@ -311,37 +311,72 @@ class _CheckoutViewState extends State<CheckoutView> {
     });
   }
 
+  Future<String?> fetchProductIdByName(String productName) async {
+    try {
+      final response = await http
+          .get(Uri.parse('http://localhost:4000/product/$productName'));
+      if (response.statusCode == 200) {
+        final productJson = jsonDecode(response.body);
+        print('API Response: $productJson'); // Log the API response
+
+        // Extract 'id' directly from the JSON response
+        final productId = productJson['id'] as String?;
+        if (productId != null) {
+          print('Fetched Product ID: $productId');
+          return productId;
+        } else {
+          print('Product ID not found in the response.');
+          return null;
+        }
+      } else {
+        print('Failed to fetch product: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching product: $e');
+      return null;
+    }
+  }
+
   Future<void> _updateStockInDatabase(
       Map<Product, int> items, CartViewModel cartViewModel) async {
-    // Prepare the stock updates payload with IDs (make sure `product.id` exists)
-    final stockUpdates = items.entries.map((entry) {
+    final List<Map<String, dynamic>> stockUpdates = [];
+
+    for (var entry in items.entries) {
       final product = entry.key;
-      print('Product Details: ${product.toJson()}');
       final quantity = entry.value;
       final selectedSize =
           cartViewModel.getSelectedSize(product)?.name ?? "N/A";
 
-      // If `product.id` is missing, you can use a fallback
-      return {
-        "id": product.id ??
-            "", // Ensure that `id` is sent, or empty string if missing
+      // Fetch product ID if it is missing
+      if (product.id.isEmpty) {
+        final productId = await fetchProductIdByName(product.name);
+        if (productId != null) {
+          product.id = productId; // Update the product's ID
+        } else {
+          throw Exception(
+              "Product ID could not be fetched for: ${product.name}");
+        }
+      }
+
+      // Add to stock updates list
+      stockUpdates.add({
+        "id": product.id,
         "name": product.name,
         "size": selectedSize,
         "quantity": quantity,
-      };
-    }).toList();
+      });
+    }
 
-    // Log payload for debugging
-    print(json.encode({"updates": stockUpdates}));
+    // Log and send payload to API
+    print("Payload to API: ${json.encode({"updates": stockUpdates})}");
 
-    // Make the API call
     final response = await http.post(
       Uri.parse("http://localhost:4000/api/updateStock"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({"updates": stockUpdates}),
     );
 
-    // Handle response
     if (response.statusCode != 200) {
       print("Error response: ${response.body}");
       throw Exception("Failed to update stock: ${response.body}");
