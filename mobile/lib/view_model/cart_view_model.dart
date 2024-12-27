@@ -5,6 +5,11 @@ import 'dart:math';
 import '../model/product.dart';
 
 class CartViewModel with ChangeNotifier {
+  String _stockErrorMessage = '';
+
+  // Correct getter for stockErrorMessage
+  String get stockErrorMessage => _stockErrorMessage;
+
   final Map<Product, double> _itemPrices = {}; // Store adjusted prices
   Map<Product, ProductSize> selectedSizes = {};
   double _shippingFee = 0.0;
@@ -13,6 +18,15 @@ class CartViewModel with ChangeNotifier {
   Map<Product, Map<String, dynamic>> cartItems = {};
 
   void addToCart(Product product, int quantity, String selectedSize) {
+    // Get the available stock for the selected size
+    int availableStock = _getAvailableStock(product, selectedSize);
+
+    // If the quantity exceeds available stock, set it to available stock
+    if (quantity > availableStock) {
+      quantity = availableStock;
+      print("Quantity exceeds available stock. Limiting to $availableStock.");
+    }
+
     final Product? existingProduct = cartItems.keys.firstWhere(
       (item) => item.id == product.id,
       orElse: () => null as Product, // Explicitly cast null to Product?
@@ -29,6 +43,21 @@ class CartViewModel with ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  int _getAvailableStock(Product product, String selectedSize) {
+    switch (selectedSize) {
+      case 'S':
+        return product.s_stock;
+      case 'M':
+        return product.m_stock;
+      case 'L':
+        return product.l_stock;
+      case 'XL':
+        return product.xl_stock;
+      default:
+        return 0; // In case of invalid size
+    }
   }
 
   void updateCartItems(Map<Product, Map<String, dynamic>> newItems) {
@@ -78,9 +107,12 @@ class CartViewModel with ChangeNotifier {
   final Map<Product, int> _items = {};
 
   List<MapEntry<Product, int>> get items => _items.entries.toList();
-
-  int itemCount(Product product) =>
-      _items.containsKey(product) ? _items[product]! : 0;
+  int itemCount(Product product) {
+    if (cartItems.containsKey(product)) {
+      return cartItems[product]!['quantity'];
+    }
+    return 0;
+  }
 
   void clearCart() {
     _items.clear(); // Clear all items in the cart
@@ -112,47 +144,49 @@ class CartViewModel with ChangeNotifier {
       return;
     }
 
-    // Create a unique key for each product by combining the name and size
-    final itemKey = '${product.name}-$selectedSize';
-
-    // Check if the item already exists in the cart by checking the unique key
-    bool itemExists = _items.keys.any((existingItem) =>
-        '${existingItem.name}-${selectedSizes[existingItem]}' == itemKey);
-
-    if (itemExists) {
-      // Update the quantity for the existing item
-      _items.forEach((existingItem, existingQuantity) {
-        if ('${existingItem.name}-${selectedSizes[existingItem]}' == itemKey) {
-          _items[existingItem] = existingQuantity + quantity;
-          return; // Exit after updating the quantity
-        }
-      });
-    } else {
-      // If the item doesn't exist, add it to the cart
-      _items[product] = quantity; // Save the quantity for the product
-      selectedSizes[product] = ProductSize.values.firstWhere(
-        (e) => e.toString().split('.').last == selectedSize,
-        orElse: () => ProductSize.S, // Default size if not found
-      ); // Save the selected size for the item
-      _itemPrices[product] = product.new_price; // Store the price for this item
-      print("Saving size: $selectedSize for product: ${product.name}");
+    void setStockErrorMessage(String message) {
+      _stockErrorMessage = message;
+      notifyListeners();
     }
 
-    // Notify listeners to update the UI
+    // Method to clear the stock error message
+    void clearStockErrorMessage() {
+      _stockErrorMessage = '';
+      notifyListeners();
+    }
+
+    // Get the available stock for the selected size
+    int availableStock = _getAvailableStock(product, selectedSize);
+    if (availableStock < quantity) {
+      setStockErrorMessage(
+          "Not enough stock available for size $selectedSize.");
+      return;
+    }
+    clearStockErrorMessage();
+
+    if (cartItems.containsKey(product) &&
+        cartItems[product]!['selectedSize'] == selectedSize) {
+      cartItems[product]!['quantity'] += quantity;
+    } else {
+      cartItems[product] = {
+        'quantity': quantity,
+        'selectedSize': selectedSize,
+      };
+    }
+
     notifyListeners();
   }
 
   void subtractItem(Product product, String selectedSize) {
-    if (_items.containsKey(product)) {
-      if (_items[product]! > 1) {
-        _items[product] = _items[product]! - 1;
+    if (cartItems.containsKey(product) &&
+        cartItems[product]!['selectedSize'] == selectedSize) {
+      if (cartItems[product]!['quantity'] > 1) {
+        cartItems[product]!['quantity'] -= 1;
       } else {
-        _items.remove(product);
-        _itemPrices.remove(product); // Remove adjusted price entry
-        selectedSizes.remove(product); // Remove size entry
+        cartItems.remove(product);
       }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   bool _isLoggedIn = false;

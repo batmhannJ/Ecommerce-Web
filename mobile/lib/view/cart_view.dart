@@ -461,22 +461,18 @@ class _CartViewState extends State<CartView> {
 
 class QuantitySelector extends StatelessWidget {
   final Product product;
-  final int quantity; // Accept the quantity as a parameter
-  final String selectedSize; // Add a parameter for the selected size
+  final int quantity; // Initial quantity from the database
+  final String selectedSize; // Selected size for the product
 
   const QuantitySelector({
     super.key,
     required this.product,
     required this.quantity,
-    required this.selectedSize, // Ensure size is provided
+    required this.selectedSize,
   });
 
   @override
   Widget build(BuildContext context) {
-    int itemCount = quantity > 0
-        ? quantity
-        : context.watch<CartViewModel>().itemCount(product);
-
     return Container(
       decoration: BoxDecoration(
         color: AppColors.lightGrey,
@@ -501,32 +497,47 @@ class QuantitySelector extends StatelessWidget {
               color: Colors.transparent,
               padding: const EdgeInsets.symmetric(horizontal: 5),
               child: Icon(
-                itemCount > 1 ? Symbols.remove : Symbols.delete,
+                quantity > 1 ? Symbols.remove : Symbols.delete,
                 size: 15,
               ),
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              border: Border(
-                left: BorderSide(color: AppColors.greyAD.withAlpha(100)),
-                right: BorderSide(color: AppColors.greyAD.withAlpha(100)),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-              child: Text(
-                "$itemCount",
-                style: AppTextStyles.caption
-                    .copyWith(fontWeight: AppFontWeights.bold),
-              ),
-            ),
+          Consumer<CartViewModel>(
+            builder: (context, cartViewModel, child) {
+              // Use CartViewModel value if available; otherwise, default to database quantity
+              int itemCount =
+                  cartViewModel.cartItems[product]?['quantity'] ?? quantity;
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  border: Border(
+                    left: BorderSide(color: AppColors.greyAD.withAlpha(100)),
+                    right: BorderSide(color: AppColors.greyAD.withAlpha(100)),
+                  ),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  child: Text(
+                    "$itemCount",
+                    style: AppTextStyles.caption
+                        .copyWith(fontWeight: AppFontWeights.bold),
+                  ),
+                ),
+              );
+            },
           ),
           GestureDetector(
             onTap: () {
               if (selectedSize.isNotEmpty) {
-                context.read<CartViewModel>().addItem(product, selectedSize);
+                // Use the current quantity instead of hardcoding 1
+                int currentQuantity = context
+                        .read<CartViewModel>()
+                        .cartItems[product]?['quantity'] ??
+                    quantity;
+                context.read<CartViewModel>().addItem(product, selectedSize,
+                    quantity: currentQuantity + 1);
               } else {
                 print("Error: Size must be selected for the product.");
               }
