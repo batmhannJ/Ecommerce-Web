@@ -66,6 +66,16 @@ class Product {
     return stocks[size]! > 0;
   }
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Product &&
+          runtimeType == other.runtimeType &&
+          id == other.id; // Compare based on unique ID
+
+  @override
+  int get hashCode => id.hashCode; // Use ID for hash code
+
   // Convert a Product object into a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -94,38 +104,44 @@ class Product {
     };
   }
 
-  // Create a Product object from a JSON map.
   factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
-      id: json['id'].toString(), // Ensure 'id' is converted to a String
-      name: json['name'] ?? 'Unknown Product', // Default string
-      old_price: (json['old_price'] ?? 0).toDouble(), // Default double
-      new_price: (json['new_price'] ?? 0).toDouble(),
-      adjustedPrice: (json['adjustedPrice'] ?? 0).toDouble(),
-      discount: (json['discount'] ?? 0).toDouble(),
-      description: json['description'] ?? 'No description available',
-      reviews: json['reviews'] != null
-          ? List<Review>.from(
-              json['reviews'].map((reviewJson) => Review.fromJson(reviewJson)))
-          : [],
-      stocks: json['stocks'] != null
-          ? Map<ProductSize, int>.from(json['stocks'].map((key, value) {
-              ProductSize size = ProductSize.values.firstWhere(
-                  (e) => e.toString() == 'ProductSize.$key',
-                  orElse: () => ProductSize.S);
-              return MapEntry(size, value ?? 0); // Default stock to 0
-            }))
-          : {},
-      category: json['category'] ?? 'Uncategorized',
-      s_stock: json['s_stock'] ?? 0,
-      m_stock: json['m_stock'] ?? 0,
-      l_stock: json['l_stock'] ?? 0,
-      xl_stock: json['xl_stock'] ?? 0,
-      tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
-      image: json['image'] != null ? List<String>.from(json['image']) : [],
-      available: json['available'] ?? false,
-      isNew: json['isNew'] ?? false,
-    );
+    try {
+      return Product(
+        id: json['id'].toString(), // Always convert id to String
+        name: json['name'] ?? 'Unknown Product',
+        old_price: (json['old_price'] ?? 0).toDouble(),
+        new_price: (json['new_price'] ?? 0).toDouble(),
+        adjustedPrice: (json['adjustedPrice'] ?? 0).toDouble(),
+        discount: (json['discount'] ?? 0).toDouble(),
+        description: json['description'] ?? 'No description available',
+        reviews: json['reviews'] != null
+            ? List<Review>.from(json['reviews']
+                .map((reviewJson) => Review.fromJson(reviewJson)))
+            : [],
+        stocks: json['stocks'] != null
+            ? Map<ProductSize, int>.from(json['stocks'].map((key, value) {
+                ProductSize size = ProductSize.values.firstWhere(
+                    (e) => e.toString() == 'ProductSize.$key',
+                    orElse: () => ProductSize.S);
+                return MapEntry(size, value ?? 0);
+              }))
+            : {},
+        category: json['category'] ?? 'Uncategorized',
+        s_stock: json['s_stock'] ?? 0,
+        m_stock: json['m_stock'] ?? 0,
+        l_stock: json['l_stock'] ?? 0,
+        xl_stock: json['xl_stock'] ?? 0,
+        tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
+        image: json['image'] is List
+            ? List<String>.from(json['image'])
+            : [json['image'] ?? 'assets/images/default.jpg'],
+        available: json['available'] ?? false,
+        isNew: json['isNew'] ?? false,
+      );
+    } catch (e) {
+      print("Error deserializing Product: $e");
+      throw Exception("Invalid Product data");
+    }
   }
 
   Product copyWith({

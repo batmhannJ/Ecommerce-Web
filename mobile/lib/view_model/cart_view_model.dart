@@ -10,8 +10,7 @@ class CartViewModel with ChangeNotifier {
   double _shippingFee = 0.0;
 
   double get shippingFee => _shippingFee;
-  Map<Product, Map<String, dynamic>> cartItems =
-      {}; // Store quantity and selectedSize
+  Map<Product, Map<String, dynamic>> cartItems = {};
 
   void addToCart(Product product, int quantity, String selectedSize) {
     final Product? existingProduct = cartItems.keys.firstWhere(
@@ -80,7 +79,8 @@ class CartViewModel with ChangeNotifier {
 
   List<MapEntry<Product, int>> get items => _items.entries.toList();
 
-  int itemCount(Product item) => _items.containsKey(item) ? _items[item]! : 0;
+  int itemCount(Product product) =>
+      _items.containsKey(product) ? _items[product]! : 0;
 
   void clearCart() {
     _items.clear(); // Clear all items in the cart
@@ -106,48 +106,50 @@ class CartViewModel with ChangeNotifier {
   }
 
   // Add an item to the cart and adjust the quantity if already added
-  void addItem(Product item, {ProductSize? size, int quantity = 1}) {
-    if (size == null) {
+  void addItem(Product product, String selectedSize, {int quantity = 1}) {
+    if (selectedSize.isEmpty) {
       print("Error: Size must be selected for the product.");
       return;
     }
 
     // Create a unique key for each product by combining the name and size
-    final itemKey = '${item.name}-${size.name}';
+    final itemKey = '${product.name}-$selectedSize';
 
     // Check if the item already exists in the cart by checking the unique key
     bool itemExists = _items.keys.any((existingItem) =>
-        '${existingItem.name}-${selectedSizes[existingItem]?.name}' == itemKey);
+        '${existingItem.name}-${selectedSizes[existingItem]}' == itemKey);
 
     if (itemExists) {
-      // Find the exact product and increase its quantity
+      // Update the quantity for the existing item
       _items.forEach((existingItem, existingQuantity) {
-        if ('${existingItem.name}-${selectedSizes[existingItem]?.name}' ==
-            itemKey) {
+        if ('${existingItem.name}-${selectedSizes[existingItem]}' == itemKey) {
           _items[existingItem] = existingQuantity + quantity;
           return; // Exit after updating the quantity
         }
       });
     } else {
       // If the item doesn't exist, add it to the cart
-      _items[item] = quantity; // Save the quantity for the product
-      selectedSizes[item] = size; // Save the selected size for the item
-      _itemPrices[item] = item.new_price; // Store the price for this item
-      print("Saving size: ${size.name} for product: ${item.name}");
+      _items[product] = quantity; // Save the quantity for the product
+      selectedSizes[product] = ProductSize.values.firstWhere(
+        (e) => e.toString().split('.').last == selectedSize,
+        orElse: () => ProductSize.S, // Default size if not found
+      ); // Save the selected size for the item
+      _itemPrices[product] = product.new_price; // Store the price for this item
+      print("Saving size: $selectedSize for product: ${product.name}");
     }
 
     // Notify listeners to update the UI
     notifyListeners();
   }
 
-  void subtractItem(Product item) {
-    if (_items.containsKey(item)) {
-      if (_items[item]! > 1) {
-        _items[item] = _items[item]! - 1;
+  void subtractItem(Product product, String selectedSize) {
+    if (_items.containsKey(product)) {
+      if (_items[product]! > 1) {
+        _items[product] = _items[product]! - 1;
       } else {
-        _items.remove(item);
-        _itemPrices.remove(item); // Remove adjusted price entry
-        selectedSizes.remove(item); // Remove size entry
+        _items.remove(product);
+        _itemPrices.remove(product); // Remove adjusted price entry
+        selectedSizes.remove(product); // Remove size entry
       }
     }
     notifyListeners();

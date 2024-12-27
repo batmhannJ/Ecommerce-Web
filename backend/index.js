@@ -22,6 +22,7 @@ const cartRoute = require("./routes/cartRoute");
 const { signup } = require("./controllers/sellerController");
 const { getUsers } = require("./controllers/userController");
 const { searchAdmin } = require("./controllers/adminController");
+const { getCartWithProductDetails } = require("./controllers/cartController"); // Adjust path as necessary
 
 
 
@@ -1385,6 +1386,7 @@ app.get('/product/:name', async (req, res) => {
   }
 });
 
+app.get("/api/carts/:userId", getCartWithProductDetails); // API endpoint for fetching cart details
 
 
 // Admin Routes
