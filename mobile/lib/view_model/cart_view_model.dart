@@ -69,15 +69,16 @@ class CartViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateCartItemsFromDatabase(List<CartItem> fetchedCartItems) {
+  void updateCartItemsFromDatabase(List<CartItem> fetchedItems) {
     cartItems.clear();
 
-    for (CartItem item in fetchedCartItems) {
+    for (CartItem item in fetchedItems) {
       if (item.product != null) {
         cartItems[item.product!] = {
           'quantity': item.quantity,
           'selectedSize': item.selectedSize,
           'cartItemId': item.cartItemId, // Include cartItemId
+          'adjustedPrice': item.adjustedPrice,
         };
       } else {
         print("Error: Missing product data for cart item: $item");
@@ -108,20 +109,18 @@ class CartViewModel with ChangeNotifier {
 
   double getSubtotal() {
     double subtotal = 0;
-
-    for (Product product in _items.keys) {
+    _items.forEach((product, quantity) {
       subtotal += totalItemPrice(product);
-    }
-
+    });
     return subtotal;
   }
 
-  double totalItemPrice(Product item) {
-    if (!_items.containsKey(item)) return 0;
-    double price =
-        _itemPrices[item] ?? item.new_price; // Get adjusted price if available
+  double totalItemPrice(Product cartitem) {
+    if (!_items.containsKey(cartitem)) return 0;
+    double price = _itemPrices[cartitem] ??
+        cartitem.new_price; // Get adjusted price if available
 
-    return price * _items[item]!;
+    return price * _items[cartitem]!;
   }
 
   // Add an item to the cart and adjust the quantity if already added

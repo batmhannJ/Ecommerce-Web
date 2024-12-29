@@ -181,8 +181,18 @@ class _CartViewState extends State<CartView> {
     );
   }
 
+  double calculateSubtotal() {
+    return cartItems.fold(0.0, (total, item) {
+      double adjustedPrice = item['adjustedPrice'] ?? 0.0;
+      int quantity = item['quantity'] ?? 0;
+      return total + (adjustedPrice * quantity);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    double subtotal = calculateSubtotal();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cart'),
@@ -367,7 +377,7 @@ class _CartViewState extends State<CartView> {
                           style: AppTextStyles.body2.copyWith(fontSize: 14),
                         ),
                         Text(
-                          "₱${context.read<CartViewModel>().getSubtotal()}",
+                          "₱${subtotal.toStringAsFixed(2)}",
                           style: AppTextStyles.body2.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -394,7 +404,7 @@ class _CartViewState extends State<CartView> {
                           ),
                         ),
                         Text(
-                          "₱${context.read<CartViewModel>().getSubtotal()}",
+                          "₱${subtotal.toStringAsFixed(2)}", // For now, Total is the same as Subtotal
                           style: AppTextStyles.subtitle1.copyWith(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
