@@ -23,8 +23,8 @@ class CartItem {
       productId: json['productId'].toString(), // Convert to string
       selectedSize: json['selectedSize'],
       adjustedPrice: json['adjustedPrice'],
-      quantity: json['quantity'],
-      cartItemId: json['cartItemId'].toString(), // Convert to string
+      quantity: json['quantity'] as int,
+      cartItemId: json['cartItemId'], // Convert to string
       product:
           json['product'] != null ? Product.fromJson(json['product']) : null,
     );

@@ -989,47 +989,53 @@ app.get('/api/cart/:userId', async (req, res) => {
 });
 
 // DELETE item from the cart
-app.delete('/api/cart/:userId/:productId', async (req, res) => {
-  const { userId, productId } = req.params;
-  const selectedSize = req.query.selectedSize;
+app.delete('/api/cart/:userId/:cartItemId', async (req, res) => {
+  const { cartItemId, userId } = req.params;  // Capture cartItemId from the URL path
+  const { selectedSize } = req.query;  // Capture selectedSize and userId from query params
 
-  console.log(`DELETE request received for user: ${userId}, productId: ${productId}, selectedSize: ${selectedSize}`);
-
-  // Find the user's cart
-  const cart = await Cart.findOne({ userId });
-  if (!cart) {
-      console.log('Cart not found for user:', userId);
-      return res.status(404).json({ message: 'Cart not found' });
-  }
-
-  console.log('Current cart items:', cart.cartItems);
-
-  // Find the index of the item to be removed
-  const itemIndex = cart.cartItems.findIndex(
-      item => item.productId === parseInt(productId) && item.selectedSize === selectedSize
-  );
-
-  console.log(`Item index for productId ${productId} and selectedSize ${selectedSize}:`, itemIndex);
-
-  // If item not found, return 404
-  if (itemIndex === -1) {
-      console.log('Item not found in the cart:', { productId, selectedSize });
-      return res.status(404).json({ message: 'Item not found in the cart' });
-  }
-
-  // Remove the item
-  console.log('Removing item:', cart.cartItems[itemIndex]);
-  cart.cartItems.splice(itemIndex, 1);
-  console.log('Cart items after removal:', cart.cartItems);
-
-  // Save the updated cart to the database
   try {
-      await cart.save(); // Ensure this line is present to persist changes
-      console.log('Cart saved successfully:', cart.cartItems);
-      res.status(200).json({ message: 'Item removed from database successfully' });
-  } catch (error) {
-      console.error('Error saving cart:', error);
-      res.status(500).json({ message: 'Error saving updated cart' });
+    console.log('Received CartItemId:', cartItemId);
+    console.log('Selected Size:', selectedSize);
+    console.log('UserId:', userId);  // Log the userId
+
+    // Validate cartItemId format
+    if (!ObjectId.isValid(cartItemId)) {
+      return res.status(400).json({ message: 'Invalid cart item ID format' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Find the cart where the cartItemId, selectedSize, and userId match
+    const cart = await Cart.findOne({
+      userId: userId,
+      'cartItems.cartItemId': new ObjectId(cartItemId),
+      'cartItems.selectedSize': selectedSize,
+    });
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    // Remove the item from the cart
+    const updatedCart = await Cart.updateOne(
+      { _id: cart._id },
+      {
+        $pull: {
+          cartItems: { cartItemId: new ObjectId(cartItemId), selectedSize },
+        },
+      }
+    );
+
+    if (updatedCart.modifiedCount === 0) {
+      return res.status(404).json({ message: 'Cart item not found' });
+    }
+
+    res.status(200).json({ message: 'Cart item deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting cart item:', err);
+    res.status(500).json({ message: 'Error deleting cart item', error: err });
   }
 });
 
@@ -1387,6 +1393,81 @@ app.get('/product/:name', async (req, res) => {
 });
 
 app.get("/api/carts/:userId", getCartWithProductDetails); // API endpoint for fetching cart details
+
+/*app.delete('/api/cart/:userId/:cartItemId', async (req, res) => {
+  try {
+    const { userId, cartItemId } = req.params;
+
+    if (!userId || !cartItemId) {
+      return res.status(400).json({ message: 'userId or cartItemId is missing' });
+    }
+
+    // Find the user's cart and remove the item with the given cartItemId
+    const result = await Cart.updateOne(
+      { userId: userId },
+      { $pull: { cartItems: { _id: mongoose.Types.ObjectId(cartItemId) } } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: 'Cart item not found' });
+    }
+
+    res.status(200).json({ message: 'Cart item removed successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});*/
+app.delete('/api/cart/delete/:cartItemId', async (req, res) => {
+  const { cartItemId } = req.params;  // Capture cartItemId from the URL path
+  const { selectedSize, userId } = req.query;  // Capture selectedSize and userId from query params
+
+  try {
+    console.log('Received CartItemId:', cartItemId);
+    console.log('Selected Size:', selectedSize);
+    console.log('UserId:', userId);  // Log the userId
+
+    // Validate cartItemId format
+    if (!ObjectId.isValid(cartItemId)) {
+      return res.status(400).json({ message: 'Invalid cart item ID format' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Find the cart where the cartItemId, selectedSize, and userId match
+    const cart = await Cart.findOne({
+      userId: userId,
+      'cartItems.cartItemId': ObjectId(cartItemId),
+      'cartItems.selectedSize': selectedSize,
+    });
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    // Remove the item from the cart
+    const updatedCart = await Cart.updateOne(
+      { _id: cart._id },
+      {
+        $pull: {
+          cartItems: { cartItemId: ObjectId(cartItemId), selectedSize },
+        },
+      }
+    );
+
+    if (updatedCart.modifiedCount === 0) {
+      return res.status(404).json({ message: 'Cart item not found' });
+    }
+
+    res.status(200).json({ message: 'Cart item deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting cart item:', err);
+    res.status(500).json({ message: 'Error deleting cart item', error: err });
+  }
+});
+
 
 
 // Admin Routes

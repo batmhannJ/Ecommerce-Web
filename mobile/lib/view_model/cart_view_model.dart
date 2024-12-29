@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:indigitech_shop/model/cart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import '../model/product.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CartViewModel with ChangeNotifier {
   String _stockErrorMessage = '';
@@ -65,36 +69,19 @@ class CartViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateCartItemsFromDatabase(List<dynamic> fetchedCartItems) {
-    // Clear existing cartItems
+  void updateCartItemsFromDatabase(List<CartItem> fetchedCartItems) {
     cartItems.clear();
 
-    for (var item in fetchedCartItems) {
-      final Product product = Product(
-        id: item['productId'],
-        name: item['name'],
-        adjustedPrice: item['adjustedPrice'],
-        old_price: item['old_price'],
-        new_price: item['new_price'],
-        discount: item['discount'],
-        description: item['description'],
-        reviews: [], // Add reviews if available
-        stocks: {}, // Add stock data if available
-        s_stock: item['s_stock'] ?? 0,
-        m_stock: item['m_stock'] ?? 0,
-        l_stock: item['l_stock'] ?? 0,
-        xl_stock: item['xl_stock'] ?? 0,
-        category: item['category'] ?? "Uncategorized",
-        tags: item['tags'],
-        image: item['image'],
-        available: item['available'] ?? false,
-        isNew: item['isNew'] ?? false,
-      );
-
-      cartItems[product] = {
-        'quantity': item['quantity'],
-        'selectedSize': item['selectedSize'],
-      };
+    for (CartItem item in fetchedCartItems) {
+      if (item.product != null) {
+        cartItems[item.product!] = {
+          'quantity': item.quantity,
+          'selectedSize': item.selectedSize,
+          'cartItemId': item.cartItemId, // Include cartItemId
+        };
+      } else {
+        print("Error: Missing product data for cart item: $item");
+      }
     }
 
     notifyListeners();
@@ -177,15 +164,70 @@ class CartViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void subtractItem(Product product, String selectedSize) {
-    if (cartItems.containsKey(product) &&
-        cartItems[product]!['selectedSize'] == selectedSize) {
-      if (cartItems[product]!['quantity'] > 1) {
-        cartItems[product]!['quantity'] -= 1;
-      } else {
-        cartItems.remove(product);
-      }
+  void subtractItem(Product product, String selectedSize) async {
+    final cartDetails = cartItems[product];
+    if (cartDetails == null || cartDetails['selectedSize'] != selectedSize) {
+      print("Error: Product not found or size mismatch for product: $product");
+      return;
+    }
+
+    final int currentQuantity = cartDetails['quantity'];
+    final String? cartItemId = cartDetails['cartItemId'];
+
+    if (currentQuantity > 1) {
+      cartItems[product]!['quantity'] -= 1;
       notifyListeners();
+    } else {
+      if (cartItemId == null) {
+        print("Error: cartItemId is null for item: $cartDetails");
+        return;
+      }
+
+      // Temporarily remove the item from UI
+      final removedItem = cartItems.remove(product);
+      notifyListeners();
+
+      // Attempt to delete from database
+      bool isDeleted =
+          await deleteCartItemFromDatabase(cartItemId, selectedSize);
+      if (!isDeleted) {
+        // Revert UI state if the operation fails
+        cartItems[product] = removedItem!;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<bool> deleteCartItemFromDatabase(
+      String cartItemId, String selectedSize) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId');
+
+      if (userId == null) {
+        print("No userId found in SharedPreferences.");
+        return false;
+      }
+
+      print(
+          "Attempting to delete cart item: $cartItemId with size: $selectedSize and userId: $userId");
+
+      final apiUrl =
+          'http://localhost:4000/api/cart/$userId/$cartItemId?selectedSize=$selectedSize';
+
+      final response = await http.delete(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        print("Cart item successfully removed from the database.");
+        return true;
+      } else {
+        print("Failed to delete cart item: ${response.statusCode}");
+        print("Response Body: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Error deleting cart item: $e");
+      return false;
     }
   }
 

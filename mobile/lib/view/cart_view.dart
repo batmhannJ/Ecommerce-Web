@@ -123,28 +123,32 @@ class _CartViewState extends State<CartView> {
         print("Fetched cart data: $data");
 
         if (data['cartItems'] != null && data['cartItems'] is List) {
-          List<Map<String, dynamic>> fetchedItems =
-              (data['cartItems'] as List).map((item) {
-            final productData = item['product'];
-            final product = productData != null
-                ? Product.fromJson(productData) // Correct deserialization
-                : null;
-
-            return {
-              'productId': item['productId'].toString(),
-              'selectedSize': item['selectedSize'],
-              'adjustedPrice': item['adjustedPrice'],
-              'quantity': item['quantity'],
-              'cartItemId': item['cartItemId'],
-              'product': product, // Ensure product is deserialized
-            };
-          }).toList();
+          List<CartItem> fetchedItems = (data['cartItems'] as List)
+              .map((item) => CartItem.fromJson(item))
+              .toList();
 
           if (mounted) {
             setState(() {
-              cartItems = fetchedItems;
+              cartItems = fetchedItems
+                  .where((item) => item.quantity > 0)
+                  .map((item) => {
+                        'productId': item.productId,
+                        'selectedSize': item.selectedSize,
+                        'adjustedPrice': item.adjustedPrice,
+                        'quantity': item.quantity,
+                        'cartItemId': item.cartItemId,
+                        'product': item.product,
+                      })
+                  .toList();
             });
+
+            // Pass the CartItem list to CartViewModel
+            context
+                .read<CartViewModel>()
+                .updateCartItemsFromDatabase(fetchedItems);
           }
+        } else {
+          print("No valid cart items found in the response.");
         }
       } else {
         print("Failed to fetch cart: ${response.statusCode}");
@@ -318,6 +322,8 @@ class _CartViewState extends State<CartView> {
                                             'quantity'], // Pass the quantity here
                                         selectedSize: entry['selectedSize'] ??
                                             '', // Provide a default value if null
+                                        cartItemId: entry[
+                                            'cartItemId'], // Pass cartItemId explicitly
                                       ),
                                     ],
                                   ),
@@ -463,12 +469,14 @@ class QuantitySelector extends StatelessWidget {
   final Product product;
   final int quantity; // Initial quantity from the database
   final String selectedSize; // Selected size for the product
+  final String? cartItemId; // Add cartItemId here
 
   const QuantitySelector({
     super.key,
     required this.product,
     required this.quantity,
     required this.selectedSize,
+    this.cartItemId,
   });
 
   @override
@@ -485,12 +493,14 @@ class QuantitySelector extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () {
-              if (selectedSize.isNotEmpty) {
+              if (selectedSize.isNotEmpty && cartItemId != null) {
                 context
                     .read<CartViewModel>()
                     .subtractItem(product, selectedSize);
               } else {
-                print("Error: Size must be selected for the product.");
+                print(
+                  "Error: Missing data. Selected Size: $selectedSize, Cart Item ID: $cartItemId, Product: $product",
+                );
               }
             },
             child: Container(
