@@ -27,12 +27,14 @@ class CheckoutView extends StatefulWidget {
   final Address? address;
   final List<Map<String, dynamic>>
       cartItems; // List of items with product name, size, and quantity
+  final double subtotal; // Add subtotal parameter
 
   const CheckoutView({
     super.key,
     this.user,
     this.address,
     required this.cartItems, // Make cartItems required
+    required this.subtotal,
   });
 
   @override
@@ -162,9 +164,8 @@ class _CheckoutViewState extends State<CheckoutView> {
       );
       return;
     }
-
     final cartViewModel = context.read<CartViewModel>();
-    final items = cartViewModel.items;
+    final items = cartViewModel.items; // This seems to be Map<Product, int>
     final subtotal = cartViewModel.getSubtotal();
     final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -173,18 +174,12 @@ class _CheckoutViewState extends State<CheckoutView> {
         'sk_test_fp78egyq6UtfYJMVaRf8DX2v'; // Replace with your secret key
     final authHeader = base64Encode(utf8.encode('$secretKey:'));
 
-    final lineItems = items.map<Map<String, dynamic>>((productEntry) {
-      final product = productEntry.key;
-      final quantity = productEntry.value;
-      final selectedSize = cartViewModel.getSelectedSize(product);
-      print('Product ID: ${product.id}, Name: ${product.name}');
-
+    final lineItems = widget.cartItems.map((item) {
       return {
-        "id": product.id ?? "",
-        "name": product.name,
-        "description": "Size: ${selectedSize?.name ?? 'N/A'}",
-        "amount": (product.new_price * 100).toInt(),
-        "quantity": quantity,
+        "name": item['name'],
+        "description": "Size: ${item['selectedSize']}",
+        "amount": ((item['adjustedPrice'] ?? 0.0) * 100).toInt(),
+        "quantity": item['quantity'],
         "currency": "PHP",
       };
     }).toList();
@@ -200,7 +195,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     final payload = {
       "data": {
         "attributes": {
-          "amount": ((subtotal + shippingFee) * 100).toInt(),
+          "amount": ((widget.subtotal + shippingFee) * 100).toInt(),
           "description": "Payment for Order $referenceNumber",
           "currency": "PHP",
           "payment_method_types": ["gcash", "grab_pay", "paymaya", "card"],
@@ -214,51 +209,56 @@ class _CheckoutViewState extends State<CheckoutView> {
       },
     };
 
-    final response = await http.post(
-      Uri.parse("$paymongoUrl/checkout_sessions"),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Basic $authHeader",
-      },
-      body: json.encode(payload),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse("https://api.paymongo.com/v1/checkout_sessions"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization":
+              "Basic ${base64Encode(utf8.encode('sk_test_fp78egyq6UtfYJMVaRf8DX2v:'))}",
+        },
+        body: json.encode(payload),
+      );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final responseData = json.decode(response.body);
-      final checkoutUrl = responseData['data']['attributes']['checkout_url'];
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final checkoutUrl = responseData['data']['attributes']['checkout_url'];
 
-      // Validate the URL before proceeding
-      if (checkoutUrl != null &&
-          checkoutUrl.startsWith("https://checkout.paymongo.com/")) {
-        if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
-          await launchUrl(Uri.parse(checkoutUrl));
+        if (checkoutUrl != null &&
+            checkoutUrl.startsWith("https://checkout.paymongo.com/")) {
+          if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
+            await launchUrl(Uri.parse(checkoutUrl));
 
-          await saveTransaction(
-            Map.fromEntries(items),
-            subtotal + shippingFee,
-            userAddress,
-            referenceNumber,
-          );
-          await _updateStockInDatabase(Map.fromEntries(items), cartViewModel);
+            await saveTransaction(
+              widget.cartItems,
+              widget.subtotal + shippingFee,
+              userAddress,
+              referenceNumber,
+            );
 
-          print(
-              "Items passed to _updateStockInDatabase: ${Map.fromEntries(items)}");
+            await _updateStockInDatabase(
+              widget.cartItems, // Pass the List<Map<String, dynamic>>
+              cartViewModel,
+            );
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
-          ).then((_) {
-            // Clear the cart after navigating to success page
-            cartViewModel.clearCart();
-          });
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
+            ).then((_) {
+              context.read<CartViewModel>().clearCart(); // Clear the cart
+            });
+          } else {
+            throw Exception("Failed to launch payment URL");
+          }
         } else {
-          throw Exception("Failed to launch payment URL");
+          throw Exception("Invalid checkout URL: $checkoutUrl");
         }
       } else {
-        throw Exception("Invalid checkout URL: $checkoutUrl");
+        throw Exception("Payment failed: ${response.body}");
       }
-    } else {
-      throw Exception("Payment failed: ${response.body}");
+    } catch (error) {
+      Fluttertoast.showToast(msg: "Error during payment: $error");
+      print("Error: $error");
     }
   }
 
@@ -342,30 +342,26 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Future<void> _updateStockInDatabase(
-      Map<Product, int> items, CartViewModel cartViewModel) async {
+      List<Map<String, dynamic>> cartItems, CartViewModel cartViewModel) async {
     final List<Map<String, dynamic>> stockUpdates = [];
 
-    for (var entry in items.entries) {
-      final product = entry.key;
-      final quantity = entry.value;
-      final selectedSize =
-          cartViewModel.getSelectedSize(product)?.name ?? "N/A";
+    for (var item in cartItems) {
+      final productName = item['name'];
+      final quantity = item['quantity'];
+      final selectedSize = item['selectedSize'] ?? "N/A";
 
       // Fetch product ID if it is missing
-      if (product.id.isEmpty) {
-        final productId = await fetchProductIdByName(product.name);
-        if (productId != null) {
-          product.id = productId; // Update the product's ID
-        } else {
-          throw Exception(
-              "Product ID could not be fetched for: ${product.name}");
-        }
+
+      // Fetch product ID by name
+      final productId = await fetchProductIdByName(productName);
+      if (productId == null) {
+        throw Exception("Product ID could not be fetched for: $productName");
       }
 
       // Add to stock updates list
       stockUpdates.add({
-        "id": product.id,
-        "name": product.name,
+        "id": productId,
+        "name": productName,
         "size": selectedSize,
         "quantity": quantity,
       });
@@ -387,7 +383,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Future<void> saveTransaction(
-    Map<Product, int> items,
+    List<Map<String, dynamic>> cartItems,
     double totalAmount,
     Address userAddress,
     String referenceNumber,
@@ -420,33 +416,31 @@ class _CheckoutViewState extends State<CheckoutView> {
     final provinceName = getProvinceName(fetchedUserAddress.province);
     final cityName = getCityName(fetchedUserAddress.municipality);
     final barangayName = getBarangayName(fetchedUserAddress.barangay);
-    final cartViewModel = context.read<CartViewModel>();
-    final cartItems = widget.cartItems; // Assuming cartItems is already a map
-    final subtotal = cartViewModel.getSubtotal();
-    final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
 
-    // Serialize items
-    final serializedItems = items.entries.map((entry) {
-      final product = entry.key;
-      final quantity = entry.value;
+    final serializedItems = cartItems.map((item) {
       return {
-        "name": product.name.trim(),
+        "name": item['name'].trim(),
+        "size": item['selectedSize'] ?? "N/A",
+        "quantity": item['quantity'] ?? 0,
+        "price": item['adjustedPrice'] ?? 0.0,
       };
-    }).toList(); // Convert to a list of JSON objects
+    }).toList();
 
+    // Construct payload
     final transactionPayload = {
       "userId": userId,
       "status": "Cart Processing",
-      "amount": subtotal,
+      "amount": serializedItems.fold(
+          0.0, (sum, item) => sum + (item['price'] * item['quantity'])),
       "quantity": serializedItems.length,
       "transactionId": referenceNumber,
       "date": DateTime.now().toIso8601String(),
       "item": serializedItems
-          .map((item) => "${item['name']}")
-          .join(';'), // Convert array to a single string
+          .map((item) => item['name'])
+          .join("; "), // Only include names, separated by "; "
       "totalAmount": totalAmount,
-      "contact": currentUser.phone ?? '', // Ensure phone is available
-      "name": currentUser.name ?? '', // Ensure name is available
+      "contact": currentUser.phone ?? '',
+      "name": currentUser.name ?? '',
       "address":
           "${fetchedUserAddress.street}, $barangayName, $cityName, $provinceName, ${fetchedUserAddress.zip}",
     };
@@ -725,13 +719,6 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Widget itemsOrderedCard(BuildContext context) {
-    final cartViewModel = Provider.of<CartViewModel>(context);
-
-    List<MapEntry<Product, int>> items =
-        context.select<CartViewModel, List<MapEntry<Product, int>>>(
-      (value) => value.items,
-    );
-
     return Card(
       elevation: 4, // Adds shadow
       shape: RoundedRectangleBorder(
@@ -754,12 +741,10 @@ class _CheckoutViewState extends State<CheckoutView> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
+              itemCount: widget.cartItems.length,
               itemBuilder: (context, index) {
-                MapEntry<Product, int> item = items[index];
-                final productEntry = cartViewModel.items[index];
-                final product = productEntry.key;
-                final selectedSize = cartViewModel.getSelectedSize(product);
+                final item = widget.cartItems[index];
+                print("Cart Items: ${widget.cartItems}");
 
                 return Padding(
                   padding: EdgeInsets.only(top: index != 0 ? 20 : 0),
@@ -773,9 +758,10 @@ class _CheckoutViewState extends State<CheckoutView> {
                           decoration: BoxDecoration(
                             border: Border.all(color: AppColors.greyAD),
                           ),
-                          child: item.key.image.isNotEmpty
+                          child: item['image'] != null &&
+                                  item['image'].isNotEmpty
                               ? Image.network(
-                                  'http://localhost:4000/upload/images/${item.key.image[0]}',
+                                  'http://localhost:4000/upload/images/${item['image']}',
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,
@@ -809,14 +795,14 @@ class _CheckoutViewState extends State<CheckoutView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                item.key.name,
+                                item['name'],
                                 style: AppTextStyles.body2.copyWith(
                                   fontWeight: AppFontWeights.bold,
                                   fontSize: 16, // Adjusted size
                                 ),
                               ),
                               Text(
-                                'Size: ${selectedSize != null ? selectedSize.name : 'N/A'}',
+                                'Size: ${item['selectedSize'] ?? 'N/A'}',
                                 style: AppTextStyles.subtitle2.copyWith(
                                   color: AppColors
                                       .greyAD, // Lighter color for size
@@ -828,7 +814,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                                   text: "Quantity:  ",
                                   children: [
                                     TextSpan(
-                                      text: "${item.value}",
+                                      text: "${item['quantity']}",
                                       style: const TextStyle(
                                         fontWeight: AppFontWeights.bold,
                                       ),
@@ -958,7 +944,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   Widget orderSummaryCard(BuildContext context) {
     final double shippingFee =
         this.shippingFee; // Use the shippingFee from the state variable
-    final subtotal = context.read<CartViewModel>().getSubtotal();
+    final double subtotal = widget.subtotal; // Use passed subtotal
     final total = subtotal + shippingFee;
 
     // Check if userAddress is valid

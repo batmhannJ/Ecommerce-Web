@@ -159,23 +159,27 @@ class _CartViewState extends State<CartView> {
   }
 
   void _navigateToCheckout(Address? userAddress) {
-    List<Map<String, dynamic>> cartItems =
-        context.read<CartViewModel>().items.map((entry) {
-      Product product = entry.key;
-      int quantity = entry.value;
-      String selectedSize = selectedSizes[product]?.name ?? "";
+    final cartItems = context.read<CartViewModel>().cartItemsList.map((entry) {
+      final product = entry.key;
+      final details = entry.value;
+
       return {
         'name': product.name,
-        'selectedSize': selectedSize,
-        'quantity': quantity,
+        'selectedSize': details['selectedSize'] ?? '',
+        'quantity': details['quantity'] ?? 0,
+        'adjustedPrice': details['adjustedPrice'] ?? 0.0,
+        'image': product.image.isNotEmpty ? product.image[0] : '',
       };
     }).toList();
+
+    final subtotal = calculateSubtotal();
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => CheckoutView(
           address: userAddress,
           cartItems: cartItems,
+          subtotal: subtotal, // Pass subtotal to CheckoutView
         ),
       ),
     );

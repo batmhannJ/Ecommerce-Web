@@ -194,20 +194,23 @@ class _AddressViewState extends State<AddressView> {
     final currentUser = authViewModel.user;
     final userAddress = authViewModel.address;
 
-    authViewModel.isLoggedIn = true; // Gamitin ang setter para sa isLoggedIn
+    authViewModel.isLoggedIn = true;
 
-    // Fetch the cart items from your CartViewModel or wherever you're managing cart state
+    // Fetch the cart items from your CartViewModel
     final cartItems = context.read<CartViewModel>().items.map((entry) {
-      Product product =
-          entry.key; // Assuming this maps correctly to your data structure
+      Product product = entry.key;
       int quantity = entry.value;
       String selectedSize = ""; // Adjust according to your app's logic
       return {
         'name': product.name,
         'selectedSize': selectedSize,
         'quantity': quantity,
+        'adjustedPrice': product.new_price, // Assuming you have a price field
       };
     }).toList();
+
+    // Calculate the subtotal based on cartItems
+    final subtotal = calculateSubtotal(cartItems);
 
     // Navigate to CheckoutView with the required parameters
     Navigator.push(
@@ -216,10 +219,19 @@ class _AddressViewState extends State<AddressView> {
         builder: (context) => CheckoutView(
           user: currentUser,
           address: userAddress,
-          cartItems: cartItems, // Ensure cartItems is correctly passed
+          cartItems: cartItems,
+          subtotal: subtotal,
         ),
       ),
     );
+  }
+
+  double calculateSubtotal(List<Map<String, dynamic>> cartItems) {
+    return cartItems.fold(0.0, (total, item) {
+      double adjustedPrice = item['adjustedPrice'] ?? 0.0;
+      int quantity = item['quantity'] ?? 0;
+      return total + (adjustedPrice * quantity);
+    });
   }
 
   @override

@@ -79,6 +79,7 @@ class CartViewModel with ChangeNotifier {
           'selectedSize': item.selectedSize,
           'cartItemId': item.cartItemId, // Include cartItemId
           'adjustedPrice': item.adjustedPrice,
+          'image': item.product!.image.isNotEmpty ? item.product!.image[0] : '',
         };
       } else {
         print("Error: Missing product data for cart item: $item");

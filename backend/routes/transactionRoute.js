@@ -234,6 +234,8 @@ router.get("/topPurchasesProduct", async (req, res) => {
 });
 
 router.post("/api/transactions", async (req, res) => {
+  console.log('Received payload:', req.body);
+
   try {
     const {
       date,
