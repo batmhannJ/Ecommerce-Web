@@ -1394,30 +1394,6 @@ app.get('/product/:name', async (req, res) => {
 
 app.get("/api/carts/:userId", getCartWithProductDetails); // API endpoint for fetching cart details
 
-/*app.delete('/api/cart/:userId/:cartItemId', async (req, res) => {
-  try {
-    const { userId, cartItemId } = req.params;
-
-    if (!userId || !cartItemId) {
-      return res.status(400).json({ message: 'userId or cartItemId is missing' });
-    }
-
-    // Find the user's cart and remove the item with the given cartItemId
-    const result = await Cart.updateOne(
-      { userId: userId },
-      { $pull: { cartItems: { _id: mongoose.Types.ObjectId(cartItemId) } } }
-    );
-
-    if (result.modifiedCount === 0) {
-      return res.status(404).json({ message: 'Cart item not found' });
-    }
-
-    res.status(200).json({ message: 'Cart item removed successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});*/
 app.delete('/api/cart/delete/:cartItemId', async (req, res) => {
   const { cartItemId } = req.params;  // Capture cartItemId from the URL path
   const { selectedSize, userId } = req.query;  // Capture selectedSize and userId from query params
@@ -1468,6 +1444,70 @@ app.delete('/api/cart/delete/:cartItemId', async (req, res) => {
   }
 });
 
+app.post('/api/cart/save', async (req, res) => {
+  const { userId, cartItems } = req.body;
+  console.log('Received cart items:', req.body.cartItems);
+
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+
+  if (!Array.isArray(cartItems) || cartItems.length === 0) {
+    return res.status(400).json({ message: "Cart items are required" });
+  }
+
+  for (const item of cartItems) {
+    if (!item.productId) {
+      return res
+        .status(400)
+        .json({ message: "Product ID is required for all cart items" });
+    }
+  }
+
+  try {
+    // Find the user's cart
+    let cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      // If no cart exists, create a new one
+      cart = new Cart({
+        userId,
+        cartItems: [],
+      });
+    }
+
+    // Add or update cart items
+    for (const item of cartItems) {
+      const existingItemIndex = cart.cartItems.findIndex(
+        (i) =>
+          i.productId === item.productId &&
+          i.selectedSize === item.selectedSize
+      );
+
+      if (existingItemIndex !== -1) {
+        // Update quantity and price if item exists
+        cart.cartItems[existingItemIndex].quantity += item.quantity;
+        cart.cartItems[existingItemIndex].adjustedPrice = item.adjustedPrice;
+      } else {
+        // Add new item
+        cart.cartItems.push({
+          productId: item.productId,
+          selectedSize: item.selectedSize,
+          adjustedPrice: item.adjustedPrice,
+          quantity: item.quantity,
+          cartItemId: new mongoose.Types.ObjectId(),
+        });
+      }
+    }
+
+    // Save the updated cart
+    await cart.save();
+    res.status(201).json({ message: 'Cart item saved successfully', cart });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to save cart item', error });
+  }
+});
 
 
 // Admin Routes

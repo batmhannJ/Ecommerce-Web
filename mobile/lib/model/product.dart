@@ -107,7 +107,7 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     try {
       return Product(
-        id: json['id'].toString(), // Always convert id to String
+        id: json['id'].toString() ?? '', // Always convert id to String
         name: json['name'] ?? 'Unknown Product',
         old_price: (json['old_price'] ?? 0).toDouble(),
         new_price: (json['new_price'] ?? 0).toDouble(),

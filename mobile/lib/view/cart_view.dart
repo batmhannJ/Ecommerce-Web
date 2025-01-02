@@ -532,6 +532,12 @@ class QuantitySelector extends StatelessWidget {
               int itemCount =
                   cartViewModel.cartItems[product]?['quantity'] ?? quantity;
 
+              // Ensure correct product and size key match
+              if (cartViewModel.cartItems.containsKey(product)) {
+                itemCount =
+                    cartViewModel.cartItems[product]?['quantity'] ?? quantity;
+              }
+
               return Container(
                 decoration: BoxDecoration(
                   color: AppColors.primary,

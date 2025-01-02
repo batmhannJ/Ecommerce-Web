@@ -77,7 +77,7 @@ class CartViewModel with ChangeNotifier {
         cartItems[item.product!] = {
           'quantity': item.quantity,
           'selectedSize': item.selectedSize,
-          'cartItemId': item.cartItemId, // Include cartItemId
+          'cartItemId': item.cartItemId,
           'adjustedPrice': item.adjustedPrice,
           'image': item.product!.image.isNotEmpty ? item.product!.image[0] : '',
         };
@@ -86,6 +86,7 @@ class CartViewModel with ChangeNotifier {
       }
     }
 
+    print("Updated cartItems: $cartItems"); // Debug log
     notifyListeners();
   }
 

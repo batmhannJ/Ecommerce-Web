@@ -3,7 +3,6 @@ import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/core/style/colors.dart';
 import 'package:indigitech_shop/widget/buttons/custom_filled_button.dart';
-import 'package:indigitech_shop/widget/product_list.dart';
 import 'package:indigitech_shop/services/product_api_service.dart';
 import 'package:indigitech_shop/model/product.dart';
 

@@ -15,7 +15,7 @@ Future<List<Product>> fetchProducts() async {
     // Map the JSON response to a List<Product>
     List<Product> products = jsonResponse.map((data) {
       return Product(
-        id: data['cartItemId'] ?? '',
+        id: data['id']?.toString() ?? '', // Use the correct 'id' field
         name: data['name'] ?? '', // Default to empty string if null
         old_price:
             (data['old_price'] ?? 0.0) as double, // Default to 0.0 if null

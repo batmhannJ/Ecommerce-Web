@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:indigitech_shop/core/extensions/string_extensions.dart';
@@ -86,53 +88,65 @@ class _ProductViewState extends State<ProductView> {
   }
 
   Future<void> _saveToCart(Product product) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String>? cartItems = prefs.getStringList('cart') ?? [];
+    print('Product Debug: ${product.toJson()}');
 
-    // Check if the selected size is null (validation)
     if (_selectedSize == null) {
       print("Error: No size selected.");
       return;
     }
+    if (_stockCount == 0) {
+      print("Error: Out of stock.");
+      return;
+    }
 
-    // Prepare the updated product details
-    final updatedProduct = product.copyWith(new_price: adjustedPrice);
-    final cartItemString =
-        '${updatedProduct.name},${adjustedPrice.toStringAsFixed(2)},${_selectedSize!.name},$_selectedQuantity';
+    final userId = await _getUserId();
+    if (userId == null) {
+      print("Error: User not logged in.");
+      return;
+    }
 
-    bool itemExists = false;
+    // Convert the String id to an int (productId) for the backend
+    final int? productId = int.tryParse(product.id);
 
-    // Check if the item already exists in the cart
-    for (int i = 0; i < cartItems.length; i++) {
-      final cartItem = cartItems[i];
-      final parts = cartItem.split(',');
-
-      // Debugging: Print the cart item and check the comparison
+    if (productId == null) {
       print(
-          "Comparing: ${updatedProduct.name} with ${parts[0]} and ${_selectedSize!.name} with ${parts[2]}");
+          "Error: Invalid product ID. Cannot convert '${product.id}' to an integer.");
+      return;
+    }
 
-      if (parts[0].trim() == updatedProduct.name.trim() &&
-          parts[2].trim() == _selectedSize!.name.trim()) {
-        // If item with same name and size exists, update the quantity
-        final existingQuantity = int.parse(parts[3]);
-        final newQuantity = existingQuantity +
-            _selectedQuantity; // Add new quantity to the existing one
+    final cartItem = {
+      'userId': userId,
+      'cartItems': [
+        {
+          'productId': productId, // Send as an integer
+          'selectedSize': _selectedSize!.name,
+          'adjustedPrice': adjustedPrice,
+          'quantity': _selectedQuantity,
+          'cartItemId': null, // Backend will generate this
+        }
+      ]
+    };
 
-        // Update the cart item with the new quantity
-        cartItems[i] = '${parts[0]},${parts[1]},${parts[2]},$newQuantity';
-        itemExists = true;
-        break;
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:4000/api/cart/save'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(cartItem),
+      );
+
+      if (response.statusCode == 201) {
+        print('Cart item saved to database successfully: ${response.body}');
+      } else {
+        print('Failed to save cart item: ${response.body}');
       }
+    } catch (e) {
+      print('Error saving cart item: $e');
     }
+  }
 
-    // If item doesn't exist, add it to the cart
-    if (!itemExists) {
-      cartItems.add(cartItemString);
-    }
-
-    // Save the updated cart back to SharedPreferences
-    await prefs.setStringList('cart', cartItems);
-    print('Cart updated: $cartItems'); // For debugging
+  Future<String?> _getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId');
   }
 
   @override
