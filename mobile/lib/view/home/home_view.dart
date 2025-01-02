@@ -73,7 +73,8 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens(context)[_selectedIndex], // Show selected screen based on index
+      body: _screens(
+          context)[_selectedIndex], // Show selected screen based on index
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: BottomNavigationBar(
@@ -89,12 +90,14 @@ class _HomeViewState extends State<HomeView> {
             BottomNavigationBarItem(
               icon: Builder(
                 builder: (context) {
-                  int itemCount = context.select<CartViewModel, int>(
-                      (value) => value.items.length);
+                  int uniqueItemCount = context.select<CartViewModel, int>(
+                    (value) => value
+                        .getUniqueItemCount(), // Use getUniqueItemCount() instead
+                  );
 
                   return Badge(
-                    label: Text("$itemCount"),
-                    isLabelVisible: itemCount > 0,
+                    label: Text("$uniqueItemCount"),
+                    isLabelVisible: uniqueItemCount > 0,
                     child: const Icon(
                       Symbols.shopping_cart,
                       size: 30,
@@ -144,7 +147,8 @@ class HomeScreenTabs extends StatelessWidget {
               Tab(icon: Icon(Icons.brush), text: 'Crafts'),
               Tab(icon: Icon(Icons.shopping_bag), text: 'Clothes'),
             ],
-            labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            labelStyle:
+                const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             labelColor: Colors.black,
             unselectedLabelColor: Colors.grey[700],
           ),

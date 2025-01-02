@@ -301,4 +301,8 @@ class CartViewModel with ChangeNotifier {
     if (distance < 20) return 100; // Example: ₱100 for 5-20 km
     return 200; // Example: ₱200 for >20 km
   }
+
+  int getUniqueItemCount() {
+    return cartItems.length;
+  }
 }
