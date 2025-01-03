@@ -73,6 +73,8 @@ class CartViewModel with ChangeNotifier {
     cartItems.clear();
 
     for (CartItem item in fetchedItems) {
+      print("Fetched item: ${item.toJson()}"); // Log the fetched item
+
       if (item.product != null) {
         cartItems[item.product!] = {
           'quantity': item.quantity,

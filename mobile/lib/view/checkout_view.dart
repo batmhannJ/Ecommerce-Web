@@ -222,7 +222,16 @@ class _CheckoutViewState extends State<CheckoutView> {
       return;
     }
     final cartViewModel = context.read<CartViewModel>();
-    final items = cartViewModel.items; // This seems to be Map<Product, int>
+    final items = cartViewModel.cartItemsList.map((entry) {
+      final product = entry.key;
+      final details = entry.value;
+      return {
+        'name': product.name,
+        'selectedSize': details['selectedSize'],
+        'quantity': details['quantity'],
+        'cartItemId': details['cartItemId'], // Ensure this is included
+      };
+    }).toList(); // This seems to be Map<Product, int>
     final subtotal = cartViewModel.getSubtotal();
     final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -298,6 +307,8 @@ class _CheckoutViewState extends State<CheckoutView> {
               cartViewModel,
             );
 
+            await _deleteCartItems(items);
+
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
@@ -316,6 +327,44 @@ class _CheckoutViewState extends State<CheckoutView> {
     } catch (error) {
       Fluttertoast.showToast(msg: "Error during payment: $error");
       print("Error: $error");
+    }
+  }
+
+  Future<void> _deleteCartItems(List<Map<String, dynamic>> cartItems) async {
+    final List<String> cartItemIds = [];
+
+    for (var item in cartItems) {
+      if (item.containsKey('cartItemId') && item['cartItemId'] != null) {
+        cartItemIds.add(item['cartItemId'] as String); // Collect 'cartItemId'
+      } else {
+        print("No cartItemId found for item: $item");
+      }
+    }
+
+    if (cartItemIds.isEmpty) {
+      print("No valid cartItemIds found for deletion.");
+      return;
+    }
+
+    try {
+      print("Payload to API: ${json.encode({"cartItemIds": cartItemIds})}");
+
+      final response = await http.post(
+        Uri.parse("http://localhost:4000/api/cart/removeItems"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"cartItemIds": cartItemIds}),
+      );
+
+      if (response.statusCode == 200) {
+        print("Items successfully removed from cart: $cartItemIds");
+      } else if (response.statusCode == 404) {
+        print("No items found to remove: ${response.body}");
+      } else {
+        print(
+            "Failed to remove items: ${response.statusCode}, ${response.body}");
+      }
+    } catch (error) {
+      print("Error removing items from cart: $error");
     }
   }
 

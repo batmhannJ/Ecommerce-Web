@@ -1508,6 +1508,38 @@ app.post('/api/cart/save', async (req, res) => {
     res.status(500).json({ message: 'Failed to save cart item', error });
   }
 });
+app.post('/api/cart/removeItems', async (req, res) => {
+  const { cartItemIds } = req.body;
+
+  if (!cartItemIds || !Array.isArray(cartItemIds) || cartItemIds.length === 0) {
+    return res.status(400).json({ message: "Invalid cartItemIds data." });
+  }
+
+  try {
+    const objectIds = cartItemIds
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
+
+    if (objectIds.length === 0) {
+      return res.status(400).json({ message: "No valid ObjectIds provided." });
+    }
+
+    // Use $pull to remove items from 'cartItems' array by 'cartItemId'
+    const result = await Cart.updateMany(
+      { "cartItems.cartItemId": { $in: objectIds } },
+      { $pull: { cartItems: { cartItemId: { $in: objectIds } } } }
+    );
+
+    if (result.modifiedCount > 0) {
+      return res.status(200).json({ message: "Items removed successfully." });
+    } else {
+      return res.status(404).json({ message: "No items found to remove." });
+    }
+  } catch (error) {
+    console.error("Error removing items from cart:", error);
+    return res.status(500).json({ message: "Failed to remove items from cart.", error });
+  }
+});
 
 
 // Admin Routes
