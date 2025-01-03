@@ -53,4 +53,8 @@ class Address {
       'street': street,
     };
   }
+
+  String fullAddress() {
+    return '$street, $barangay, $municipality, $province, $region, $zip';
+  }
 }

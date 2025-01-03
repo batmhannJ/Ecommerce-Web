@@ -48,9 +48,9 @@ class _CheckoutViewState extends State<CheckoutView> {
   double shippingFee = 0.0; // Non-nullable, default to 0.0
 
   Future<Map<String, double>?> fetchCoordinates(String address) async {
-    const apiKey = '072e48c34a52df1351a9de28cf930b88'; // Your API key
+    const apiKey = 'a42131c48c155253eaecadd8e7102e90';
     final url =
-        'http://api.positionstack.com/v1/forward?access_key=$apiKey&query=$address';
+        'http://api.positionstack.com/v1/forward?access_key=$apiKey&query=$address&country=PH';
 
     print("Fetching coordinates for address: $address");
 
@@ -64,27 +64,42 @@ class _CheckoutViewState extends State<CheckoutView> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['data'].isNotEmpty) {
-          print("Fetched Coordinates: ${data['data'][0]}");
-          return {
-            'latitude': data['data'][0]['latitude'],
-            'longitude': data['data'][0]['longitude'],
-          };
+
+        if (data['data'] != null && data['data'].isNotEmpty) {
+          try {
+            // Prioritize results with high confidence
+            final result = data['data'].firstWhere(
+              (entry) =>
+                  entry['confidence'] != null && entry['confidence'] > 0.7,
+              orElse: () => data['data'][0], // Fallback to the first result
+            );
+
+            if (result['country_code'] == 'PHL') {
+              print("Fetched Coordinates: $result");
+              return {
+                'latitude': result['latitude'],
+                'longitude': result['longitude'],
+              };
+            } else {
+              print("Address is outside the Philippines.");
+              Fluttertoast.showToast(
+                  msg: "Address must be in the Philippines.");
+            }
+          } catch (e) {
+            print("Error filtering results: $e");
+            Fluttertoast.showToast(msg: "Error processing coordinates.");
+          }
         } else {
           print("No data found for the address.");
-        }
-      } else {
-        print("Error fetching coordinates: ${response.body}");
-        if (response.statusCode == 429) {
-          Fluttertoast.showToast(
-              msg: "Too many requests. Please try again later.");
+          Fluttertoast.showToast(msg: "Unable to resolve address.");
         }
       }
     } catch (error) {
       print("Error fetching coordinates: $error");
       Fluttertoast.showToast(msg: "Error fetching coordinates.");
     }
-    return null;
+
+    return null; // Return null if unsuccessful
   }
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -108,36 +123,78 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Future<void> calculateShippingFee(BuildContext context) async {
+    const mainOfficeLat = 14.628488;
+    const mainOfficeLon = 121.03342;
+    const double baseFeeSameRegion = 20.0;
+    const double baseFeeOtherRegion = 40.0;
+    const double feePerMileSameRegion = 2.0;
+    const double feePerMileOtherRegion = 3.0;
+    const double maxFeeSameRegion = 100.0;
+    const double maxFeeOtherRegion = 200.0;
+    const double kmToMileConversion = 0.621371;
     final authViewModel = context.read<AuthViewModel>();
     final userAddress = authViewModel.address;
 
     if (userAddress == null) {
       print("User address is null");
+      Fluttertoast.showToast(msg: "Please provide a valid shipping address.");
       return;
     }
 
-    final regionCode = userAddress.region;
+    const double baseRate = 50.0;
+    const double ratePerKm = 5.0;
 
-    if (regionCode == null) {
-      print("User region is null");
+    // Get readable names for the address components
+    final regionName = getRegionName(userAddress.region);
+    final provinceName = getProvinceName(userAddress.province);
+    final cityName = getCityName(userAddress.municipality);
+    final barangayName = getBarangayName(userAddress.barangay);
+
+    // Construct the full address using readable names
+    final fullAddress =
+        '$barangayName, $cityName, $provinceName, $regionName, Philippines';
+
+    print("Fetching coordinates for address: $fullAddress");
+
+    // Fetch coordinates based on the formatted address
+    final userCoordinates = await fetchCoordinates(fullAddress);
+
+    if (userCoordinates == null) {
+      print("Failed to fetch coordinates.");
+      Fluttertoast.showToast(
+          msg: "Unable to calculate shipping fee. Please try again.");
       return;
     }
 
-    print("User Region: $regionCode");
+    final distanceKm = calculateDistance(
+      mainOfficeLat,
+      mainOfficeLon,
+      userCoordinates['latitude']!,
+      userCoordinates['longitude']!,
+    );
 
-    const mainOfficeLat = 14.628488; // Main office latitude
-    const mainOfficeLon = 121.03342; // Main office longitude
+    final distanceMiles = distanceKm * kmToMileConversion;
+    final isSameRegion =
+        userAddress.region == "Metro Manila" || userAddress.region == "NCR";
+    final baseFee = isSameRegion ? baseFeeSameRegion : baseFeeOtherRegion;
+    final feePerMile =
+        isSameRegion ? feePerMileSameRegion : feePerMileOtherRegion;
 
-    double distance = 0.0;
+    // Calculate total fee
+    double totalFee = baseFee + feePerMile * distanceMiles.ceil();
+    final maxDeliveryFee = isSameRegion ? maxFeeSameRegion : maxFeeOtherRegion;
+    totalFee = totalFee > maxDeliveryFee ? maxDeliveryFee : totalFee;
 
-    if (regionCode == 'NCR') {
-      distance = 10; // Example value; adjust as needed for NCR
-    } else {
-      distance = 16; // Example value for non-NCR
+    if (distanceKm > 1000) {
+      print("Invalid distance: $distanceKm km");
+      Fluttertoast.showToast(msg: "Address is outside the serviceable area.");
+      return;
     }
+
+    //final fee = baseRate + (distanceKm * ratePerKm);
 
     setState(() {
-      shippingFee = distance * 5; // Calculate the fee based on distance
+      shippingFee = double.parse(totalFee.toStringAsFixed(2));
     });
 
     print("Calculated Shipping Fee: PHP $shippingFee");
@@ -276,31 +333,30 @@ class _CheckoutViewState extends State<CheckoutView> {
   void initState() {
     super.initState();
     final authViewModel = context.read<AuthViewModel>();
+
     authViewModel.fetchUserAddress().then((_) {
-      setState(() {
-        final userAddress = authViewModel.address;
+      final userAddress = authViewModel.address;
 
-        selectedRegion = userAddress?.region;
-        selectedProvince = userAddress?.province;
-        selectedCity = userAddress?.municipality;
-        selectedBarangay = userAddress?.barangay;
-
-        if (selectedRegion != null) {
-          fetchProvinces(selectedRegion!);
-        }
-        if (selectedProvince != null) {
-          fetchCities(selectedProvince!);
-        }
-        if (selectedCity != null) {
-          fetchBarangays(selectedCity!);
-        }
-        print('Street: ${userAddress?.street}');
-        print('Zip: ${userAddress?.zip}');
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          calculateShippingFee(context);
+      if (userAddress != null) {
+        setState(() {
+          selectedRegion = userAddress.region;
+          selectedProvince = userAddress.province;
+          selectedCity = userAddress.municipality;
+          selectedBarangay = userAddress.barangay;
         });
-      });
+
+        Future.wait([
+          if (selectedRegion != null) fetchProvinces(selectedRegion!),
+          if (selectedProvince != null) fetchCities(selectedProvince!),
+          if (selectedCity != null) fetchBarangays(selectedCity!),
+        ]).then((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            calculateShippingFee(context);
+          });
+        });
+      } else {
+        print("User address is null");
+      }
     });
 
     fetchRegions();
