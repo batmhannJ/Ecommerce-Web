@@ -41,6 +41,11 @@ dependencies:
   url_launcher: ^6.3.1
   intl: ^0.17.0
   geolocator: ^13.0.1
+  uni_links: ^0.5.1
+  paymongo_sdk: ^1.0.0 # Add this line, replace with the correct version
+
+dependency_overrides:
+  http: ^0.13.6
 
 dev_dependencies:
   flutter_test:
