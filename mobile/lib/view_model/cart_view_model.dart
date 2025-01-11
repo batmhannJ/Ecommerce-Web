@@ -154,10 +154,13 @@ class CartViewModel with ChangeNotifier {
     }
     clearStockErrorMessage();
 
+    // Add or update the cart item with the new quantity
     if (cartItems.containsKey(product) &&
         cartItems[product]!['selectedSize'] == selectedSize) {
-      cartItems[product]!['quantity'] += quantity;
+      // Update quantity for existing item
+      cartItems[product]!['quantity'] = quantity;
     } else {
+      // Add new item
       cartItems[product] = {
         'quantity': quantity,
         'selectedSize': selectedSize,

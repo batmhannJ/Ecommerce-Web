@@ -533,12 +533,6 @@ class QuantitySelector extends StatelessWidget {
               int itemCount =
                   cartViewModel.cartItems[product]?['quantity'] ?? quantity;
 
-              // Ensure correct product and size key match
-              if (cartViewModel.cartItems.containsKey(product)) {
-                itemCount =
-                    cartViewModel.cartItems[product]?['quantity'] ?? quantity;
-              }
-
               return Container(
                 decoration: BoxDecoration(
                   color: AppColors.primary,
@@ -562,12 +556,14 @@ class QuantitySelector extends StatelessWidget {
           GestureDetector(
             onTap: () {
               if (selectedSize.isNotEmpty) {
-                // Use the current quantity instead of hardcoding 1
-                int currentQuantity = context
-                        .read<CartViewModel>()
-                        .cartItems[product]?['quantity'] ??
-                    quantity;
-                context.read<CartViewModel>().addItem(product, selectedSize,
+                final cartViewModel = context.read<CartViewModel>();
+
+                // Fetch the current quantity for the product and selected size
+                final currentQuantity =
+                    cartViewModel.cartItems[product]?['quantity'] ?? 0;
+
+                // Increment the quantity directly without conditional checks
+                cartViewModel.addItem(product, selectedSize,
                     quantity: currentQuantity + 1);
               } else {
                 print("Error: Size must be selected for the product.");

@@ -400,7 +400,7 @@ class _MyAppState extends State<MyApp> {
       "date": DateTime.now().toIso8601String(),
       "item": serializedItems
           .map((item) => item['name'])
-          .join("; "), // Only include names, separated by "; "
+          .join(", "), // Only include names, separated by "; "
       "totalAmount": totalAmount,
       "contact": currentUser?.phone ?? '',
       "name": currentUser?.name ?? '',
