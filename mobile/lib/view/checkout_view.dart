@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
@@ -7,10 +8,14 @@ import 'package:indigitech_shop/core/style/text_styles.dart';
 import 'package:indigitech_shop/model/user.dart';
 import 'package:indigitech_shop/services/address_service.dart';
 import 'package:indigitech_shop/view/address_view.dart';
+import 'package:indigitech_shop/view/auth/login_view.dart';
+import 'package:indigitech_shop/view/auth/signup_view.dart';
 import 'package:indigitech_shop/view/layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
+import 'package:indigitech_shop/view_model/checkout_manager_model.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http; // Add this import
+import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:convert';
 import '../model/address.dart';
 import '../model/product.dart';
@@ -21,6 +26,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:html' as html; // For monitoring window location on the web
+import 'package:flutter/foundation.dart'; // For kIsWeb
+
+final GlobalKey<CheckoutViewState> checkoutViewKey =
+    GlobalKey<CheckoutViewState>();
 
 class CheckoutView extends StatefulWidget {
   final User? user; // User information passed from AddressView
@@ -38,17 +50,17 @@ class CheckoutView extends StatefulWidget {
   });
 
   @override
-  State<CheckoutView> createState() => _CheckoutViewState();
+  State<CheckoutView> createState() => CheckoutViewState();
 }
 
-class _CheckoutViewState extends State<CheckoutView> {
+class CheckoutViewState extends State<CheckoutView> {
   final AddressService _addressService =
       AddressService('https://isaacdarcilla.github.io/philippine-addresses');
   int? _stockCount;
   double shippingFee = 0.0; // Non-nullable, default to 0.0
 
   Future<Map<String, double>?> fetchCoordinates(String address) async {
-    const apiKey = 'a42131c48c155253eaecadd8e7102e90';
+    const apiKey = '1e898dd6e9c8d306350d701870c5e1a8';
     final url =
         'http://api.positionstack.com/v1/forward?access_key=$apiKey&query=$address&country=PH';
 
@@ -201,26 +213,18 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Future<void> proceedToPayment(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     final authViewModel = context.read<AuthViewModel>();
+    final userId = prefs.getString('userId');
+    await authViewModel.fetchUserDetails();
+    final currentUser = authViewModel.user;
     final userAddress = authViewModel.address;
 
-    if (userAddress == null) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text("Incomplete Address"),
-          content: Text(
-              "Please complete your address before proceeding to payment."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("OK"),
-            ),
-          ],
-        ),
-      );
+    if (userAddress == null || currentUser == null) {
+      Fluttertoast.showToast(msg: "Please complete your profile and address.");
       return;
     }
+
     final cartViewModel = context.read<CartViewModel>();
     final items = cartViewModel.cartItemsList.map((entry) {
       final product = entry.key;
@@ -232,13 +236,21 @@ class _CheckoutViewState extends State<CheckoutView> {
         'cartItemId': details['cartItemId'], // Ensure this is included
       };
     }).toList(); // This seems to be Map<Product, int>
-    final subtotal = cartViewModel.getSubtotal();
-    final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
+    prefs.setString('items', json.encode(items));
 
-    final paymongoUrl = "https://api.paymongo.com/v1";
-    const secretKey =
-        'sk_test_fp78egyq6UtfYJMVaRf8DX2v'; // Replace with your secret key
-    final authHeader = base64Encode(utf8.encode('$secretKey:'));
+    print("Proceeding with User ID: $userId");
+    print("Saving data to SharedPreferences...");
+    prefs.setString(
+      'cartItems',
+      json.encode(widget.cartItems.map((item) {
+        return {
+          "name": item['name'],
+          "quantity": item['quantity'],
+          "selectedSize": item['selectedSize'],
+          "adjustedPrice": item['adjustedPrice'],
+        };
+      }).toList()),
+    );
 
     final lineItems = widget.cartItems.map((item) {
       return {
@@ -258,6 +270,37 @@ class _CheckoutViewState extends State<CheckoutView> {
       "currency": "PHP",
     };
 
+    // Save the address components to SharedPreferences
+    prefs.setString('region', getRegionName(userAddress!.region));
+    prefs.setString('province', getProvinceName(userAddress.province));
+    prefs.setString('municipality', getCityName(userAddress.municipality));
+    prefs.setString('barangay', getBarangayName(userAddress.barangay));
+    prefs.setString('street', userAddress.street ?? '');
+    prefs.setString('zip', userAddress.zip ?? '');
+
+    print("Address saved to SharedPreferences: ${userAddress.region}, "
+        "${userAddress.province}, ${userAddress.municipality}, "
+        "${userAddress.barangay}, ${userAddress.street}, ${userAddress.zip}");
+
+    prefs.setDouble('shippingFee', shippingFee + widget.subtotal);
+    print("Shipping Fee saved: $shippingFee");
+
+    final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
+    prefs.setString('referenceNumber', referenceNumber);
+    prefs.setDouble('totalAmount', widget.subtotal + shippingFee);
+    prefs.setDouble('shippingFee', shippingFee);
+    prefs.setString(
+        'userAddress',
+        json.encode({
+          "region": userAddress.region,
+          "province": userAddress.province,
+          "municipality": userAddress.municipality,
+          "barangay": userAddress.barangay,
+          "street": userAddress.street,
+          "zip": userAddress.zip,
+        }));
+
+    print("Data saved to SharedPreferences.");
     final payload = {
       "data": {
         "attributes": {
@@ -267,15 +310,15 @@ class _CheckoutViewState extends State<CheckoutView> {
           "payment_method_types": ["gcash", "grab_pay", "paymaya", "card"],
           "livemode": false,
           "statement_descriptor": "Tienda",
-          "success_redirect_url":
-              "http://localhost:3000/myorders?transaction_id=$referenceNumber&status=success",
-          "cancel_redirect_url": "http://localhost:3000/cart?status=canceled",
+          "success_url": "http://localhost:46631/?message=true",
+          "cancel_url": "http://localhost:46631/?message=false",
           "line_items": [...lineItems, deliveryFeeItem],
         },
       },
     };
 
-    try {
+    // Web-specific behavior
+    if (kIsWeb) {
       final response = await http.post(
         Uri.parse("https://api.paymongo.com/v1/checkout_sessions"),
         headers: {
@@ -292,45 +335,31 @@ class _CheckoutViewState extends State<CheckoutView> {
 
         if (checkoutUrl != null &&
             checkoutUrl.startsWith("https://checkout.paymongo.com/")) {
-          if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
-            await launchUrl(Uri.parse(checkoutUrl));
-
-            await saveTransaction(
-              widget.cartItems,
-              widget.subtotal + shippingFee,
-              userAddress,
-              referenceNumber,
-            );
-
-            await _updateStockInDatabase(
-              widget.cartItems, // Pass the List<Map<String, dynamic>>
-              cartViewModel,
-            );
-
-            await _deleteCartItems(items);
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CheckoutSuccessView()),
-            ).then((_) {
-              context.read<CartViewModel>().clearCart(); // Clear the cart
-            });
-          } else {
-            throw Exception("Failed to launch payment URL");
-          }
+          html.window.open(checkoutUrl, "_self");
         } else {
-          throw Exception("Invalid checkout URL: $checkoutUrl");
+          Fluttertoast.showToast(msg: "Invalid checkout URL");
         }
       } else {
-        throw Exception("Payment failed: ${response.body}");
+        Fluttertoast.showToast(msg: "Payment failed: ${response.body}");
       }
-    } catch (error) {
-      Fluttertoast.showToast(msg: "Error during payment: $error");
-      print("Error: $error");
+
+      return;
+    }
+    final checkoutManager = context.read<CheckoutManager>();
+
+    try {
+      print("Starting checkout process...");
+      await checkoutManager.processCheckout(context, cartViewModel);
+      print("Checkout process completed successfully.");
+    } catch (e) {
+      print("Error during checkout process: $e");
+      Fluttertoast.showToast(msg: "An error occurred during checkout.");
     }
   }
 
   Future<void> _deleteCartItems(List<Map<String, dynamic>> cartItems) async {
+    print("Executing deleteCartItems in CheckoutViewState...");
+
     final List<String> cartItemIds = [];
 
     for (var item in cartItems) {
@@ -381,11 +410,93 @@ class _CheckoutViewState extends State<CheckoutView> {
   @override
   void initState() {
     super.initState();
+
+    _reloadUserSession();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final checkoutManager = context.read<CheckoutManager>();
+      final authViewModel = context.read<AuthViewModel>();
+      final cartViewModel = context.read<CartViewModel>();
+
+      // Validate data
+      print("AuthViewModel User Address: ${authViewModel.address}");
+      print("CartViewModel Cart Items: ${cartViewModel.cartItemsList}");
+      print("CheckoutManager Initialized: ${checkoutManager != null}");
+
+      registerCheckoutManager(checkoutManager);
+    });
     final authViewModel = context.read<AuthViewModel>();
 
-    authViewModel.fetchUserAddress().then((_) {
+    authViewModel.fetchUserAddress().then((_) async {
       final userAddress = authViewModel.address;
 
+      if (userAddress != null) {
+        setState(() {
+          selectedRegion = userAddress.region;
+          selectedProvince = userAddress.province;
+          selectedCity = userAddress.municipality;
+          selectedBarangay = userAddress.barangay;
+        });
+
+        await Future.wait([
+          if (selectedRegion != null) fetchProvinces(selectedRegion!),
+          if (selectedProvince != null) fetchCities(selectedProvince!),
+          if (selectedCity != null) fetchBarangays(selectedCity!),
+        ]);
+
+        await calculateShippingFee(
+            context); // Wait for shipping fee calculation
+        _initializeCheckoutView(); // Call initialization only after shipping fee is ready
+      } else {
+        print("User address is null");
+      }
+    });
+
+    fetchRegions();
+    _loadStockCount();
+  }
+
+  Future<void> _initializeCheckoutView() async {
+    try {
+      final checkoutManager = context.read<CheckoutManager>();
+      registerCheckoutManager(checkoutManager); // Register the manager
+
+      final authViewModel = context.read<AuthViewModel>();
+      await authViewModel.fetchUserDetails();
+
+      final userAddress = authViewModel.address;
+      if (userAddress == null) {
+        throw Exception(
+            "Address is missing. Fetch or provide a valid address.");
+      }
+      // Ensure shippingFee is calculated
+      if (shippingFee <= 0) {
+        throw Exception("Shipping fee is not calculated properly.");
+      }
+      final double totalAmount = widget.subtotal + shippingFee;
+      print("Subtotal: ${widget.subtotal}");
+      print("Shipping Fee: $shippingFee");
+      print("Total Amount: ${widget.subtotal + shippingFee}");
+
+      // Register the callback functions
+      checkoutManager.setFunctions(
+        saveTransactionCallback: saveTransaction,
+        updateStockInDatabaseCallback: _updateStockInDatabase,
+        deleteCartItemsCallback: _deleteCartItems,
+      );
+
+      checkoutManager.setCartData(
+        widget.cartItems,
+        totalAmount,
+        userAddress, // Fallback to a default address
+        checkoutManager.generateReferenceNumber(),
+      );
+
+      print(
+          "Initializing CheckoutView with: ${widget.cartItems}, ${widget.subtotal}, ${widget.address}");
+
+      _reloadUserSession();
+
+      //final userAddress = authViewModel.address;
       if (userAddress != null) {
         setState(() {
           selectedRegion = userAddress.region;
@@ -406,10 +517,77 @@ class _CheckoutViewState extends State<CheckoutView> {
       } else {
         print("User address is null");
       }
-    });
+    } catch (e) {
+      print("Initialization error in CheckoutViewState: $e");
+    }
+  }
 
-    fetchRegions();
-    _loadStockCount();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final checkoutManager = context.read<CheckoutManager>();
+      print(
+          "CheckoutManager available in didChangeDependencies: $checkoutManager");
+
+      if (checkoutManager.saveTransactionCallback == null) {
+        registerCheckoutManager(checkoutManager);
+        print("Callbacks registered in didChangeDependencies.");
+      }
+    });
+  }
+
+  Future<void> _reloadUserSession() async {
+    final authViewModel = context.read<AuthViewModel>();
+    await authViewModel.fetchUserDetails(); // Ensure user details are reloaded
+    if (authViewModel.user == null) {
+      print("User session expired. Redirecting to LoginView.");
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => LoginView(
+            onLogin: () {
+              final authViewModel = context.read<AuthViewModel>();
+              authViewModel.logins().then((_) async {
+                if (authViewModel.isLoggedIn) {
+                  // Get user info from authViewModel
+                  final userInfo = authViewModel
+                      .user; // Assuming this is where user info is stored
+
+                  // Store user info in SharedPreferences
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  await prefs.setString(
+                      'userId', userInfo!.id); // Replace 'id' with actual field
+                  await prefs.setString('userName',
+                      userInfo.name); // Replace 'name' with actual field
+                  await prefs.setString('userEmail',
+                      userInfo.email); // Replace 'email' with actual field
+                  // Add other user details as needed
+
+                  // Redirect to HomeView after successful login
+                  /*Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const MyApp()),
+              );*/
+                }
+              });
+            },
+            onCreateAccount: () {
+              final authViewModel = context.read<AuthViewModel>();
+              // Navigate to the Signup View
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => SignupView(
+                    onLogin: () {
+                      authViewModel.logins();
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _loadStockCount() async {
@@ -448,6 +626,8 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   Future<void> _updateStockInDatabase(
       List<Map<String, dynamic>> cartItems, CartViewModel cartViewModel) async {
+    print("Executing updateStockInDatabase in CheckoutViewState...");
+
     final List<Map<String, dynamic>> stockUpdates = [];
 
     for (var item in cartItems) {
@@ -493,6 +673,12 @@ class _CheckoutViewState extends State<CheckoutView> {
     Address userAddress,
     String referenceNumber,
   ) async {
+    print("saveTransaction invoked:");
+    print("Cart Items: $cartItems");
+    print("Total Amount: $totalAmount");
+    print("User Address: $userAddress");
+    print("Reference Number: $referenceNumber");
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final authViewModel = context.read<AuthViewModel>();
     final userId = prefs.getString('userId');
@@ -530,6 +716,7 @@ class _CheckoutViewState extends State<CheckoutView> {
         "price": item['adjustedPrice'] ?? 0.0,
       };
     }).toList();
+    print("Serialized Items: $serializedItems");
 
     // Construct payload
     final transactionPayload = {
@@ -549,13 +736,18 @@ class _CheckoutViewState extends State<CheckoutView> {
       "address":
           "${fetchedUserAddress.street}, $barangayName, $cityName, $provinceName, ${fetchedUserAddress.zip}",
     };
-
     try {
+      print("Sending Transaction Payload: ${json.encode(transactionPayload)}");
+      print("Transaction Endpoint: http://localhost:4000/api/transactions");
+
       final response = await http.post(
         Uri.parse('http://localhost:4000/api/transactions'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(transactionPayload),
       );
+
+      print(
+          "Transaction API Response: ${response.statusCode}, ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Fluttertoast.showToast(msg: "Transaction saved successfully.");
@@ -569,6 +761,71 @@ class _CheckoutViewState extends State<CheckoutView> {
     } catch (error) {
       Fluttertoast.showToast(msg: "Error saving transaction: $error");
       print("Error saving transaction: $error");
+    }
+  }
+
+  void registerCheckoutManager(CheckoutManager manager) {
+    print("registerCheckoutManager invoked...");
+
+    if (manager == null) {
+      print("CheckoutManager is null!");
+      throw Exception(
+          "CheckoutManager instance is null. Check Provider setup.");
+    }
+
+    manager.setFunctions(
+      saveTransactionCallback: saveTransaction,
+      updateStockInDatabaseCallback: _updateStockInDatabase,
+      deleteCartItemsCallback: _deleteCartItems,
+    );
+    manager.notifyListeners();
+
+    print("Callbacks registered successfully:\n"
+        "saveTransactionCallback=${manager.saveTransactionCallback != null},\n"
+        "updateStockInDatabaseCallback=${manager.updateStockInDatabaseCallback != null},\n"
+        "deleteCartItemsCallback=${manager.deleteCartItemsCallback != null}");
+  }
+
+  Future<void> callSaveTransactionAndUpdateStock() async {
+    print("Starting callSaveTransactionAndUpdateStock...");
+    final authViewModel = context.read<AuthViewModel>();
+    final userAddress = authViewModel.address;
+
+    if (userAddress == null) {
+      print("Error: User address is null.");
+      return;
+    }
+
+    final cartViewModel = context.read<CartViewModel>();
+    final items = cartViewModel.cartItemsList.map((entry) {
+      final product = entry.key;
+      final details = entry.value;
+      return {
+        'name': product.name,
+        'selectedSize': details['selectedSize'],
+        'quantity': details['quantity'],
+        'cartItemId': details['cartItemId'], // Ensure this is included
+      };
+    }).toList();
+    final subtotal = cartViewModel.getSubtotal();
+    final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
+
+    try {
+      print("Calling saveTransaction...");
+      await saveTransaction(widget.cartItems, widget.subtotal + shippingFee,
+          userAddress, referenceNumber);
+      print("saveTransaction executed successfully.");
+
+      print("Calling _updateStockInDatabase...");
+      await _updateStockInDatabase(widget.cartItems, cartViewModel);
+      print("_updateStockInDatabase executed successfully.");
+
+      print("Calling _deleteCartItems...");
+      await _deleteCartItems(items);
+      print("_deleteCartItems executed successfully.");
+    } catch (e) {
+      print("Error in callSaveTransactionAndUpdateStock: $e");
+      rethrow;
     }
   }
 
@@ -698,6 +955,22 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   @override
   Widget build(BuildContext context) {
+    print("CheckoutView is being built...");
+    try {
+      final checkoutManager =
+          Provider.of<CheckoutManager>(context, listen: false);
+      print("CheckoutManager accessed in build: $checkoutManager");
+    } catch (e) {
+      print("Error accessing CheckoutManager in build: $e");
+    }
+    final checkoutManager =
+        Provider.of<CheckoutManager>(context, listen: false);
+
+// Manually call registerCheckoutManager
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      registerCheckoutManager(checkoutManager);
+    });
+
     final authViewModel = context.read<AuthViewModel>();
     final userAddress = authViewModel.address;
 
@@ -1051,6 +1324,8 @@ class _CheckoutViewState extends State<CheckoutView> {
         this.shippingFee; // Use the shippingFee from the state variable
     final double subtotal = widget.subtotal; // Use passed subtotal
     final total = subtotal + shippingFee;
+    final checkoutManager = context.read<CheckoutManager>();
+    final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
 
     // Check if userAddress is valid
     final authViewModel = context.read<AuthViewModel>();
@@ -1106,7 +1381,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                   isExpanded: true,
                   text: "Proceed to Payment",
                   textStyle: AppTextStyles.button.copyWith(color: Colors.white),
-                  command: () {
+                  command: () async {
                     if (isAddressComplete) {
                       proceedToPayment(
                           context); // Proceed to payment if address is complete

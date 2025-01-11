@@ -174,9 +174,10 @@ class _CartViewState extends State<CartView> {
 
     final subtotal = calculateSubtotal();
 
-    Navigator.of(context).pushReplacement(
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CheckoutView(
+          key: checkoutViewKey,
           address: userAddress,
           cartItems: cartItems,
           subtotal: subtotal, // Pass subtotal to CheckoutView

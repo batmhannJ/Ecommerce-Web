@@ -188,6 +188,7 @@ class AuthViewModel extends ChangeNotifier {
           setUser(User.fromJson(data)); // Set the user correctly
           print(
               'User fetched: ${data.toString()}'); // Include user ID in the output
+          notifyListeners();
         } else {
           print('Failed to load user details');
         }

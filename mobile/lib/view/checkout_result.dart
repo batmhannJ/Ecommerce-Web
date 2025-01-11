@@ -9,6 +9,10 @@ import 'package:indigitech_shop/viewmodels/bottom_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class CheckoutSuccessView extends StatefulWidget {
+  final String userId;
+
+  const CheckoutSuccessView({Key? key, required this.userId}) : super(key: key);
+
   @override
   _CheckoutSuccessViewState createState() => _CheckoutSuccessViewState();
 }
@@ -61,7 +65,7 @@ class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
 
   // Function to fetch user orders from API
   Future<void> fetchUserOrders() async {
-    final userId = await getUserIdFromPreferences(); // Await the user ID
+    final userId = widget.userId; // Directly use the passed userId
     if (userId.isEmpty) {
       Fluttertoast.showToast(msg: "User not logged in.");
       setState(() {

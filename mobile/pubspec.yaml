@@ -25,7 +25,6 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   provider: ^6.1.2
-  webview_flutter: ^4.9.0
   google_fonts: ^6.2.1
   gap: ^3.0.1
   material_symbols_icons: ^4.2762.0
@@ -43,6 +42,9 @@ dependencies:
   geolocator: ^13.0.1
   uni_links: ^0.5.1
   paymongo_sdk: ^1.0.0 # Add this line, replace with the correct version
+  webview_flutter: ^4.10.0
+  html: ^0.15.0
+
 
 dependency_overrides:
   http: ^0.13.6

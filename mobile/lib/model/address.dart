@@ -9,8 +9,8 @@ class Address {
   final String province;
   final String municipality;
   final String barangay;
-  final String zip;
-  final String street;
+  final String? zip;
+  final String? street;
   final String region;
   final double? latitude; // Optional latitude
   final double? longitude; // Optional longitude
@@ -56,5 +56,16 @@ class Address {
 
   String fullAddress() {
     return '$street, $barangay, $municipality, $province, $region, $zip';
+  }
+
+  static Address defaultAddress() {
+    return Address(
+      street: 'Default Street',
+      barangay: 'Default Barangay',
+      municipality: 'Default Municipality',
+      province: 'Default Province',
+      region: 'Default Region',
+      zip: '0000',
+    );
   }
 }
