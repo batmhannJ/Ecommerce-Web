@@ -245,6 +245,8 @@ class _MyAppState extends State<MyApp> {
           );
         } else if (uri.queryParameters['message'] == 'false') {
           print("Payment failed. Navigating to CheckoutFailureView...");
+          authViewModel.logins();
+
           Navigator.of(navigatorKey.currentContext!).push(
             MaterialPageRoute(builder: (context) => CheckoutFailureView()),
           );
@@ -373,13 +375,19 @@ class _MyAppState extends State<MyApp> {
     );
 
     final serializedItems = cartItems.map((item) {
-      return {
+      print("Original Cart Item: $item");
+      final serializedItem = {
         "name": item['name'].trim(),
         "size": item['selectedSize'] ?? "N/A",
         "quantity": item['quantity'] ?? 0,
         "price": item['adjustedPrice'] ?? 0.0,
       };
+      print("Serialized Item: $serializedItem");
+      return serializedItem;
     }).toList();
+
+    int totalQuantity = serializedItems.fold(
+        0, (sum, item) => sum + (item['quantity'] as num).toInt());
 
     // Construct payload
     final transactionPayload = {
@@ -387,7 +395,7 @@ class _MyAppState extends State<MyApp> {
       "status": "Cart Processing",
       "amount": serializedItems.fold(
           0.0, (sum, item) => sum + (item['price'] * item['quantity'])),
-      "quantity": serializedItems.length,
+      "quantity": totalQuantity,
       "transactionId": referenceNumber,
       "date": DateTime.now().toIso8601String(),
       "item": serializedItems

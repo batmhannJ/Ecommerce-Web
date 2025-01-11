@@ -955,7 +955,7 @@ class CheckoutViewState extends State<CheckoutView> {
 
   @override
   Widget build(BuildContext context) {
-    print("CheckoutView is being built...");
+    /*print("CheckoutView is being built...");
     try {
       final checkoutManager =
           Provider.of<CheckoutManager>(context, listen: false);
@@ -969,7 +969,7 @@ class CheckoutViewState extends State<CheckoutView> {
 // Manually call registerCheckoutManager
     WidgetsBinding.instance.addPostFrameCallback((_) {
       registerCheckoutManager(checkoutManager);
-    });
+    });*/
 
     final authViewModel = context.read<AuthViewModel>();
     final userAddress = authViewModel.address;
