@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 
 import '/core/style/colors.dart';
 import '/core/style/form_styles.dart';
@@ -19,6 +20,7 @@ class CustomTextFormField extends StatefulWidget {
   final String? Function(Object?)? validator;
   final AutovalidateMode autoValidateMode;
   final TextInputType keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextFormField({
     required this.controller,
@@ -35,6 +37,7 @@ class CustomTextFormField extends StatefulWidget {
     this.validator,
     this.autoValidateMode = AutovalidateMode.onUserInteraction,
     this.keyboardType = TextInputType.text,
+    this.inputFormatters,
     super.key,
   });
 
@@ -124,6 +127,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                     alignment: Alignment.center,
                     child: TextFormField(
                       keyboardType: widget.keyboardType,
+                      inputFormatters:
+                          widget.inputFormatters, // Use widget.inputFormatters
                       focusNode: textFormFieldFocusNode,
                       obscureText: widget.obscureText,
                       enabled: !widget.disabled,

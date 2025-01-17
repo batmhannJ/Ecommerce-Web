@@ -362,6 +362,18 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
     });
   }
 
+  void _navigateToProductView(Product product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductView(
+          product: product,
+          products: widget.products, // Pass the full list of products here
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -429,7 +441,7 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
                             fontSize: 14,
                           ),
                         ),
-                        // Removed the onTap functionality
+                        onTap: () => _navigateToProductView(product),
                       ),
                     );
                   },

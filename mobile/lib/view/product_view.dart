@@ -549,6 +549,14 @@ class _QuantitySelectorState extends State<QuantitySelector> {
         _quantity++;
       });
       widget.onQuantityChanged(_quantity);
+    } else {
+      // Show a Snackbar when the quantity exceeds stock
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You cannot add more than ${widget.stockCount} items.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
