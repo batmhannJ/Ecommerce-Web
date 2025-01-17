@@ -494,6 +494,16 @@ class QuantitySelector extends StatelessWidget {
     this.cartItemId,
   });
 
+  void _showSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      duration: const Duration(seconds: 2),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -563,7 +573,10 @@ class QuantitySelector extends StatelessWidget {
                     cartViewModel.cartItems[product]?['quantity'] ?? 0;
 
                 // Increment the quantity directly without conditional checks
-                cartViewModel.addItem(product, selectedSize,
+                cartViewModel.addItem(
+                    context, // Pass context
+                    product,
+                    selectedSize,
                     quantity: currentQuantity + 1);
               } else {
                 print("Error: Size must be selected for the product.");

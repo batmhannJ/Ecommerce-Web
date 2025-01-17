@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:indigitech_shop/model/cart.dart';
@@ -128,7 +129,8 @@ class CartViewModel with ChangeNotifier {
   }
 
   // Add an item to the cart and adjust the quantity if already added
-  void addItem(Product product, String selectedSize, {int quantity = 1}) {
+  void addItem(BuildContext context, product, String selectedSize,
+      {int quantity = 1}) {
     if (selectedSize.isEmpty) {
       print("Error: Size must be selected for the product.");
       return;
@@ -148,11 +150,11 @@ class CartViewModel with ChangeNotifier {
     // Get the available stock for the selected size
     int availableStock = _getAvailableStock(product, selectedSize);
     if (availableStock < quantity) {
-      setStockErrorMessage(
-          "Not enough stock available for size $selectedSize.");
+      _showSnackBar(context,
+          "Only $availableStock item(s) available for size $selectedSize.",
+          isError: true);
       return;
     }
-    clearStockErrorMessage();
 
     // Add or update the cart item with the new quantity
     if (cartItems.containsKey(product) &&
@@ -168,6 +170,16 @@ class CartViewModel with ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  void _showSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      duration: const Duration(seconds: 2),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void subtractItem(Product product, String selectedSize) async {

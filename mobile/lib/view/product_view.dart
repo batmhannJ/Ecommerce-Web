@@ -317,6 +317,8 @@ class _ProductViewState extends State<ProductView> {
                         final updatedProduct =
                             widget.product.copyWith(new_price: adjustedPrice);
                         context.read<CartViewModel>().addItem(
+                              context, // Pass context
+
                               updatedProduct,
                               _selectedSize?.name ?? '',
                               quantity: _selectedQuantity, // Pass the quantity
