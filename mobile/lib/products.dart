@@ -6,7 +6,7 @@ import 'package:indigitech_shop/core/constant/enum/product_size.dart';
 
 Future<List<Product>> fetchProducts() async {
   final response =
-      await http.get(Uri.parse('http://localhost:4000/allproducts'));
+      await http.get(Uri.parse('https://ip-tienda-han-backend.onrender.com/allproducts'));
 
   if (response.statusCode == 200) {
     // Parse the JSON data

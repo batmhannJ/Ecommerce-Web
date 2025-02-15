@@ -379,7 +379,7 @@ class CheckoutViewState extends State<CheckoutView> {
       print("Payload to API: ${json.encode({"cartItemIds": cartItemIds})}");
 
       final response = await http.post(
-        Uri.parse("http://localhost:4000/api/cart/removeItems"),
+        Uri.parse("https://ip-tienda-han-backend.onrender.com/api/cart/removeItems"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({"cartItemIds": cartItemIds}),
       );
@@ -600,7 +600,7 @@ class CheckoutViewState extends State<CheckoutView> {
   Future<String?> fetchProductIdByName(String productName) async {
     try {
       final response = await http
-          .get(Uri.parse('http://localhost:4000/product/$productName'));
+          .get(Uri.parse('https://ip-tienda-han-backend.onrender.com/product/$productName'));
       if (response.statusCode == 200) {
         final productJson = jsonDecode(response.body);
         print('API Response: $productJson'); // Log the API response
@@ -656,7 +656,7 @@ class CheckoutViewState extends State<CheckoutView> {
     print("Payload to API: ${json.encode({"updates": stockUpdates})}");
 
     final response = await http.post(
-      Uri.parse("http://localhost:4000/api/updateStock"),
+      Uri.parse("https://ip-tienda-han-backend.onrender.com/api/updateStock"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({"updates": stockUpdates}),
     );
@@ -738,10 +738,10 @@ class CheckoutViewState extends State<CheckoutView> {
     };
     try {
       print("Sending Transaction Payload: ${json.encode(transactionPayload)}");
-      print("Transaction Endpoint: http://localhost:4000/api/transactions");
+      print("Transaction Endpoint: https://ip-tienda-han-backend.onrender.com/api/transactions");
 
       final response = await http.post(
-        Uri.parse('http://localhost:4000/api/transactions'),
+        Uri.parse('https://ip-tienda-han-backend.onrender.com/api/transactions'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(transactionPayload),
       );
@@ -1139,7 +1139,7 @@ class CheckoutViewState extends State<CheckoutView> {
                           child: item['image'] != null &&
                                   item['image'].isNotEmpty
                               ? Image.network(
-                                  'http://localhost:4000/upload/images/${item['image']}',
+                                  'https://ip-tienda-han-backend.onrender.com/upload/images/${item['image']}',
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,

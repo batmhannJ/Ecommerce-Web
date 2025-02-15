@@ -263,7 +263,7 @@ class _MyAppState extends State<MyApp> {
   Future<String?> fetchProductIdByName(String productName) async {
     try {
       final response = await http
-          .get(Uri.parse('http://localhost:4000/product/$productName'));
+          .get(Uri.parse('https://ip-tienda-han-backend.onrender.com/product/$productName'));
       if (response.statusCode == 200) {
         final productJson = jsonDecode(response.body);
         print('API Response: $productJson'); // Log the API response
@@ -319,7 +319,7 @@ class _MyAppState extends State<MyApp> {
     print("Payload to API: ${json.encode({"updates": stockUpdates})}");
 
     final response = await http.post(
-      Uri.parse("http://localhost:4000/api/updateStock"),
+      Uri.parse("https://ip-tienda-han-backend.onrender.com/api/updateStock"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({"updates": stockUpdates}),
     );
@@ -409,10 +409,10 @@ class _MyAppState extends State<MyApp> {
 
     try {
       print("Sending Transaction Payload: ${json.encode(transactionPayload)}");
-      print("Transaction Endpoint: http://localhost:4000/api/transactions");
+      print("Transaction Endpoint: https://ip-tienda-han-backend.onrender.com/api/transactions");
 
       final response = await http.post(
-        Uri.parse('http://localhost:4000/api/transactions'),
+        Uri.parse('https://ip-tienda-han-backend.onrender.com/api/transactions'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(transactionPayload),
       );
@@ -457,7 +457,7 @@ class _MyAppState extends State<MyApp> {
       print("Payload to API: ${json.encode({"cartItemIds": cartItemIds})}");
 
       final response = await http.post(
-        Uri.parse("http://localhost:4000/api/cart/removeItems"),
+        Uri.parse("https://ip-tienda-han-backend.onrender.com/api/cart/removeItems"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({"cartItemIds": cartItemIds}),
       );

@@ -36,7 +36,7 @@ class _OTPVerificationViewState extends State<OTPForgotPasswordView> {
       if (newPassword == confirmPassword) {
         final response = await http.post(
           Uri.parse(
-              'http://localhost:4000/reset-password'), // Update to your API URL
+              'https://ip-tienda-han-backend.onrender.com/reset-password'), // Update to your API URL
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'email': widget.email,

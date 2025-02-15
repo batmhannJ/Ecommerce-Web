@@ -129,7 +129,7 @@ class _ProductViewState extends State<ProductView> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:4000/api/cart/save'),
+        Uri.parse('https://ip-tienda-han-backend.onrender.com/api/cart/save'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(cartItem),
       );
@@ -186,7 +186,7 @@ class _ProductViewState extends State<ProductView> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          'http://localhost:4000/upload/images/${widget.product.image[0]}',
+                          'https://ip-tienda-han-backend.onrender.com/upload/images/${widget.product.image[0]}',
                           width: double.infinity,
                           height: 200,
                           fit: BoxFit.contain, // Changed to BoxFit.contain

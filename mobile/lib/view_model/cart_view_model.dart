@@ -231,7 +231,7 @@ class CartViewModel with ChangeNotifier {
           "Attempting to delete cart item: $cartItemId with size: $selectedSize and userId: $userId");
 
       final apiUrl =
-          'http://localhost:4000/api/cart/$userId/$cartItemId?selectedSize=$selectedSize';
+          'https://ip-tienda-han-backend.onrender.com/api/cart/$userId/$cartItemId?selectedSize=$selectedSize';
 
       final response = await http.delete(Uri.parse(apiUrl));
 

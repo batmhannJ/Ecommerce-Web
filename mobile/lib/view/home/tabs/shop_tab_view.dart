@@ -166,7 +166,7 @@ class _ShopTabViewState extends State<ShopTabView>
                           return ListTile(
                             contentPadding: const EdgeInsets.all(8.0),
                             leading: Image.network(
-                              'http://localhost:4000/upload/images/${product.image[0]}',
+                              'https://ip-tienda-han-backend.onrender.com/upload/images/${product.image[0]}',
                               width: 50,
                               height: 50,
                               fit: BoxFit.cover,
@@ -269,7 +269,7 @@ class _ShopTabViewState extends State<ShopTabView>
                                                 BorderRadius.circular(10.0),
                                             child: product.image.isNotEmpty
                                                 ? Image.network(
-                                                    'http://localhost:4000/upload/images/${product.image[0]}',
+                                                    'https://ip-tienda-han-backend.onrender.com/upload/images/${product.image[0]}',
                                                     height:
                                                         200, // Height of the image
                                                     width: double
@@ -426,7 +426,7 @@ class _SearchProductsWidgetState extends State<SearchProductsWidget> {
                           borderRadius: BorderRadius.circular(
                               8.0), // Rounded corners for image
                           child: Image.network(
-                            'http://localhost:4000/upload/images/${product.image[0]}', // Adjust image URL accordingly
+                            'https://ip-tienda-han-backend.onrender.com/upload/images/${product.image[0]}', // Adjust image URL accordingly
                             width: 50, // Adjust width as needed
                             height: 50, // Adjust height as needed
                             fit: BoxFit.cover,
