@@ -55,7 +55,7 @@ class _SignupViewState extends State<SignupView> {
   Future<void> requestOTP() async {
     try {
       final response = await http.post(
-        Uri.parse("https://ip-tienda-han-backend.onrender.com/send-otp-mobile"),
+        Uri.parse("https://ip-tienda-han-backend-mob.onrender.com/send-otp-mobile"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"email": _emailController.text}),
       );
@@ -81,7 +81,7 @@ class _SignupViewState extends State<SignupView> {
 
   Future<void> onSignup() async {
     final otpResponse = await http.post(
-      Uri.parse("https://ip-tienda-han-backend.onrender.com/verify-otp-mobile"),
+      Uri.parse("https://ip-tienda-han-backend-mob.onrender.com/verify-otp-mobile"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "email": _emailController.text,
@@ -92,7 +92,7 @@ class _SignupViewState extends State<SignupView> {
     if (otpResponse.statusCode == 200) {
       // Proceed with final signup step if OTP is valid
       final response = await http.post(
-        Uri.parse("https://ip-tienda-han-backend.onrender.com/signup"),
+        Uri.parse("https://ip-tienda-han-backend-mob.onrender.com/signup"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "username": _nameController.text,

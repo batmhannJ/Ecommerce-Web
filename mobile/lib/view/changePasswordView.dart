@@ -33,7 +33,7 @@ Future<bool> comparePassword(String oldPassword) async {
   if (userId != null) {
     try {
       final response = await http.post(
-        Uri.parse('https://ip-tienda-han-backend.onrender.com/compare-password'),
+        Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/compare-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': userId,
@@ -120,7 +120,7 @@ Future<bool> comparePassword(String oldPassword) async {
   String? userId = prefs.getString('userId'); // Retrieve user ID
   try {
     final response = await http.post(
-      Uri.parse('https://ip-tienda-han-backend.onrender.com/updatepassword-mobile/$userId'),
+      Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/updatepassword-mobile/$userId'),
       headers: {
         'Content-Type': 'application/json',
       },

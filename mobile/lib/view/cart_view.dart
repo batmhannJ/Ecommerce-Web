@@ -114,7 +114,7 @@ class _CartViewState extends State<CartView> {
         return;
       }
 
-      final apiUrl = 'https://ip-tienda-han-backend.onrender.com/api/carts/$userId';
+      final apiUrl = 'https://ip-tienda-han-backend-mob.onrender.com/api/carts/$userId';
       final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
@@ -260,7 +260,7 @@ class _CartViewState extends State<CartView> {
                           );
                         }
                         final String baseUrl =
-                            'https://ip-tienda-han-backend.onrender.com/images/'; // Update with your actual base URL
+                            'https://ip-tienda-han-backend-mob.onrender.com/images/'; // Update with your actual base URL
                         final String imageUrl = product.image.isNotEmpty
                             ? '$baseUrl${product.image[0]}'
                             : '';

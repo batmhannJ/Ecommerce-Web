@@ -6,7 +6,7 @@ import 'package:indigitech_shop/model/review.dart';
 
 class ProductApiService {
   static const String baseUrl =
-      'https://ip-tienda-han-backend.onrender.com'; // Use your actual backend URL
+      'https://ip-tienda-han-backend-mob.onrender.com'; // Use your actual backend URL
 
   static Future<List<Product>> fetchProducts() async {
     final response = await http.get(Uri.parse('$baseUrl/newproducts'));

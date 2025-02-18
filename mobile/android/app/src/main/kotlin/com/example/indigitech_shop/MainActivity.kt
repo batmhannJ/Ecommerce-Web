@@ -1,5 +1,6 @@
-package com.example.indigitech_shop
+package com.example.indigitech_shop 
 
 import io.flutter.embedding.android.FlutterActivity
 
-class MainActivity: FlutterActivity()
+class MainActivity: FlutterActivity() {
+}

@@ -24,6 +24,8 @@ class _FoodTabViewState extends State<FoodTabView>
   Future<void> fetchAllProducts() async {
     try {
       products = await fetchProducts(); // Call the fetchProducts function from products.dart
+      print("Fetched Products: $products"); // Debugging
+
       setState(() {
         isLoading = false; // Update loading state
       });

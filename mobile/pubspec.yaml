@@ -25,6 +25,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   provider: ^6.1.2
+  path_provider: ^2.1.1
   google_fonts: ^6.2.1
   gap: ^3.0.1
   material_symbols_icons: ^4.2762.0
@@ -36,15 +37,14 @@ dependencies:
   flutter_inappwebview: ^6.0.0
   http: ^1.2.2
   shared_preferences: ^2.0.0
-  fluttertoast: ^8.1.1
+  fluttertoast: ^8.2.4
   url_launcher: ^6.3.1
-  intl: ^0.17.0
+  intl: ^0.20.2
   geolocator: ^13.0.1
-  uni_links: ^0.5.1
   paymongo_sdk: ^1.0.0 # Add this line, replace with the correct version
   webview_flutter: ^4.10.0
   html: ^0.15.0
-
+  app_links: ^3.4.3
 
 dependency_overrides:
   http: ^0.13.6
@@ -52,7 +52,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^5.0.0
   json_serializable: ^6.7.1
   build_runner: ^2.4.9
 

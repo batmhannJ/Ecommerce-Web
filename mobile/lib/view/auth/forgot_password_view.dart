@@ -28,7 +28,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     if (email.isNotEmpty) {
       final response = await http.post(
         Uri.parse(
-            'https://ip-tienda-han-backend.onrender.com/forgot-password'), // Update to your API URL
+            'https://ip-tienda-han-backend-mob.onrender.com/forgot-password'), // Update to your API URL
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email}),
       );

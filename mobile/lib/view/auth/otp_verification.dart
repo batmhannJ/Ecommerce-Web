@@ -84,7 +84,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 Future<bool> _checkUserAddress(String userId) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ip-tienda-han-backend.onrender.com/check-user-address'), // Endpoint to check user address
+        Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/check-user-address'), // Endpoint to check user address
         headers: {
           'Content-Type': 'application/json',
         },
@@ -107,7 +107,7 @@ Future<bool> _checkUserAddress(String userId) async {
   Future<bool> _verifyOTPRequest(String email, String otp) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ip-tienda-han-backend.onrender.com/verify-otp-mobile'),
+        Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/verify-otp-mobile'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -136,7 +136,7 @@ Future<bool> _checkUserAddress(String userId) async {
   Future<String?> _fetchUserId(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ip-tienda-han-backend.onrender.com/get-user-id-by-email'), // New endpoint to fetch user ID by email
+        Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/get-user-id-by-email'), // New endpoint to fetch user ID by email
         headers: {
           'Content-Type': 'application/json',
         },

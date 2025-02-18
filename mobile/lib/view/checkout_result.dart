@@ -77,7 +77,7 @@ class _CheckoutSuccessViewState extends State<CheckoutSuccessView> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://ip-tienda-han-backend.onrender.com/api/transactions/userTransactions/$userId'),
+            'https://ip-tienda-han-backend-mob.onrender.com/api/transactions/userTransactions/$userId'),
       );
 
       if (response.statusCode == 200) {

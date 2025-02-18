@@ -28,7 +28,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'dart:html' as html; // For monitoring window location on the web
+//import 'dart:html' as html; // For monitoring window location on the web
 import 'package:flutter/foundation.dart'; // For kIsWeb
 
 final GlobalKey<CheckoutViewState> checkoutViewKey =
@@ -211,10 +211,12 @@ class CheckoutViewState extends State<CheckoutView> {
 
     print("Calculated Shipping Fee: PHP $shippingFee");
   }
-
-  Future<void> proceedToPayment(BuildContext context) async {
+Future<void> proceedToPayment(BuildContext context) async {
+  try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final authViewModel = context.read<AuthViewModel>();
+    final cartViewModel = context.read<CartViewModel>();
+
     final userId = prefs.getString('userId');
     await authViewModel.fetchUserDetails();
     final currentUser = authViewModel.user;
@@ -225,7 +227,7 @@ class CheckoutViewState extends State<CheckoutView> {
       return;
     }
 
-    final cartViewModel = context.read<CartViewModel>();
+    // Save cart items to SharedPreferences
     final items = cartViewModel.cartItemsList.map((entry) {
       final product = entry.key;
       final details = entry.value;
@@ -233,13 +235,14 @@ class CheckoutViewState extends State<CheckoutView> {
         'name': product.name,
         'selectedSize': details['selectedSize'],
         'quantity': details['quantity'],
-        'cartItemId': details['cartItemId'], // Ensure this is included
+        'cartItemId': details['cartItemId'],
       };
-    }).toList(); // This seems to be Map<Product, int>
+    }).toList();
     prefs.setString('items', json.encode(items));
 
-    print("Proceeding with User ID: $userId");
-    print("Saving data to SharedPreferences...");
+    print("✅ User ID: $userId");
+    print("✅ Saving cart data to SharedPreferences...");
+
     prefs.setString(
       'cartItems',
       json.encode(widget.cartItems.map((item) {
@@ -252,6 +255,7 @@ class CheckoutViewState extends State<CheckoutView> {
       }).toList()),
     );
 
+    // Prepare line items
     final lineItems = widget.cartItems.map((item) {
       return {
         "name": item['name'],
@@ -270,37 +274,21 @@ class CheckoutViewState extends State<CheckoutView> {
       "currency": "PHP",
     };
 
-    // Save the address components to SharedPreferences
+    // Save address to SharedPreferences
     prefs.setString('region', getRegionName(userAddress!.region));
     prefs.setString('province', getProvinceName(userAddress.province));
     prefs.setString('municipality', getCityName(userAddress.municipality));
     prefs.setString('barangay', getBarangayName(userAddress.barangay));
     prefs.setString('street', userAddress.street ?? '');
     prefs.setString('zip', userAddress.zip ?? '');
+    prefs.setDouble('shippingFee', shippingFee);
+    prefs.setDouble('totalAmount', widget.subtotal + shippingFee);
 
-    print("Address saved to SharedPreferences: ${userAddress.region}, "
-        "${userAddress.province}, ${userAddress.municipality}, "
-        "${userAddress.barangay}, ${userAddress.street}, ${userAddress.zip}");
-
-    prefs.setDouble('shippingFee', shippingFee + widget.subtotal);
-    print("Shipping Fee saved: $shippingFee");
-
+    print("✅ Address saved: ${userAddress.region}, ${userAddress.province}, ${userAddress.municipality}, ${userAddress.barangay}, ${userAddress.street}, ${userAddress.zip}");
+    
     final referenceNumber = DateTime.now().millisecondsSinceEpoch.toString();
     prefs.setString('referenceNumber', referenceNumber);
-    prefs.setDouble('totalAmount', widget.subtotal + shippingFee);
-    prefs.setDouble('shippingFee', shippingFee);
-    prefs.setString(
-        'userAddress',
-        json.encode({
-          "region": userAddress.region,
-          "province": userAddress.province,
-          "municipality": userAddress.municipality,
-          "barangay": userAddress.barangay,
-          "street": userAddress.street,
-          "zip": userAddress.zip,
-        }));
 
-    print("Data saved to SharedPreferences.");
     final payload = {
       "data": {
         "attributes": {
@@ -310,52 +298,61 @@ class CheckoutViewState extends State<CheckoutView> {
           "payment_method_types": ["gcash", "grab_pay", "paymaya", "card"],
           "livemode": false,
           "statement_descriptor": "Tienda",
-          "success_url": "http://localhost:46631/?message=true",
-          "cancel_url": "http://localhost:46631/?message=false",
+          "success_url": "https://yourwebsite.com/success",
+          "cancel_url": "https://yourwebsite.com/cancel",
           "line_items": [...lineItems, deliveryFeeItem],
         },
       },
     };
 
-    // Web-specific behavior
-    if (kIsWeb) {
-      final response = await http.post(
-        Uri.parse("https://api.paymongo.com/v1/checkout_sessions"),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization":
-              "Basic ${base64Encode(utf8.encode('sk_test_fp78egyq6UtfYJMVaRf8DX2v:'))}",
-        },
-        body: json.encode(payload),
-      );
+    // 🟢 API Request to PayMongo
+    final response = await http.post(
+      Uri.parse("https://api.paymongo.com/v1/checkout_sessions"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization":
+            "Basic ${base64Encode(utf8.encode('sk_test_fp78egyq6UtfYJMVaRf8DX2v:'))}",
+      },
+      body: json.encode(payload),
+    );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        final checkoutUrl = responseData['data']['attributes']['checkout_url'];
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = json.decode(response.body);
+      final checkoutUrl = responseData['data']['attributes']['checkout_url'];
 
-        if (checkoutUrl != null &&
-            checkoutUrl.startsWith("https://checkout.paymongo.com/")) {
-          html.window.open(checkoutUrl, "_self");
+      if (checkoutUrl != null &&
+          checkoutUrl.startsWith("https://checkout.paymongo.com/")) {
+        if (kIsWeb) {
+          // 🌐 Web: Open checkout in browser
+          launchUrl(Uri.parse(checkoutUrl), mode: LaunchMode.platformDefault);
         } else {
-          Fluttertoast.showToast(msg: "Invalid checkout URL");
+          // 📱 Mobile: Open checkout in external browser
+          if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
+            await launchUrl(Uri.parse(checkoutUrl),
+                mode: LaunchMode.externalApplication);
+          } else {
+            Fluttertoast.showToast(msg: "Could not open payment link.");
+          }
         }
       } else {
-        Fluttertoast.showToast(msg: "Payment failed: ${response.body}");
+        Fluttertoast.showToast(msg: "Invalid checkout URL");
       }
-
-      return;
+    } else {
+      Fluttertoast.showToast(msg: "Payment failed: ${response.body}");
     }
+
+    // 🟢 Checkout Process
     final checkoutManager = context.read<CheckoutManager>();
 
-    try {
-      print("Starting checkout process...");
-      await checkoutManager.processCheckout(context, cartViewModel);
-      print("Checkout process completed successfully.");
-    } catch (e) {
-      print("Error during checkout process: $e");
-      Fluttertoast.showToast(msg: "An error occurred during checkout.");
-    }
+    print("🚀 Starting checkout process...");
+    await checkoutManager.processCheckout(context, cartViewModel);
+    print("✅ Checkout process completed successfully.");
+
+  } catch (e) {
+    print("❌ Error during checkout: $e");
+    Fluttertoast.showToast(msg: "An error occurred during checkout.");
   }
+}
 
   Future<void> _deleteCartItems(List<Map<String, dynamic>> cartItems) async {
     print("Executing deleteCartItems in CheckoutViewState...");
@@ -379,7 +376,7 @@ class CheckoutViewState extends State<CheckoutView> {
       print("Payload to API: ${json.encode({"cartItemIds": cartItemIds})}");
 
       final response = await http.post(
-        Uri.parse("https://ip-tienda-han-backend.onrender.com/api/cart/removeItems"),
+        Uri.parse("https://ip-tienda-han-backend-mob.onrender.com/api/cart/removeItems"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({"cartItemIds": cartItemIds}),
       );
@@ -600,7 +597,7 @@ class CheckoutViewState extends State<CheckoutView> {
   Future<String?> fetchProductIdByName(String productName) async {
     try {
       final response = await http
-          .get(Uri.parse('https://ip-tienda-han-backend.onrender.com/product/$productName'));
+          .get(Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/product/$productName'));
       if (response.statusCode == 200) {
         final productJson = jsonDecode(response.body);
         print('API Response: $productJson'); // Log the API response
@@ -656,7 +653,7 @@ class CheckoutViewState extends State<CheckoutView> {
     print("Payload to API: ${json.encode({"updates": stockUpdates})}");
 
     final response = await http.post(
-      Uri.parse("https://ip-tienda-han-backend.onrender.com/api/updateStock"),
+      Uri.parse("https://ip-tienda-han-backend-mob.onrender.com/api/updateStock"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({"updates": stockUpdates}),
     );
@@ -738,10 +735,10 @@ class CheckoutViewState extends State<CheckoutView> {
     };
     try {
       print("Sending Transaction Payload: ${json.encode(transactionPayload)}");
-      print("Transaction Endpoint: https://ip-tienda-han-backend.onrender.com/api/transactions");
+      print("Transaction Endpoint: https://ip-tienda-han-backend-mob.onrender.com/api/transactions");
 
       final response = await http.post(
-        Uri.parse('https://ip-tienda-han-backend.onrender.com/api/transactions'),
+        Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/api/transactions'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(transactionPayload),
       );
@@ -1139,7 +1136,7 @@ class CheckoutViewState extends State<CheckoutView> {
                           child: item['image'] != null &&
                                   item['image'].isNotEmpty
                               ? Image.network(
-                                  'https://ip-tienda-han-backend.onrender.com/upload/images/${item['image']}',
+                                  'https://ip-tienda-han-backend-mob.onrender.com/upload/images/${item['image']}',
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,

@@ -66,7 +66,7 @@ class AuthViewModel extends ChangeNotifier {
     if (_user != null) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? userId = prefs.getString('userId');
-      final url = 'https://ip-tienda-han-backend.onrender.com/api/edituser-mobile/$userId';
+      final url = 'https://ip-tienda-han-backend-mob.onrender.com/api/edituser-mobile/$userId';
 
       final userData = {
         'name': name,
@@ -138,7 +138,7 @@ class AuthViewModel extends ChangeNotifier {
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? userId = prefs.getString('userId');
-      final url = 'https://ip-tienda-han-backend.onrender.com/api/update-address/$userId';
+      final url = 'https://ip-tienda-han-backend-mob.onrender.com/api/update-address/$userId';
       final addressData = newAddress.toJson();
 
       try {
@@ -180,7 +180,7 @@ class AuthViewModel extends ChangeNotifier {
     if (userId != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://ip-tienda-han-backend.onrender.com/api/get-user-details/$userId'),
+          Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/api/get-user-details/$userId'),
         );
 
         if (response.statusCode == 200) {
@@ -207,7 +207,7 @@ class AuthViewModel extends ChangeNotifier {
     if (userId != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://ip-tienda-han-backend.onrender.com/get-user-address/$userId'),
+          Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/get-user-address/$userId'),
         );
 
         if (response.statusCode == 200) {
@@ -242,7 +242,7 @@ class AuthViewModel extends ChangeNotifier {
       throw Exception("User ID is not set");
     }
 
-    // Simulate checking the old password locally (optional, could rely on backend)
+    // Simulate checking the old password locally (optional, could rely on backend-mob)
     if (_currentPassword != oldPassword) {
       throw Exception("Old password is incorrect");
     }
@@ -251,7 +251,7 @@ class AuthViewModel extends ChangeNotifier {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? userId = prefs.getString('userId');
       final response = await http.post(
-        Uri.parse('https://ip-tienda-han-backend.onrender.com/updatepassword-mobile/$userId'),
+        Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/updatepassword-mobile/$userId'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'password': newPassword}),
       );

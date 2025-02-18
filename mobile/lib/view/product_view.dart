@@ -22,7 +22,7 @@ import '../widget/product_list.dart';
 import 'layout/default_view_layout.dart';
 import 'package:indigitech_shop/view_model/auth_view_model.dart';
 import '../core/constant/enum/product_size.dart';
-import 'dart:js' as js;
+//import 'dart:js' as js;
 
 class ProductView extends StatefulWidget {
   final Product product;
@@ -105,7 +105,7 @@ class _ProductViewState extends State<ProductView> {
       return;
     }
 
-    // Convert the String id to an int (productId) for the backend
+    // Convert the String id to an int (productId) for the backend-mob
     final int? productId = int.tryParse(product.id);
 
     if (productId == null) {
@@ -122,14 +122,14 @@ class _ProductViewState extends State<ProductView> {
           'selectedSize': _selectedSize!.name,
           'adjustedPrice': adjustedPrice,
           'quantity': _selectedQuantity,
-          'cartItemId': null, // Backend will generate this
+          'cartItemId': null, // backend-mob will generate this
         }
       ]
     };
 
     try {
       final response = await http.post(
-        Uri.parse('https://ip-tienda-han-backend.onrender.com/api/cart/save'),
+        Uri.parse('https://ip-tienda-han-backend-mob.onrender.com/api/cart/save'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(cartItem),
       );
@@ -186,7 +186,7 @@ class _ProductViewState extends State<ProductView> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          'https://ip-tienda-han-backend.onrender.com/upload/images/${widget.product.image[0]}',
+                          'https://ip-tienda-han-backend-mob.onrender.com/upload/images/${widget.product.image[0]}',
                           width: double.infinity,
                           height: 200,
                           fit: BoxFit.contain, // Changed to BoxFit.contain
